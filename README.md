@@ -12,9 +12,9 @@ Smartkeg logs refrigerator temperature, beer temperature, and consumption rates 
 
 ### History
 Originally, we scoped the project to gather information using distinct processes and let a web server handle displaying the information to the user.  This had some very distinct drawbacks:
-1. Contention
-2. Data Sharing
-3. Bloat
+* Contention
+* Data Sharing
+* Bloat
 
 ### Today
 Smartkeg is driven by a main process with 4 distinct child processes; Temperature Sensor, LED Display, Flow Meter, and Smartkeg Server.
