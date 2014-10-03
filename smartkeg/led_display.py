@@ -14,7 +14,7 @@
 
 from multiprocessing import Pipe
 
-class LED_Display:
+class LEDDisplay:
     ROW = [
         [15, 13, 11],
         [13, 15, 11],

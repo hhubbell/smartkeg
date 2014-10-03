@@ -18,6 +18,8 @@ import time
 
 class Smartkeg:
     _CONFIG_PATH = 'etc/config.cfg'
+
+    # This should probably become a seperate module
     _QUERY = {
         'INSERT': {
             'POUR': """
@@ -67,7 +69,7 @@ class Smartkeg:
         pwd = cfg.get(HEADER, 'pwd')
         dbn = cfg.get(HEADER, 'dbn')
         adr = cfg.get(HEADER, 'adr')
-        return Database_Interface(adr, dbn, usr, pwd)
+        return DatabaseInterface(adr, dbn, usr, pwd)
 
     def set_next_read(self):
         """
@@ -214,7 +216,7 @@ class Smartkeg:
         @Created:       08/31/2104
         @Description:   Creates the LED Display process
         """
-        led = LED_Display(conn, GPIO)
+        led = LEDDisplay(conn, GPIO)
         led.main()
 
     def spawn_server(self, conn):
@@ -230,7 +232,7 @@ class Smartkeg:
         host = cfg.get(HEADER, 'host')
         port = cfg.getint(HEADER, 'port')
         
-        srv = Smartkeg_Server(conn, host, port)
+        srv = SmartkegServer(conn, host, port)
         srv.main()
 
     def spawn_flow_meter(self, conn):
@@ -245,7 +247,7 @@ class Smartkeg:
         cfg.read(self._CONFIG_PATH)
         pin = cfg.getint(HEADER, 'data_pin')
 
-        flo = Flow_Meter(conn, GPIO, pin)
+        flo = FlowMeterReader(conn, GPIO, pin)
         flo.main()
 
     def spawn_temp_sensor(self, conn):
@@ -265,7 +267,7 @@ class Smartkeg:
 
         self.set_next_read()
 
-        tmp = Temperature_Sensor(conn, sensors, thermo_dir, filename)
+        tmp = TemperatureSensorReader(conn, sensors, thermo_dir, filename)
         tmp.main()
 
 if __name__ == '__main__':

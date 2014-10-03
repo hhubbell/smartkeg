@@ -3,13 +3,18 @@
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
 # Description:  Is responsible for serving data over HTTP
+#
+# TODO:         May decide to have specialized servers for request types;
+#               for example, a web server for viewing data in a browser,
+#               and a server that handles RESTful requests from other
+#               nodes (phone apps, API calls, etc.)
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Pipe
 import BaseHTTPServer
 import json
 
-class Request_Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     HTTP_OK             = 200
     HTTP_PAGE_NOT_FOUND = 404
     SERVER_DIR = 'srv/'
@@ -70,9 +75,9 @@ class Request_Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
     
 
-class Smartkeg_Server:    
+class SmartkegServer:    
     def __init__(self, pipe, host, port):
-        self.httpd = BaseHTTPServer.HTTPServer((host, port), Request_Handler)
+        self.httpd = BaseHTTPServer.HTTPServer((host, port), RequestHandler)
         
     def main(self):
         self.httpd.serve_forever()

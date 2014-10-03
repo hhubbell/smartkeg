@@ -14,7 +14,7 @@
 
 import MySQLdb
 
-class Database_Interface(object):    
+class DatabaseInterface(object):    
     def __init__(self, addr, dbn, user, pwd):
         self.conn = MySQLdb.connect(addr, user, pwd, dbn)
 

@@ -9,7 +9,7 @@
 
 from multiprocessing import Pipe
 
-class Temperature_Sensor:
+class TemperatureSensorReader:
     def __init__(self, pipe, sensors, therm_dir, filename):
         self.pipe = pipe
         self.sensors = sensors

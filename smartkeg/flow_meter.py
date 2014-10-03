@@ -7,13 +7,15 @@
 #                   > NOT ALL ONE METHOD
 #                   > Event Based
 #                   > Return data to parent proc
+#               Create FlowMeter class to handle checking flow, that the
+#               FlowMeterReader object controls
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Pipe
 import RPi.GPIO as GPIO
 import time
 
-class Flow_Meter:
+class FlowMeterReader:
     _TIME_ACCY = 1000
     _TIMEOUT = 1
 
