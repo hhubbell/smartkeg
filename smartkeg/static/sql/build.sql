@@ -56,6 +56,7 @@ CREATE TABLE Fridge (
 -- --------------------
 CREATE TABLE Sensor (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
+    name            CHAR(15)    NOT NULL,
     type            VARCHAR(6)  NOT NULL CHECK(type IN ('Fridge', 'Keg')),
     PRIMARY KEY(id)
 );
