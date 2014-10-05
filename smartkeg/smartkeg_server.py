@@ -10,7 +10,7 @@
 #               nodes (phone apps, API calls, etc.)
 # ----------------------------------------------------------------------------
 
-from multiprocessing import Pipe
+from process import ChildProcess
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
 import json
@@ -51,6 +51,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         return page
 
     def log(self, message=None):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       09/01/2014
+        @Description:   Logs server actions to a file.
+        """
         log = self.LOG_DIR + self.LOG_FILE
 
         with open(log, 'w') as l:
@@ -88,8 +93,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle Requests in a Seperate Thread."""
     
 
-class SmartkegServer:    
+class SmartkegServer(ChildProcess):    
     def __init__(self, pipe, host, port):
+        super(SmartkegServer, self).__init__(pipe)
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         
     def main(self):

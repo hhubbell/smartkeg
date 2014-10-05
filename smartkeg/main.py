@@ -6,28 +6,26 @@
 #               and handing data interaction between these parts.
 # ----------------------------------------------------------------------------
 
-from multiprocessing import Process, Pipe
 from ConfigParser import ConfigParser
+from process import ParentProcess
 from database_interface import DatabaseInterface
+from flow_meter import FlowMeterReader
 from led_display import LEDDisplay
 from smartkeg_server import SmartkegServer
-from flow_meter import FlowMeterReader
 from temperature_sensor import TemperatureSensorReader
 from query import Query
 import RPi.GPIO as GPIO
 import time
 
-class Smartkeg:
+class Smartkeg(ParentProcess):
     _CONFIG_PATH = 'etc/config.cfg'
     
     def __init__(self):
+        super(Smartkeg, self).__init__()
         self.dbi = self.set_database_connection()
         self.query_set_current_keg()
-
         #self.percent_remaining = self.get_percent_remaining()
         #self.current_keg = self.get_current_keg()
-        self.procs = {}
-        self.PIPE = {}
 
     # --------------------
     # SETTERS
@@ -101,53 +99,6 @@ class Smartkeg:
         return self.dbi.SELECT(Query.SELECT_VOLUME_REMAINING)
 
     # --------------------
-    # PROC METHODS
-    # --------------------
-    def proc_add(self, proc_name, target=None, pipe=None):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Adds a process and manages creating the pipes 
-                        between both nodes.
-        """
-        args = None
-
-        if pipe:
-            self.PIPE[proc_name] = {'TO': None, 'FROM': None}
-            self.PIPE[proc_name]['TO'], self.PIPE[proc_name]['FROM'] = Pipe()
-            args = (self.PIPE[proc_name]['FROM'],)
-
-        self.procs[proc_name] = Process(name=proc_name, target=target, args=args)
-   
-    # XXX Re-evaluate need for this method.
-    def proc_recv(self, proc_name):
-        """
-        @Author:        Harrison Hubbell
-        @created:       08/31/2014
-        @Description:   Receives data from a process via its pipe.
-        """
-        node = self.PIPE[proc_name]['FROM']
-        if node.poll():
-            return node.recv()
-   
-    def proc_send(self, proc_name, payload):
-        """
-        @Author:        Harrison Hubbell
-        @created:       08/31/2014
-        @Description:   Sends data to an arbitrary process via its pipe.
-        """
-        self.PIPE[proc_name]['TO'].send(payload)
-
-    def proc_start_all(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Starts all processes in the procs dict.
-        """
-        for p in self.procs:
-            self.procs[p].start()
-
-    # --------------------
     # PROC EVENT HANDLERS
     # --------------------
     def handle_flow_meter(self, proc_name, callback=None, args=None):
@@ -160,8 +111,8 @@ class Smartkeg:
         # XXX This will be set elsewhere, eventually when a keg is inserted into the 
         # db (either through the web or through the gui.
         self.current_keg = 1
-        if self.PIPE[proc_name]['TO'].poll():
-            pour = self.PIPE[proc_name]['TO'].recv()
+        pour = self.proc_poll_recv()
+        if pour:
             self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
 
     def handle_led_display(self, proc_name):
@@ -203,7 +154,7 @@ class Smartkeg:
         now = time.time()
         if now == self.next_read:
             self.proc_send(proc_name, 'read')
-            temps = self.PIPE[proc_name]['TO'].recv()
+            temps = self.proc_recv()
             
             temp_tuples = []
             for sensor in temps:
@@ -227,7 +178,7 @@ class Smartkeg:
         cfg.read(self._CONFIG_PATH)
         pin = cfg.getint(HEADER, 'data_pin')
 
-        flo = FlowMeterReader(GPIO, pin, conn)
+        flo = FlowMeterReader(conn, GPIO, pin)
         flo.main()
 
     def spawn_led_display(self, conn):

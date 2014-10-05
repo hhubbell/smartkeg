@@ -11,16 +11,16 @@
 #               FlowMeterReader object controls.  
 # ----------------------------------------------------------------------------
 
-from multiprocessing import Pipe
+from process import ChildProcess
 import RPi.GPIO as GPIO
 import time
 
-class FlowMeter:
+class FlowMeter(ChildProcess):
     _TIME_ACCY = 1000
     _TIMEOUT = 1
     
-    def __init__(self, gpio, pin, pipe):
-        self.pipe = pipe
+    def __init__(self, pipe, gpio, pin):
+        super(FlowMeter, self).__init__(pipe)
         self.GPIO = gpio
         self.pin = pin
         self.ticks = 0
@@ -57,13 +57,12 @@ class FlowMeter:
         @Description:   The main loop. checks for a pour and handles 
                         it if true.
         """
-        # TODO There still might be a better way to do this.
         self.last_tick = time.time()
         
         while True:
             if time.time() - self.last_tick > self._TIMEOUT and self.ticks > 0:
                 self.convert_ticks_to_pints()
-                self.pipe.send(self.last_pour)
+                self.proc_send(self.last_pour)
                 self.reset_ticks()
 
             if self.GPIO.event_detected(self.pin):
@@ -72,10 +71,10 @@ class FlowMeter:
             else:
                 time.sleep(0.1)
 
-class FlowMeterReader:
-    def __init__(self, gpio, pin, pipe):
-        self.pipe = pipe
-        self.flow_meter = FlowMeter(gpio, pin, pipe)
+class FlowMeterReader(ChildProcess):
+    def __init__(self, pipe, gpio, pin):
+        super(FlowMeterReader, self).__init__(pipe)
+        self.flow_meter = FlowMeter(pipe, gpio, pin)
         
     def main(self):
         """

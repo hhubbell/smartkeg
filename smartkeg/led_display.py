@@ -12,9 +12,9 @@
 #               50Hz - to prevent noticable light flicker.
 # ----------------------------------------------------------------------------
 
-from multiprocessing import Pipe
+from process import ChildProcess
 
-class LEDDisplay:
+class LEDDisplay(ChildProcess):
     ROW = [
         [15, 13, 11],
         [13, 15, 11],
@@ -23,7 +23,7 @@ class LEDDisplay:
     ]
 
     def __init__(self, pipe, gpio):
-        self.pipe = pipe
+        super(LEDDisplay, self).__init__(pipe)
         self.GPIO = gpio
         self.light = 0
 
@@ -48,10 +48,9 @@ class LEDDisplay:
         @Description:   Receives the number of rows to light and updates
                         if there is a new value.
         """
-        if self.pipe.poll():
-            rows = self.pipe.recv()
-            if rows is not self.light:
-                self.light = rows
+        rows = self.proc_poll_recv()
+        if rows is not self.light:
+            self.light = rows
 
     def main(self):
         """

@@ -7,7 +7,7 @@
 #               sensor to generate temperature values.
 # ----------------------------------------------------------------------------
 
-from multiprocessing import Pipe
+from process import ChildProcess
 import re
 
 class TemperatureSensor:
@@ -47,10 +47,10 @@ class TemperatureSensor:
             self.temperature = float(temperature[1]) / self.TEMP_SCALE
         
 
-class TemperatureSensorReader:
+class TemperatureSensorReader(ChildProcess):
     def __init__(self, pipe):
+        super(TemperatureSensorReader, self).__init__(pipe)
         self.sensors = {}    
-        self.pipe = pipe
 
     def sensor_add(self, sensor, therm_dir, filename):
         """
@@ -100,12 +100,12 @@ class TemperatureSensorReader:
                         and return the data to the parent proc as a tuple.
         """
         while True:
-            job = self.pipe.recv()
+            job = self.proc_recv()
             if job == 'read':
                 fahrenheit_temps = {}
                 celcius_temps = self.sensor_read_all()
                 for sensor in celcius_temps:
                     fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
                     
-                self.pipe.send(farenheit_temps)
+                self.proc_send(farenheit_temps)
 
