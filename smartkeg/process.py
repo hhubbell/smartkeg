@@ -12,7 +12,7 @@ from multiprocessing import Process, Pipe
 class ParentProcess(object):
     def __init__(self):
         self.procs = {}
-        self.PIPE = {}
+        self.pipes = {}
 
     def proc_add(self, proc_name, target=None, pipe=None):
         """
@@ -24,9 +24,9 @@ class ParentProcess(object):
         args = None
 
         if pipe:
-            self.PIPE[proc_name] = {'TO': None, 'FROM': None}
-            self.PIPE[proc_name]['TO'], self.PIPE[proc_name]['FROM'] = Pipe()
-            args = (self.PIPE[proc_name]['FROM'],)
+            self.pipes[proc_name] = {'TO': None, 'FROM': None}
+            self.pipes[proc_name]['TO'], self.pipes[proc_name]['FROM'] = Pipe()
+            args = (self.pipes[proc_name]['FROM'],)
 
         self.procs[proc_name] = Process(name=proc_name, target=target, args=args)
    
@@ -37,7 +37,7 @@ class ParentProcess(object):
         @Description:   Receives data from a process via its pipe without
                         blocking processing, by polling first.
         """
-        node = self.PIPE[proc_name]['TO']
+        node = self.pipes[proc_name]['TO']
         if node.poll():
             return node.recv()
 
@@ -48,7 +48,7 @@ class ParentProcess(object):
         @Description:   Receives data from a process via its pipe with
                         blocking.
         """
-        return self.PIPE[proc_name]['TO'].recv()
+        return self.pipes[proc_name]['TO'].recv()
 
     def proc_send(self, proc_name, payload):
         """
@@ -56,7 +56,7 @@ class ParentProcess(object):
         @created:       10/05/2014
         @Description:   Sends data to an arbitrary process via its pipe.
         """
-        self.PIPE[proc_name]['TO'].send(payload)
+        self.pipes[proc_name]['TO'].send(payload)
 
     def proc_start_all(self):
         """
