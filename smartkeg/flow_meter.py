@@ -2,13 +2,10 @@
 # Filename:     flow_meter.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
-# Description:  Reads flow from flow meter.  For the current scope of the 
-#               project ther is only one flow meter per kegerator.
-# TODO:         The main method need some serious refactoring, particularly:
-#                   > Event Based
-#                   > Return data to parent proc
-#               Create FlowMeter class to handle checking flow, that the
-#               FlowMeterReader object controls.  
+# Description:  Reads flow from flow meter. For the current scope of the 
+#               project ther is only one flow meter per kegerator.  The 
+#               FlowMeterReader object can however, with some modification,
+#               be made to handle multiple FlowMeters in form of child procs.
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
