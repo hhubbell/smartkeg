@@ -48,9 +48,10 @@ class LEDDisplay:
         @Description:   Receives the number of rows to light and updates
                         if there is a new value.
         """
-        rows = self.pipe.recv() if self.pipe.poll()
-        if rows and rows is not self.light:
-            self.light = rows
+        if self.pipe.poll():
+            rows = self.pipe.recv()
+            if rows is not self.light:
+                self.light = rows
 
     def main(self):
         """

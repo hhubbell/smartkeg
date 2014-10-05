@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 
 import MySQLdb
+import MySQLdb.cursors
 
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd):
@@ -26,9 +27,9 @@ class DatabaseInterface(object):
         """
         try:
             self.conn = MySQLdb.connect(addr, user, pwd, dbn, cursorclass=MySQLdb.cursors.DictCursor)
-        except OperationalError:
-            # XXX Log to file
-            print "Could not connect to the database"
+        except MySQLdb.OperationalError as e:
+            print "Could not connect to the database:"
+            print e
             
     def prepare(self):
         """
@@ -38,7 +39,7 @@ class DatabaseInterface(object):
         """
         self.cur = self.conn.cursor()
 
-    def INSERT(self, query, params):
+    def INSERT(self, query, params=None):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
@@ -47,11 +48,11 @@ class DatabaseInterface(object):
         self.prepare()
         try:
             self.cur.executemany(query, params)
-            self.database.commit()
+            self.conn.commit()
         except:
-            self.database.rollback()
+            self.conn.rollback()
 
-    def SELECT(self, query, params):
+    def SELECT(self, query, params=None):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
@@ -62,6 +63,6 @@ class DatabaseInterface(object):
             self.cur.execute(query, params)
             res = self.cur.fetchall()
         except:
-            self.database.rollback()
+            self.conn.rollback()
         
         return res

@@ -2,80 +2,87 @@
 # Filename:     flow_meter.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
-# Description:  Reads flow from flow meter.
+# Description:  Reads flow from flow meter.  For the current scope of the 
+#               project ther is only one flow meter per kegerator.
 # TODO:         The main method need some serious refactoring, particularly:
-#                   > NOT ALL ONE METHOD
 #                   > Event Based
 #                   > Return data to parent proc
 #               Create FlowMeter class to handle checking flow, that the
-#               FlowMeterReader object controls
+#               FlowMeterReader object controls.  
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Pipe
 import RPi.GPIO as GPIO
 import time
 
-class FlowMeterReader:
+class FlowMeter:
     _TIME_ACCY = 1000
     _TIMEOUT = 1
-
-    def __init__(self, pipe, gpio, data_pin):
+    
+    def __init__(self, gpio, pin, pipe):
         self.pipe = pipe
         self.GPIO = gpio
-        self.data_pin = data_pin
-        self.pouring = False
-        self.pin_state = False
+        self.pin = pin
+        self.ticks = 0
+
+    def convert_ticks_to_pints(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/05/2014
+        @Description:   Converts flow meter ticks to pint value.
+        """
+        self.last_pour = self.ticks
+
+    def reset_ticks(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/05/2014
+        @Description:   Resets ticks to zero
+        """
+        self.ticks = 0
 
     def setup_data_pin(self):
         """
         @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   prepares the data pin for incoming voltage
+        @Created:       10/04/2014
+        @Description:   Prepares the data pin for incoming voltage
         """
-        self.GPIO.setup(self.data_pin, self.GPIO.IN)
+        self.GPIO.setup(self.pin, self.GPIO.IN)
+        self.GPIO.add_event_detect(self.pin, self.GPIO.RISING)
 
-    def main(self):
+    def monitor_flow(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
         @Description:   The main loop. checks for a pour and handles 
                         it if true.
         """
-        self.setup_data_pin()
-        timeout = self._TIMEOUT * self._TIME_ACCY
-        last_pin_state = self.pin_state
-        now = int(time.time() * self._TIME_ACCY)
-        pin_change = now
-        last_pin_change = now
-
+        # TODO There still might be a better way to do this.
+        self.last_tick = time.time()
+        
         while True:
-            if self.GPIO.input(self.data_pin):
-                self.pin_state = True
+            if time.time() - self.last_tick > self._TIMEOUT and self.ticks > 0:
+                self.convert_ticks_to_pints()
+                self.pipe.send(self.last_pour)
+                self.reset_ticks()
+
+            if self.GPIO.event_detected(self.pin):
+                self.ticks += 1
+                self.last_tick = time.time()
             else:
-                self.pin_state = False
+                time.sleep(0.1)
 
-            if self.pin_state != last_pin_state and self.pin_state is True:
-                if self.pouring is False:
-                    pour_start = now
-                    pin_change = now
-
-                self.pouring = True
-                
-                pin_delta = pin_change - last_pin_change
-                if pin_delta < timeout:
-                    hertz = 1000.000 / pin_delta
-                    flow = hertz / (60 * 7.5)
-                    liters += flow * (pin_delta / 1000.000)
-
-            if self.pouring is True and self.pin_state == last_pin_state and now - last_pin_change > 3000:
-                self.pouring = False
-                if liters_poured > 0.1:
-                    self.pipe.send(liters_poured)
-                    liters_poured = 0
-
-            last_pin_change = pin_change
-            last_pin_state = self.pin_state
-
-                    
-    
-
+class FlowMeterReader:
+    def __init__(self, gpio, pin, pipe):
+        self.pipe = pipe
+        self.flow_meter = FlowMeter(gpio, pin, pipe)
+        
+    def main(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Starts monitor the FlowMeter for pouring
+        """
+        self.flow_meter.setup_data_pin()
+        self.flow_meter.monitor_flow()
+        

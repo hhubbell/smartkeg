@@ -8,47 +8,24 @@
 
 from multiprocessing import Process, Pipe
 from ConfigParser import ConfigParser
-from database_interface import Database_Interface
-from led_display import LED_Display
-from smartkeg_server import Smartkeg_Server
-from flow_meter import Flow_Meter
-from temperature_sensor import Temperature_Sensor
+from database_interface import DatabaseInterface
+from led_display import LEDDisplay
+from smartkeg_server import SmartkegServer
+from flow_meter import FlowMeterReader
+from temperature_sensor import TemperatureSensorReader
+from query import Query
 import RPi.GPIO as GPIO
 import time
 
 class Smartkeg:
     _CONFIG_PATH = 'etc/config.cfg'
-
-    # This should probably become a seperate module
-    _QUERY = {
-        'INSERT': {
-            'POUR': """
-                INSERT INTO Pour (keg_id, volume)
-                VALUES (%s, %s)
-            """,
-            'FRIDGE_TEMP': """
-                INSERT INTO FridgeTemp (fridge_id, sensor_id, temperature)
-                VALUES (%s, %s, %s)
-            """
-        },
-        'SELECT': {
-            'KEG_ID': """
-                SELECT id FROM Keg WHERE now_serving = 1
-            """,
-            'VOLUME_REMAINING': """
-                SELECT *** FROM *** JOIN *** WHERE ***
-            """,
-            'PERCENT_REMAINING': """
-                
-            """
-        }
-    }
     
     def __init__(self):
         self.dbi = self.set_database_connection()
-        self._temp_read_interval = 0
-        self.percent_remaining = self.get_percent_remaining()
-        self.current_keg = self.get_current_keg()
+        self.query_set_current_keg()
+
+        #self.percent_remaining = self.get_percent_remaining()
+        #self.current_keg = self.get_current_keg()
         self.procs = {}
         self.PIPE = {}
 
@@ -71,14 +48,14 @@ class Smartkeg:
         adr = cfg.get(HEADER, 'adr')
         return DatabaseInterface(adr, dbn, usr, pwd)
 
-    def set_next_read(self):
+    def set_next_read_time(self, interval):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
         @Description:   Handles setting the next temperature
                         read time based on interval.
         """
-        self.next_read = time.time() + self._temp_read_interval
+        self.next_read = time.time() + interval
 
     # --------------------
     # GETTERS
@@ -90,6 +67,29 @@ class Smartkeg:
         @Descreption:   Returns current keg id
         """
         return self.dbi.SELECT(self.QUERY['SELECT']['KEG_ID'])
+
+    # --------------------
+    # QUERY SET METHODS
+    # --------------------
+    def query_set_current_keg(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Returns current keg id
+        """
+        self.current_kegs = self.dbi.SELECT(Query.SELECT_KEG_ID)
+
+    # --------------------
+    # QUERY GET METHODS
+    # --------------------
+    def query_get_percent_remaining(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       09/10/2014
+        @Description:   Returns remaining volume of beer left in
+                        the keg as a percentage of the keg's capacity.
+        """
+        return self.dbi.SELECT(Query.SELECT_PERCENT_REMAINING)
         
     def get_volume_remaining(self):
         """
@@ -98,17 +98,8 @@ class Smartkeg:
         @Description:   Returns remaining volume of beer left in
                         the keg.
         """
-        return self.dbi.SELECT(self.QUERY['SELECT']['VOLUME_REMAINING'])
+        return self.dbi.SELECT(Query.SELECT_VOLUME_REMAINING)
 
-    def get_percent_remaining(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       09/10/2014
-        @Description:   Returns remaining volume of beer left in
-                        the keg as a percentage of the keg's capacity.
-        """
-        return self.dbi.SELECT(self.QUERY['SELECT']['PERCENT_REMAINING'])            
-    
     # --------------------
     # PROC METHODS
     # --------------------
@@ -128,19 +119,22 @@ class Smartkeg:
 
         self.procs[proc_name] = Process(name=proc_name, target=target, args=args)
    
+    # XXX Re-evaluate need for this method.
     def proc_recv(self, proc_name):
         """
         @Author:        Harrison Hubbell
         @created:       08/31/2014
         @Description:   Receives data from a process via its pipe.
         """
-        return self.PIPE[proc_name]['FROM'].recv()
+        node = self.PIPE[proc_name]['FROM']
+        if node.poll():
+            return node.recv()
    
     def proc_send(self, proc_name, payload):
         """
         @Author:        Harrison Hubbell
         @created:       08/31/2014
-        @Description:   Receives data to a process via its pipe.
+        @Description:   Sends data to an arbitrary process via its pipe.
         """
         self.PIPE[proc_name]['TO'].send(payload)
 
@@ -148,7 +142,7 @@ class Smartkeg:
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
-        @Description:   Starts all processes in the PROC dict.
+        @Description:   Starts all processes in the procs dict.
         """
         for p in self.procs:
             self.procs[p].start()
@@ -156,26 +150,29 @@ class Smartkeg:
     # --------------------
     # PROC EVENT HANDLERS
     # --------------------
-    def handle_flow_meter(self):
+    def handle_flow_meter(self, proc_name, callback=None, args=None):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
         @Description:   Checks for new pour information and writes
                         to database when a pour occurs
         """
-        pour = self.proc_recv(PROC['FLO'])
-        if pour:
-            self.dbi.INSERT(self.QUERY['INSERT']['POUR'], (self.current_keg, pour))
+        # XXX This will be set elsewhere, eventually when a keg is inserted into the 
+        # db (either through the web or through the gui.
+        self.current_keg = 1
+        if self.PIPE[proc_name]['TO'].poll():
+            pour = self.PIPE[proc_name]['TO'].recv()
+            self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
 
-    def handle_led_display(self):
+    def handle_led_display(self, proc_name):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
         @Description:   Checks for a new remaining volume and tells 
                         the LED process how many rows to light.
         """
-        prev_rem = self.percent_remaining
-        new_rem = self.get_percent_remaining()
+        prev_rem = None #self.percent_remaining
+        new_rem = None #self.get_percent_remaining()
 
         if new_rem != prev_rem:
             self.percent_remaining = new_rem
@@ -187,29 +184,52 @@ class Smartkeg:
                 rows = 2
             else:
                 rows = 1
-        else:
-            rows = None
-        
-        self.proc_send(PROC['LED'], rows)
+                
+            self.proc_send(proc_name, rows)
             
-    def handle_temperature_sensor(self):
+    def handle_temperature_sensor(self, proc_name):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
-        @Description:   Checks if it is time to read the temperature
-                        sensors again and if true, gets current temp
-                        data and logs to the database.
+        @Description:   Checks if it is time to read the temperature sensors.
+                        If true, gets current temp data and logs to the 
+                        database.  This method blocks processing until
+                        temperatures are returned, or an exception is thrown
+                        by the TemperatureSensorReader.
         """
+        #TODO: Give value to fridge_id
+        fridge_id = 'NULL'
+        
         now = time.time()
         if now == self.next_read:
-            self.proc_send(PROC['TMP'], 'read')
-            temps = self.proc_recv(PROC['TMP'])
-            self.dbi.INSERT(self.QUERY['INSERT']['TEMP'], temps)
-            self.set_next_read()
+            self.proc_send(proc_name, 'read')
+            temps = self.PIPE[proc_name]['TO'].recv()
+            
+            temp_tuples = []
+            for sensor in temps:
+                temp_tuples.append((fridge_id, sensor, temps[sensor]))
+
+            self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, temps)
+            self.set_next_read_time(self._temp_read_interval)
 
     # --------------------
     # PROCS
     # --------------------
+    def spawn_flow_meter(self, conn):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       08/31/2104
+        @Description:   Creates the Flow Meter process
+        """
+        HEADER = 'SmartkegFlowMeter'
+
+        cfg = ConfigParser()
+        cfg.read(self._CONFIG_PATH)
+        pin = cfg.getint(HEADER, 'data_pin')
+
+        flo = FlowMeterReader(GPIO, pin, conn)
+        flo.main()
+
     def spawn_led_display(self, conn):
         """
         @Author:        Harrison Hubbell
@@ -235,21 +255,6 @@ class Smartkeg:
         srv = SmartkegServer(conn, host, port)
         srv.main()
 
-    def spawn_flow_meter(self, conn):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2104
-        @Description:   Creates the Flow Meter process
-        """
-        HEADER = 'SmartkegFlowMeter'
-
-        cfg = ConfigParser()
-        cfg.read(self._CONFIG_PATH)
-        pin = cfg.getint(HEADER, 'data_pin')
-
-        flo = FlowMeterReader(conn, GPIO, pin)
-        flo.main()
-
     def spawn_temp_sensor(self, conn):
         """
         @Author:        Harrison Hubbell
@@ -265,9 +270,12 @@ class Smartkeg:
         filename = cfg.get(HEADER, 'file')
         sensors = cfg.get(HEADER, 'sensors').split(',')
 
-        self.set_next_read()
+        self.set_next_read_time(self._temp_read_interval)
 
-        tmp = TemperatureSensorReader(conn, sensors, thermo_dir, filename)
+        tmp = TemperatureSensorReader(conn)
+        for sensor in sensors:
+            tmp.sensor_add(sensor, thermo_dir, filename)
+            
         tmp.main()
 
 if __name__ == '__main__':
@@ -288,6 +296,7 @@ if __name__ == '__main__':
     smartkeg.proc_start_all()
  
     while True:
-        smartkeg.handle_flow_meter()
-        smartkeg.handle_led_display()
-        smartkeg.handle_temperature_sensor()
+        smartkeg.handle_flow_meter(PROC['FLO'])
+        smartkeg.handle_led_display(PROC['LED'])
+        smartkeg.handle_temperature_sensor(PROC['TMP'])
+        time.sleep(0.1)
