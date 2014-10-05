@@ -11,10 +11,11 @@
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Pipe
-import BaseHTTPServer
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from SocketServer import ThreadingMixIn
 import json
 
-class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPRequestHandler):
     HTTP_OK             = 200
     HTTP_PAGE_NOT_FOUND = 404
     SERVER_DIR = 'srv/'
@@ -36,6 +37,19 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if req.endswith('.pdf'):    return 'application/pdf'
         if req.endswith('.png'):    return 'image/png'
 
+    def get_page(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/05/2014
+        @Description:   Locates the requested page.
+        """
+        if self.path[1:] is '': 
+            page = self.SERVER_DIR + self.INDEX
+        else:
+            page = self.SERVER_DIR + self.path[1:]
+
+        return page
+
     def log(self, message=None):
         log = self.LOG_DIR + self.LOG_FILE
 
@@ -56,11 +70,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # BUILTIN HTTP METHODS
     # --------------------
     def do_GET(self):
-        if self.path[1:] == '': 
-            page = self.SERVER_DIR + self.INDEX
-        else:
-            page = self.SERVER_DIR + self.path[1:]
-
+        page = self.get_page()
         content_type = self.get_content_type(page)
 
         self.log()        
@@ -73,11 +83,14 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_POST(self):
         #POST Stuff
         return
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle Requests in a Seperate Thread."""
     
 
 class SmartkegServer:    
     def __init__(self, pipe, host, port):
-        self.httpd = BaseHTTPServer.HTTPServer((host, port), RequestHandler)
+        self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         
     def main(self):
         self.httpd.serve_forever()
