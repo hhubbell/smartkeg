@@ -25,6 +25,7 @@ class LEDDisplay:
     def __init__(self, pipe, gpio):
         self.pipe = pipe
         self.GPIO = gpio
+        self.light = 0
 
     def light_row(self, row):
         """
@@ -40,6 +41,17 @@ class LEDDisplay:
         self.GPIO.output(row[0], self.GPIO.HIGH)
         self.GPIO.output(row[1], self.GPIO.LOW)
 
+    def set_rows(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/05/2014
+        @Description:   Receives the number of rows to light and updates
+                        if there is a new value.
+        """
+        rows = self.pipe.recv() if self.pipe.poll()
+        if rows and rows is not self.light:
+            self.light = rows
+
     def main(self):
         """
         @Author:        Harrison Hubbell
@@ -47,16 +59,10 @@ class LEDDisplay:
         @Description:   Lights each the number of rows it is told to light, 
                         which is received from its parent proc.
         """
-        rows = self.pipe.recv()
-        if rows:
-            light = rows - 1
-        else:
-            light = 0
-
         while True:
-            rows = self.pipe.recv()
-            if rows and rows != light:
-                light = rows
-            i = light
-            while i > 0:
-                light_row(ROW[i])
+            self.set_rows()
+            if self.light is not 0:
+                i = self.light - 1
+                while i >= 0:
+                    self.light_row(ROW[i])
+                    i -= 1
