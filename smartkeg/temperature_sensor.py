@@ -8,27 +8,81 @@
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Pipe
+import re
 
-class TemperatureSensorReader:
-    def __init__(self, pipe, sensors, therm_dir, filename):
-        self.pipe = pipe
-        self.sensors = sensors
-        self.therm_directory = therm_dir
-        self.filename = filename
+class TemperatureSensor:
+    TEMP_SCALE = 1000.00
+    
+    def __init__(self, sensor_path, name):
+        self.name = name
+        self.sensor = sensor_path
 
-    def read_temperature(self, sensor):
+    def get_name(self):
         """
         @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Opens the temperature file in the sensor directory
-                        and reads its value. Temperatures are located in a 
+        @Created:       10/05/2014
+        @Description:   Returns the sensor name.
+        """
+        return self.name
+
+    def get_temperature(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/05/2014
+        @Description:   Returns the temperature read.
+        """
+        return self.temperature
+
+    def read(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Opens the temperature file in the sensor path and 
+                        reads its value. Temperatures are located in a 
                         file because the DS18B20 is a digital 3-pin sensor
                         and writes directly using STDIN.
         """
-        sensor_path = self.therm_directory + sensor + '/' + self.filename
-        with open(sensor_path, 'r') as thermo:
+        with open(self.sensor, 'r') as thermo:
             temperature = re.split('t=', thermo.read())
-            return float(temperature[1]) / 1000.00
+            self.temperature = float(temperature[1]) / self.TEMP_SCALE
+        
+
+class TemperatureSensorReader:
+    def __init__(self, pipe):
+        self.sensors = {}    
+        self.pipe = pipe
+
+    def sensor_add(self, sensor, therm_dir, filename):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Creates dict of TemperatureSensor Objects.
+        """
+        path = therm_dir + sensor + '/' + filename
+        self.sensors[sensor] = TemperatureSensor(path, sensor)
+
+    def sensor_read(self, name):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Reads from the specified sensor.
+        """
+        return self.sensor[name].read()
+
+    def sensor_read_all(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/04/2014
+        @Description:   Reads all sensors in the sensor dict, and
+                        returns a dict with the associated sensor 
+                        for each temperature.
+        """
+        temperatures = {}
+        for sensor in self.sensors:
+            self.sensors[sensor].read()
+            temperatures[sensor] = self.sensors[sensor].get_temperature()
+
+        return temperatures
 
     def celcius_to_fahrenheit(self, celcius):
         """
@@ -48,9 +102,10 @@ class TemperatureSensorReader:
         while True:
             job = self.pipe.recv()
             if job == 'read':
-                temperatures = []
-                for s in self.sensors:
-                    c_temp = self.read_temperature(s)
-                    temperatures[] = ('NULL', s, celcius_to_fahrenheit(c_temp))
-                self.pipe.send(temperatures)
+                fahrenheit_temps = {}
+                celcius_temps = self.sensor_read_all()
+                for sensor in celcius_temps:
+                    fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
+                    
+                self.pipe.send(farenheit_temps)
 
