@@ -8,6 +8,7 @@
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
+import time
 import re
 
 class TemperatureSensor:
@@ -48,8 +49,9 @@ class TemperatureSensor:
         
 
 class TemperatureSensorReader(ChildProcess):
-    def __init__(self, pipe):
+    def __init__(self, pipe, interval):
         super(TemperatureSensorReader, self).__init__(pipe)
+        self.interval = interval
         self.sensors = {}    
 
     def sensor_add(self, sensor, therm_dir, filename):
@@ -100,12 +102,11 @@ class TemperatureSensorReader(ChildProcess):
                         and return the data to the parent proc as a tuple.
         """
         while True:
-            job = self.proc_recv()
-            if job == 'read':
-                fahrenheit_temps = {}
-                celcius_temps = self.sensor_read_all()
-                for sensor in celcius_temps:
-                    fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
+            fahrenheit_temps = {}
+            celcius_temps = self.sensor_read_all()
+            for sensor in celcius_temps:
+                fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
                     
-                self.proc_send(farenheit_temps)
+            self.proc_send(farenheit_temps)
+            time.sleep(self.interval)
 

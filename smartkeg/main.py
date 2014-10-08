@@ -46,15 +46,6 @@ class Smartkeg(ParentProcess):
         adr = cfg.get(HEADER, 'adr')
         return DatabaseInterface(adr, dbn, usr, pwd)
 
-    def set_next_read_time(self, interval):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Handles setting the next temperature
-                        read time based on interval.
-        """
-        self.next_read = time.time() + interval
-
     # --------------------
     # GETTERS
     # --------------------
@@ -159,17 +150,13 @@ class Smartkeg(ParentProcess):
         #TODO: Give value to fridge_id
         fridge_id = 'NULL'
         
-        now = time.time()
-        if now == self.next_read:
-            self.proc_send(proc_name, 'read')
-            temps = self.proc_recv(proc_name)
-            
+        temperatures = self.proc_poll_recv(proc_name)
+        if temperatures:
             temp_tuples = []
             for sensor in temps:
                 temp_tuples.append((fridge_id, sensor, temps[sensor]))
 
-            self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, temps)
-            self.set_next_read_time(self._temp_read_interval)
+            self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, temps_tuples)
 
     # --------------------
     # PROCS
@@ -217,14 +204,12 @@ class Smartkeg(ParentProcess):
 
         cfg = ConfigParser()
         cfg.read(self._CONFIG_PATH)
-        self._temp_read_interval = cfg.getfloat(HEADER, 'interval')
+        interval = cfg.getfloat(HEADER, 'interval')
         thermo_dir = cfg.get(HEADER, 'dir')
         filename = cfg.get(HEADER, 'file')
         sensors = cfg.get(HEADER, 'sensors').split(',')
-
-        self.set_next_read_time(self._temp_read_interval)
-
-        tmp = TemperatureSensorReader(conn)
+        
+        tmp = TemperatureSensorReader(conn, interval)
         for sensor in sensors:
             tmp.sensor_add(sensor, thermo_dir, filename)
             
