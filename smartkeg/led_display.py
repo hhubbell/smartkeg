@@ -61,7 +61,7 @@ class LEDDisplay(ChildProcess):
         """
         while True:
             self.set_rows()
-            if self.light is not 0:
+            if self.light:
                 i = self.light - 1
                 while i >= 0:
                     self.light_row(ROW[i])
