@@ -11,15 +11,14 @@ function Ajax(host, port) {
     
 }
 
-Ajax.prototype.send = function(method, data) {
-    //data = (data) ? data : null;
+Ajax.prototype.send = function(method, callback, payload) {
     this.xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+        if (this.readyState == 4 && this.status == 200 && callback) {
+            callback(this.responseText);
         }
     }
     this.xmlhttp.open(method, this.socket.toString(), true);
-    this.xmlhttp.send(data);
+    this.xmlhttp.send(payload);
 }
 
 Ajax.prototype.recv = function() {
