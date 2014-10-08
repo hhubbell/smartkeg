@@ -11,8 +11,8 @@ from process import ParentProcess
 from database_interface import DatabaseInterface
 from flow_meter import FlowMeterReader
 from led_display import LEDDisplay
-from smartkeg_server import SmartkegServer
 from temperature_sensor import TemperatureSensorReader
+from model import Model
 from query import Query
 import RPi.GPIO as GPIO
 import time
@@ -111,7 +111,7 @@ class Smartkeg(ParentProcess):
         # XXX This will be set elsewhere, eventually when a keg is inserted into the 
         # db (either through the web or through the gui.
         self.current_keg = 1
-        pour = self.proc_poll_recv()
+        pour = self.proc_poll_recv(proc_name)
         if pour:
             self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
 
@@ -137,6 +137,14 @@ class Smartkeg(ParentProcess):
                 rows = 1
                 
             self.proc_send(proc_name, rows)
+
+    def handle_model(self, proc_name):
+        """
+        @Author:        Harrison Hubbell
+
+        
+        """
+        return
             
     def handle_temperature_sensor(self, proc_name):
         """
@@ -154,7 +162,7 @@ class Smartkeg(ParentProcess):
         now = time.time()
         if now == self.next_read:
             self.proc_send(proc_name, 'read')
-            temps = self.proc_recv()
+            temps = self.proc_recv(proc_name)
             
             temp_tuples = []
             for sensor in temps:
@@ -170,7 +178,7 @@ class Smartkeg(ParentProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2104
-        @Description:   Creates the Flow Meter process
+        @Description:   Creates the Flow Meter process.
         """
         HEADER = 'SmartkegFlowMeter'
 
@@ -185,32 +193,25 @@ class Smartkeg(ParentProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2104
-        @Description:   Creates the LED Display process
+        @Description:   Creates the LED Display process.
         """
         led = LEDDisplay(conn, GPIO)
         led.main()
 
-    def spawn_server(self, conn):
+    def spawn_model(self, conn):
         """
         @Author:        Harrison Hubbell
-        @Created:       08/31/2104
-        @Description:   Creates the Server Process process
-        """
-        HEADER = 'SmartkegServer'
-        
-        cfg = ConfigParser()
-        cfg.read(self._CONFIG_PATH)
-        host = cfg.get(HEADER, 'host')
-        port = cfg.getint(HEADER, 'port')
-        
-        srv = SmartkegServer(conn, host, port)
-        srv.main()
+        @Created:       10/07/2104
+        @Description:   Creates the Modeling process.
+        """        
+        mod = Model(conn)
+        mod.main()
 
     def spawn_temp_sensor(self, conn):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2104
-        @Description:   Creates the Temperature Sensor process
+        @Description:   Creates the Temperature Sensor process.
         """
         HEADER = 'SmartkegTemperatureSensor'
 
@@ -233,21 +234,22 @@ if __name__ == '__main__':
     GPIO.setmode(GPIO.BOARD)
 
     PROC = {
+        'FLO': 'flow_meter',        
         'LED': 'led_display',
-        'SRV': 'server',
-        'FLO': 'flow_meter',
+        'MOD': 'model',
         'TMP': 'temperature_sensor'
     }
 
     smartkeg = Smartkeg()
+    smartkeg.proc_add(PROC['FLO'], target=smartkeg.spawn_flow_meter, pipe=True)    
     smartkeg.proc_add(PROC['LED'], target=smartkeg.spawn_led_display, pipe=True)
-    smartkeg.proc_add(PROC['SRV'], target=smartkeg.spawn_server, pipe=True)
-    smartkeg.proc_add(PROC['FLO'], target=smartkeg.spawn_flow_meter, pipe=True)
-    smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)
+    smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)    
+    smartkeg.proc_add(PROC['MOD'], target=smartkeg.spawn_model, pipe=True)
     smartkeg.proc_start_all()
  
     while True:
         smartkeg.handle_flow_meter(PROC['FLO'])
         smartkeg.handle_led_display(PROC['LED'])
         smartkeg.handle_temperature_sensor(PROC['TMP'])
+        smartkeg.handle_model(PROC['MOD'])
         time.sleep(0.1)

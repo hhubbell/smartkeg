@@ -82,7 +82,7 @@ class ChildProcess(object):
         if self.pipe.poll():
             return self.pipe.recv()
 
-    def proc_recv(self, proc_name):
+    def proc_recv(self):
         """
         @Author:        Harrison Hubbell
         @created:       10/05/2014
