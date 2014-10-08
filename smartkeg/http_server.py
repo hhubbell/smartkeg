@@ -5,7 +5,7 @@
 # Description:  Is responsible for serving data over HTTP
 # ----------------------------------------------------------------------------
 
-from process import ChildProcess
+from ConfigParser import ConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
 import json
@@ -88,10 +88,21 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle Requests in a Seperate Thread."""
     
 
-class SmartkegHTTPServer(ChildProcess):    
-    def __init__(self, pipe, host, port):
-        super(SmartkegServer, self).__init__(pipe)
+class SmartkegHTTPServer:    
+    def __init__(self, host, port):
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         
     def main(self):
         self.httpd.serve_forever()
+
+if __name__ == '__main__':
+    _CONFIG_PATH = 'etc/config.cfg'
+    _HEADER = 'SmartkegHTTPServer'
+
+    cfg = ConfigParser()
+    cfg.read(_CONFIG_PATH)
+    host = cfg.get(_HEADER, 'host')
+    port = cfg.getint(_HEADER, 'port')
+        
+    server = SmartkegHTTPServer(host, port)
+    server.main()

@@ -4,9 +4,13 @@ pwd = password  # Make it strong
 adr = localhost
 dbn = Kegerator
 
-[SmartkegServer]
+[SmartkegHTTPServer]
 host =          # AKA localhost
 port = 80       # Or, whatever port you want to serve over
+
+[SmartkegSocketServer]
+host =          # AKA localhost
+port = 8000     # Or, whatever port you want to serve over
 
 [SmartkegFlowMeter]
 data_pin = 12   # Hardware specific
