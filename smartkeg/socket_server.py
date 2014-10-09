@@ -11,8 +11,9 @@
 
 import SocketServer
 import json
+import time
 
-class TCPHandler(SocketServer.BaseRequestHandler):
+class TCPHandler(SocketServer.StreamRequestHandler):
     def send_headers(self):
         """
         @Author:        Harrison Hubbell
@@ -32,7 +33,7 @@ class TCPHandler(SocketServer.BaseRequestHandler):
         @Description:   Returns JSON to client containing supplied data.
         """
         self.send_headers()
-        self.request.send(self.server.response)
+        self.wfile.write(self.server.response)
 
 
 class TCPServer(SocketServer.TCPServer):
@@ -71,4 +72,4 @@ class SmartkegSocketServer:
         @Description:   
         """
         self.tcpd.handle_request()
-
+        time.sleep(0.1)
