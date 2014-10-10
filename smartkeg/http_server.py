@@ -9,6 +9,8 @@ from ConfigParser import ConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
 import json
+import logging
+import logging.config
 
 class RequestHandler(BaseHTTPRequestHandler):
     HTTP_OK             = 200
@@ -45,26 +47,20 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         return page
 
-    def log(self, message=None):
+    def log_message(self, format, *args):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
-        @Description:   Logs server actions to a file.
+        @Description:   Overrides standard logging functionality to
+                        log server actions to a file.
         """
         log = self.LOG_DIR + self.LOG_FILE
-
-        with open(log, 'w') as l:
-            if not message:
-                message = (
-                    self.client_address[0] + ' [' +
-                    self.date_time_string() + '] ' +
-                    self.protocol_version + ' ' + 
-                    self.command + ' ' + 
-                    self.path
-                )
-
-            l.write(message + '\n')
-        l.close()
+        logging.basicConfig(filename=log, format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
+        
+        msg = ''
+        for arg in args:
+            msg += '{}'.format(arg)
+        logging.info(msg)
 
     # --------------------
     # BUILTIN HTTP METHODS
@@ -73,7 +69,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         page = self.get_page()
         content_type = self.get_content_type(page)
 
-        self.log()        
         with open(page) as p:
             self.send_response(self.HTTP_OK)
             self.send_header('Content-type', content_type)
