@@ -8,9 +8,8 @@
 from ConfigParser import ConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
-import json
 import logging
-import logging.config
+import json
 
 class RequestHandler(BaseHTTPRequestHandler):
     HTTP_OK             = 200
@@ -18,7 +17,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     SERVER_DIR = 'srv/'
     INDEX = 'index.html'
     LOG_DIR = 'etc/log/'
-    LOG_FILE = 'smartkeg_server.log'
+    LOG_FILE = 'smartkeg.log'
 
     def get_content_type(self, req):
         """ 
@@ -55,7 +54,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                         log server actions to a file.
         """
         log = self.LOG_DIR + self.LOG_FILE
-        logging.basicConfig(filename=log, format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
+        logging.basicConfig(
+            filename=log, 
+            format='%(asctime)s %(levelname)s: %(message)s',
+            level=logging.INFO
+        )
         
         msg = ''
         for arg in args:
