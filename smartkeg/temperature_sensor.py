@@ -8,6 +8,7 @@
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
+import logging
 import time
 import re
 
@@ -32,7 +33,7 @@ class TemperatureSensor:
         @Created:       10/05/2014
         @Description:   Returns the temperature read.
         """
-        return self.temperature
+        return self.temperature        
 
     def read(self):
         """
@@ -106,6 +107,7 @@ class TemperatureSensorReader(ChildProcess):
             celcius_temps = self.sensor_read_all()
             for sensor in celcius_temps:
                 fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
+                self.log_message(logging.INFO, ['Temperature Sensor:', sensor, fahrenheit_temps[sensor]])
                     
             self.proc_send(farenheit_temps)
             time.sleep(self.interval)
