@@ -69,8 +69,33 @@ class ParentProcess(object):
 
 
 class ChildProcess(object):
+    LOG_DIR = 'etc/log/'
+    LOG_FILE = 'smartkeg.log'
+
     def __init__(self, pipe):
         self.pipe = pipe
+
+    def log_message(self, level, message):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/11/2014
+        @Description:   Logs a message.
+        """
+        log = self.LOG_DIR + self.LOG_FILE
+        logging.basicConfig(
+            filename=log, 
+            format='%(asctime)s %(levelname)s: %(message)s', 
+            level=level
+        )
+        
+        if not isinstance(message, list): message = [message]
+        
+        msg = ''
+        for i in message:
+            msg += '{} '.format(i)
+
+        logging.info(msg)
+
 
     def proc_poll_recv(self):
         """
