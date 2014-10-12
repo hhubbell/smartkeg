@@ -1,7 +1,10 @@
 * {
     font-family:            helvetica;
     font-size:              12pt;
-    font-weight:            100;
+}
+
+b {
+    color:                  inherit;
 }
 
 body {
@@ -36,6 +39,15 @@ h4 {
     font-size:              28pt;
 }
 
+h5 {
+    color:                  #FFFFFF;
+    font-size:              24pt;
+    font-weight:            300;
+    margin:                 0;
+    background-color:       #006969;
+    
+}
+
 img {
     width:                  75%;
 }
@@ -43,6 +55,7 @@ img {
 p {
     color:                  #FFFFFF;
     margin:                 0;
+    font-weight:            100;    
 }
 
 #main {
@@ -58,4 +71,15 @@ p {
 .img-shadow {
     background-color:       #006969;
     box-shadow:             5px 5px 0px 0px #004646;
+}
+
+.response-wrapper {
+    background-color:       #FFFFFF;
+    margin:                 1em 0 1em 0;
+}
+
+.response {
+    text-align:             left;
+    padding:                1em;
+    color:                  #006969;    
 }

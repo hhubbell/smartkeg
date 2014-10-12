@@ -4,21 +4,32 @@
     <title>Smartkeg</title>
     <meta charset='utf-8'>
     <meta name='author' content='Harrison Hubbell'>
-    <meta name='description' content=''>
+    <meta name='description' content='Smartkeg integrated monitoring and prediction system.'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel='stylesheet' href='static/css/style.css' media='screen'>
 </head>
 <body>
     <header>
         <h1>SmartKeg</h1>
     </header>
-    <section id='main'>
-        <h4 class='img-shadow'>IT. IS. ALIVE.</h4>
-        <p>Here is the Smartkeg database layout for your viewing pleasure.</p>
-        <p>(and to show how well the Raspberry Pi responds to requests.)</p>
-        <div class='img-wrap img-shadow'>
-            <img src='static/img/SmartkegERD.png'>
-        </div>
-    </section>
+    <main>
+        <section id='wrap-hud'>
+            <h4>Beer Info</h4>
+            <section id='hud'>
+                <div class='hud-data'><span id='brand'></span></div>
+                <div class='hud-data'><span id='name'></span></div>                
+                <div class='hud-data'><span id='abv'></span></div>
+                <div class='hud-data'><span id='ibu'></span></div>
+                <div class='hud-data'><span id='rating'></span></div>                
+            </section>
+        </section>
+        <section id='wrap-chart'>
+            <h4>Consumption</h4>
+            <canvas id='chart'>
+            
+            </canvas>
+        </section>
+    </main>
     <footer>
     </footer>
     <script type="application/javascript" src="src/js/ajax.js"></script>
