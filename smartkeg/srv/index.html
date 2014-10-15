@@ -10,30 +10,53 @@
 </head>
 <body>
     <header>
-        <h1>SmartKeg</h1>
+        <img src='static/img/logo.png' class='circle-badge header-logo'>
+        <h1>Smartkeg</h1>
     </header>
     <main>
-        <section id='wrap-hud'>
-            <h4>Beer Info</h4>
-            <section id='hud'>
-                <div class='hud-data'><span id='brand'></span></div>
-                <div class='hud-data'><span id='name'></span></div>                
-                <div class='hud-data'><span id='abv'></span></div>
-                <div class='hud-data'><span id='ibu'></span></div>
-                <div class='hud-data'><span id='rating'></span></div>                
+        <section id='wrap-hud' class='content-wrapper'>
+            <header class='content-header'>
+                <h4>Now Serving</h4>
+            </header>
+            <section class='hud content-area'>
+                <div class='hud-data'>Brand: <span id='brand'></span></div>
+                <div class='hud-data'>Name: <span id='name'></span></div>                
+                <div class='hud-data'>ABV: <span id='abv'></span></div>
+                <div class='hud-data'>IBU: <span id='ibu'></span></div>
+                <div class='hud-data'>Rating: <span id='rating'></span></div>                
             </section>
         </section>
-        <section id='wrap-chart'>
-            <h4>Consumption</h4>
-            <svg id='chart'>
-            
-            </svg>
+        <section id='wrap-chart' class='content-wrapper'>
+            <header class='content-header'>
+                <h4>Consumption</h4>
+            </header>
+            <section class='chart content-area'>
+                <svg id='consumption-graph'>
+                    <!--
+                    <rect width='10' height='10' x=0 y=0 class='chart-rect-day' id='chart-rect-sunday'/>
+                    <rect width='10' height='10' x=20 y=20 class='chart-rect-day' id='chart-rect-monday'/>
+                    <rect width='10' height='10' x=40 y=40 class='chart-rect-day' id='chart-rect-tuesday'/>
+                    <rect width='10' height='10' x=60 y=60 class='chart-rect-day' id='chart-rect-wednesday'/>
+                    <rect width='10' height='10' x=80 y=80 class='chart-rect-day' id='chart-rect-thursday'/>
+                    <rect width='10' height='10' x=100 y=100 class='chart-rect-day' id='chart-rect-friday'/>
+                    <rect width='10' height='10' x=120 y=120 class='chart-rect-day' id='chart-rect-saturday'/>
+                    <rect width='10' height='10' x=100 y=0 class='chart-rect-day' id='chart-rect-sunday'/>
+                    <rect width='10' height='10' x=120 y=20 class='chart-rect-day' id='chart-rect-monday'/>
+                    <rect width='10' height='10' x=140 y=40 class='chart-rect-day' id='chart-rect-tuesday'/>
+                    <rect width='10' height='10' x=160 y=60 class='chart-rect-day' id='chart-rect-wednesday'/>
+                    <rect width='10' height='10' x=180 y=80 class='chart-rect-day' id='chart-rect-thursday'/>
+                    <rect width='10' height='10' x=200 y=100 class='chart-rect-day' id='chart-rect-friday'/>
+                    <rect width='10' height='10' x=220 y=120 class='chart-rect-day' id='chart-rect-saturday'/>
+                    -->
+                </svg>
+            </section>
         </section>
     </main>
     <footer>
     </footer>
     <script type="application/javascript" src="src/js/ajax.js"></script>
     <script type="application/javascript" src="src/js/socket.js"></script>
+    <script type="application/javascript" src="src/js/graph.js"></script>
     <script type="application/javascript" src="src/js/main.js"></script>
 </body>
 </html>
