@@ -39,68 +39,10 @@ function render_consumption_graph(selector) {
     }
 
     graph.add_set(test_set);
-    graph.calculate_set_means();
-    graph.render_set_points();
-    graph.render_set_seasonal_trendline();    
-    graph.render_set_means();
-    
-    /*graph.add_point({'x':100, 'y':3, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':23, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':37, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':73, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':63, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':83, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':76, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':53, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':54, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':55, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':56, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':57, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':58, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':59, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':52, 'style':'circle', 'radius':2});
-    graph.add_point({'x':100, 'y':51, 'style':'circle', 'radius':2});
-    
-    graph.add_point({'x':200, 'y':63, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':83, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':77, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':93, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':6, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':8, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':16, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':53, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':54, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':55, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':36, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':37, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':38, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':79, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':12, 'style':'circle', 'radius':2});
-    graph.add_point({'x':200, 'y':21, 'style':'circle', 'radius':2});
-
-    graph.add_point({'x':300, 'y':93, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':83, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':77, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':93, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':96, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':98, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':116, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':63, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':64, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':65, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':36, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':37, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':38, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':69, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':12, 'style':'circle', 'radius':2});
-    graph.add_point({'x':300, 'y':91, 'style':'circle', 'radius':2});
-    
-    graph.calculate_point_means();
-    graph.render_point_points();
+    graph.calculate_means();
+    graph.render_sets();
     graph.render_seasonal_trendline();    
-    graph.render_point_means('circle', 2);
-    
-    */
+    graph.render_means();
 }
 
 function main() {
