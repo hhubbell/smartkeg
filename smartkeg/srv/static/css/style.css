@@ -138,7 +138,15 @@ svg {
 }
 
 .chart-day {
-    /*width:                  100px;
-    height:                 100px;*/
-    fill:                   #94d31b;
+    fill:                   #94D31B;
+}
+
+.chart-day-mean {
+    fill:                   red;
+}
+
+.chart-trendline {
+    stroke:                 yellow;
+    stroke-width:           2px;
+    fill:                   none;
 }
