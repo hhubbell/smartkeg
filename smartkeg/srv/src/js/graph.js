@@ -7,6 +7,8 @@
 
 function Graph(selector) {
     this.element = document.querySelector(selector);
+    this.height = this.element.clientHeight;
+    this.width = this.element.clientWidth;
     this.sets = [];
 }
 
@@ -36,19 +38,19 @@ Graph.prototype.render_means = function() {
         var style = set.style;
         
         for (x in set.x) {
-            var mean = set.x[x].mean;
+            var value = self.height - set.x[x].mean;
             var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
             point.classList.add('chart-day-mean');
             
             if (style === 'rect') {
                 point.setAttributeNS(null, 'x', x - radius/2);
-                point.setAttributeNS(null, 'y', mean - radius/2);
+                point.setAttributeNS(null, 'y', value - radius/2);
                 point.setAttributeNS(null, 'width', radius);
                 point.setAttributeNS(null, 'height', radius);
             } else if (style === 'circle') {
                 point.setAttributeNS(null, 'cx', x);
-                point.setAttributeNS(null, 'cy', mean);
+                point.setAttributeNS(null, 'cy', value);
                 point.setAttributeNS(null, 'r', radius);
             }
 
@@ -67,18 +69,19 @@ Graph.prototype.render_sets = function() {
         
         for (x in set.x) {
             set.x[x].y.forEach(function(y) {
+                var value = self.height - y;
                 var point = document.createElementNS('http://www.w3.org/2000/svg', style);
         
                 point.classList.add('chart-day');
         
                 if (style === 'rect') {
                     point.setAttributeNS(null, 'x', x - radius/2);
-                    point.setAttributeNS(null, 'y', y - radius/2);
+                    point.setAttributeNS(null, 'y', value - radius/2);
                     point.setAttributeNS(null, 'width', radius);
                     point.setAttributeNS(null, 'height', radius);
                 } else if (style === 'circle') {
                     point.setAttributeNS(null, 'cx', x);
-                    point.setAttributeNS(null, 'cy', y);
+                    point.setAttributeNS(null, 'cy', value);
                     point.setAttributeNS(null, 'r', radius);
                 }
                 self.element.appendChild(point);            
@@ -94,9 +97,9 @@ Graph.prototype.render_seasonal_trendline = function() {
 
     this.sets.forEach(function(set) {
         for (x in set.x) {
-            var y = set.x[x].mean;
+            var value = self.height - set.x[x].mean;
 
-            line_string += x + ',' + y + ' ';
+            line_string += x + ',' + value + ' ';
         }
 
         line.classList.add('chart-trendline');
