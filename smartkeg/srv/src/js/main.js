@@ -56,9 +56,10 @@ function render_consumption_graph(selector) {
 
     graph.add_set(test_set);
     graph.calculate_means();
-    graph.render_sets();
+    graph.render(true, true, true, true);
+    /*graph.render_sets();
     graph.render_seasonal_trendline();    
-    graph.render_means();
+    graph.render_means();*/
 }
 
 function main() {
