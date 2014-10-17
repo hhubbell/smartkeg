@@ -111,7 +111,9 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
     var line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     var line_string = '';
 
-    this.sets.forEach(function(set) {
+    for (var i = 0; i < this.sets.length; i++) {
+        var set = this.sets[i];
+
         for (x in set.x) {
             var value = self.height - set.x[x].mean;
 
@@ -119,11 +121,37 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
         }
 
         line.classList.add('chart-trendline');
-        if (gradient) line.classList.add('chart-fillunder');
+
+        if (gradient) {
+            var defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
+            var gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            var start = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+
+            start.classList.add('chart-fillunder-start');
+            start.setAttributeNS(null, 'offset', '0%');
+
+            stop.classList.add('chart-fillunder-stop');
+            stop.setAttributeNS(null, 'offset', '100%');
+
+            gradient.setAttributeNS(null, 'id', 'chart-fillunder');
+            gradient.setAttributeNS(null, 'x1', '0%');
+            gradient.setAttributeNS(null, 'y1', '0%');
+            gradient.setAttributeNS(null, 'x2', '100%');
+            gradient.setAttributeNS(null, 'y2', '100%');
+            gradient.appendChild(start);
+            gradient.appendChild(stop);
+
+            defs.appendChild(gradient);
+
+            line.setAttributeNS(null, 'fill', 'url(#chart-fillunder)');
+        } else {
+            line.classList.add('chart-trendline-nofill');
+        }
 
         line.setAttributeNS(null, 'points', line_string);
         self.element.appendChild(line);
-    });
+    }
 }
 
 /**
@@ -135,6 +163,9 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
  * @param gradient: Render a trendline gradient if true.
  */
 Graph.prototype.render = function(set, mean, trend, gradient) {
+    var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    this.element.appendChild(defs);
+
     if (gradient) {
         this.render_seasonal_trendline(gradient);
     }

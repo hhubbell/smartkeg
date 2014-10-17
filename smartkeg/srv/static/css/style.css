@@ -148,9 +148,16 @@ svg {
 .chart-trendline {
     stroke:                 yellow;
     stroke-width:           2px;
+}
+
+.chart-trendline-nofill {
     fill:                   none;
 }
 
-.chart-fillunder {
-    fill:                   black;
+.chart-fillunder-start {
+    stop-color:             #94D31B;
+}
+
+.chart-fillunder-stop {
+    stop-color:             #034159;
 }
