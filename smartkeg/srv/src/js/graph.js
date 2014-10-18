@@ -226,15 +226,14 @@ BarGraph.prototype.render = function() {
     for (var i = 0; i < this.categories.length; i++) {
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         
-        var bar_top = (this.categories[i].y / 100) * this.height
+        var bar_top = (1 - (this.categories[i].y / 100)) * this.height
 
         rect.classList.add('remaining-bar');
         
         rect.setAttributeNS(null, 'x', bar_width * i);
         rect.setAttributeNS(null, 'y', bar_top);
         rect.setAttributeNS(null, 'width', bar_width);
-        rect.setAttributeNS(null, 'height', this.height - this.categories[i].y);
-
+        rect.setAttributeNS(null, 'height', this.height - bar_top);
         this.element.appendChild(rect);
     }
 }
