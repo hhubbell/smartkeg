@@ -14,16 +14,28 @@
         <h1>Smartkeg</h1>
     </header>
     <main>
-        <section id='wrap-hud' class='content-wrapper'>
-            <header class='content-header'>
-                <h4>Now Serving</h4>
-            </header>
-            <section class='hud content-area'>
-                <div class='hud-data'>Brand: <span id='brand'></span></div>
-                <div class='hud-data'>Name: <span id='name'></span></div>                
-                <div class='hud-data'>ABV: <span id='abv'></span></div>
-                <div class='hud-data'>IBU: <span id='ibu'></span></div>
-                <div class='hud-data'>Rating: <span id='rating'></span></div>                
+        <section id='wrap-hud' class='wrapper'>
+            <section class='content-wrapper'>
+                <header class='content-header'>
+                    <h4>Now Serving</h4>
+                </header>
+                <section class='serving content-area'>
+                    <div class='serving-data'>Brand: <span id='brand'></span></div>
+                    <div class='serving-data'>Name: <span id='name'></span></div>                
+                    <div class='serving-data'>ABV: <span id='abv'></span></div>
+                    <div class='serving-data'>IBU: <span id='ibu'></span></div>
+                    <div class='serving-data'>Rating: <span id='rating'></span></div>                
+                </section>
+            </section>
+            <section class='content-wrapper'>
+                <header class='content-header'>
+                    <h4>Amount Remaining</h4>
+                </header>
+                <section class='remaining content-area'>
+                    <svg id='remaining-graph'>
+                        <defs></defs>
+                    </svg>
+                </section>
             </section>
         </section>
         <section id='wrap-chart' class='content-wrapper'>

@@ -2,10 +2,14 @@
  * Filename:    graph.js
  * Author:      Harrison Hubbell
  * Date:        10/14/2014
- * Description: Manage formatting SVG graphs
+ * Description: Manage formatting SVG graphs.
  * ------------------------------------------------------------------------ */
 
-function Graph(selector) {
+/**
+ * ScatterPlot Object is responsible for rendering scatterplots on SVG
+ * @param selector: A selector that defines the SVG
+ */
+function ScatterPlot(selector) {
     this.set_canvas(selector);
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
@@ -13,11 +17,10 @@ function Graph(selector) {
 }
 
 /**
- * Initialize the SVG area for graphing and 
- * define a <defs> child.
- * @param selector: A selector to define the SVG
+ * Initialize the SVG area for graphing and define a <defs> child.
+ * @param selector: A selector that defines the SVG
  */
-Graph.prototype.set_canvas = function(selector) {
+ScatterPlot.prototype.set_canvas = function(selector) {
     this.element = document.querySelector(selector);
     this.defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
     if (!this.defs) {
@@ -28,15 +31,16 @@ Graph.prototype.set_canvas = function(selector) {
 
 /**
  * Add a set.
+ * @param set_obj: A set Object.
  */
-Graph.prototype.add_set = function(set_obj) {
+ScatterPlot.prototype.add_set = function(set_obj) {
     this.sets.push(set_obj);
 }
 
 /**
  * Calculate y mean if it does not exist for x values of sets.
  */
-Graph.prototype.calculate_means = function() {
+ScatterPlot.prototype.calculate_means = function() {
     this.sets.forEach(function(set) {
         for (x in set.x) {
             var y = set.x[x].y;
@@ -54,7 +58,7 @@ Graph.prototype.calculate_means = function() {
 /**
  * Draw means on graph.
  */
-Graph.prototype.render_means = function() {
+ScatterPlot.prototype.render_means = function() {
     var self = this;
     this.sets.forEach(function(set) {
         var radius = set.radius;
@@ -86,7 +90,7 @@ Graph.prototype.render_means = function() {
 /**
  * Draw all sets on the graph.
  */
-Graph.prototype.render_sets = function() {
+ScatterPlot.prototype.render_sets = function() {
     var self = this;
 
     this.sets.forEach(function(set) {
@@ -120,7 +124,7 @@ Graph.prototype.render_sets = function() {
  * Draw the seasonal trendline on the graph.
  * @param gradient [optional]: Draws a gradient below the line if true.
  */
-Graph.prototype.render_seasonal_trendline = function(gradient) {
+ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
     var line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     var line_string = '';
 
@@ -155,6 +159,7 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
 
             this.defs.appendChild(gradient);
 
+            line.classList.add('chart-trendline-fill');            
             line.setAttributeNS(null, 'fill', 'url(#chart-fillunder)');
         } else {
             line.classList.add('chart-trendline-nofill');
@@ -173,9 +178,63 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
  * @param trend: Render trendline if true.
  * @param gradient: Render a trendline gradient if true.
  */
-Graph.prototype.render = function(set, mean, trend, gradient) {
+ScatterPlot.prototype.render = function(set, mean, trend, gradient) {
     if (gradient) this.render_seasonal_trendline(gradient);
     if (set) this.render_sets();
     if (trend) this.render_seasonal_trendline();
     if (mean) this.render_means();
+}
+
+
+/**
+ * BarGraph Object is responsible for rendering bar graphs on SVG
+ */
+function BarGraph(selector) {
+    this.set_canvas(selector);
+    this.height = this.element.clientHeight;
+    this.width = this.element.clientWidth;
+    this.categories = []
+}
+
+/**
+ * Initialize the SVG area for graphing and define a <defs> child.
+ * @param selector: A selector that defines the SVG
+ */
+BarGraph.prototype.set_canvas = function(selector) {
+    this.element = document.querySelector(selector);
+    this.defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
+    if (!this.defs) {
+        this.defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        this.element.appendChild(this.defs);
+    }
+}
+
+/**
+ * Add a category.
+ * @param category: A category Object.
+ */
+BarGraph.prototype.add_category = function(category) {
+    this.categories.push(category);
+}
+
+/**
+ * Render the Bar Chart.
+ */
+BarGraph.prototype.render = function() {
+    var bar_width = this.width / this.categories.length;
+    
+    for (var i = 0; i < this.categories.length; i++) {
+        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        
+        var bar_top = (this.categories[i].y / 100) * this.height
+
+        rect.classList.add('remaining-bar');
+        
+        rect.setAttributeNS(null, 'x', bar_width * i);
+        rect.setAttributeNS(null, 'y', bar_top);
+        rect.setAttributeNS(null, 'width', bar_width);
+        rect.setAttributeNS(null, 'height', this.height - this.categories[i].y);
+
+        this.element.appendChild(rect);
+    }
 }

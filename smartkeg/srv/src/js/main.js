@@ -12,11 +12,11 @@ function example(response) {
     document.querySelector('#name').innerHTML = jso.name;
     document.querySelector('#age').innerHTML = jso.age;
     document.querySelector('#gender').innerHTML = jso.gender;
-    
+
 }
 
 function render_consumption_graph(selector) {
-    graph = new Graph(selector);
+    graph = new ScatterPlot(selector);
     
     //This is an example of the data recieved from the xmlhttp request.
     test_set = {
@@ -57,15 +57,25 @@ function render_consumption_graph(selector) {
     graph.add_set(test_set);
     graph.calculate_means();
     graph.render(true, true, true, true);
-    /*graph.render_sets();
-    graph.render_seasonal_trendline();    
-    graph.render_means();*/
+}
+
+function render_volume_remaining(selector) {
+    graph = new BarGraph(selector);
+
+    // Example Data
+    test_set = {
+        'y': 50 //Percent
+    }
+
+    graph.add_category(test_set);
+    graph.render();
 }
 
 function main() {
     var ajax = new Ajax('10.0.0.35', '8000');
     //ajax.send('GET', example);
     render_consumption_graph('#consumption-graph');
+    render_volume_remaining('#remaining-graph');
 }
 
 
