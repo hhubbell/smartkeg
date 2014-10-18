@@ -6,10 +6,24 @@
  * ------------------------------------------------------------------------ */
 
 function Graph(selector) {
-    this.element = document.querySelector(selector);
+    this.set_canvas(selector);
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
     this.sets = [];
+}
+
+/**
+ * Initialize the SVG area for graphing and 
+ * define a <defs> child.
+ * @param selector: A selector to define the SVG
+ */
+Graph.prototype.set_canvas = function(selector) {
+    this.element = document.querySelector(selector);
+    this.defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
+    if (!this.defs) {
+        this.defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        this.element.appendChild(this.defs);
+    }
 }
 
 /**
@@ -107,7 +121,6 @@ Graph.prototype.render_sets = function() {
  * @param gradient [optional]: Draws a gradient below the line if true.
  */
 Graph.prototype.render_seasonal_trendline = function(gradient) {
-    var self = this;
     var line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     var line_string = '';
 
@@ -115,15 +128,13 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
         var set = this.sets[i];
 
         for (x in set.x) {
-            var value = self.height - set.x[x].mean;
-
+            var value = this.height - set.x[x].mean;
             line_string += x + ',' + value + ' ';
         }
 
         line.classList.add('chart-trendline');
 
         if (gradient) {
-            var defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
             var gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
             var start = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
             var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
@@ -142,7 +153,7 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
             gradient.appendChild(start);
             gradient.appendChild(stop);
 
-            defs.appendChild(gradient);
+            this.defs.appendChild(gradient);
 
             line.setAttributeNS(null, 'fill', 'url(#chart-fillunder)');
         } else {
@@ -150,7 +161,7 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
         }
 
         line.setAttributeNS(null, 'points', line_string);
-        self.element.appendChild(line);
+        this.element.appendChild(line);
     }
 }
 
@@ -163,22 +174,8 @@ Graph.prototype.render_seasonal_trendline = function(gradient) {
  * @param gradient: Render a trendline gradient if true.
  */
 Graph.prototype.render = function(set, mean, trend, gradient) {
-    var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    this.element.appendChild(defs);
-
-    if (gradient) {
-        this.render_seasonal_trendline(gradient);
-    }
-
-    if (set) {
-        this.render_sets();
-    }
-
-    if (trend) {
-        this.render_seasonal_trendline();
-    }
-
-    if (mean) {
-        this.render_means();
-    }
+    if (gradient) this.render_seasonal_trendline(gradient);
+    if (set) this.render_sets();
+    if (trend) this.render_seasonal_trendline();
+    if (mean) this.render_means();
 }
