@@ -96,7 +96,6 @@ class ChildProcess(object):
 
         logging.info(msg)
 
-
     def proc_poll_recv(self):
         """
         @Author:        Harrison Hubbell

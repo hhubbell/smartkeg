@@ -10,10 +10,32 @@
 # ----------------------------------------------------------------------------
 
 import SocketServer
+import logging
 import json
 import time
 
 class TCPHandler(SocketServer.StreamRequestHandler):
+    def log_message(self, level, message):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/11/2014
+        @Description:   Logs a message.
+        """
+        log = self.LOG_DIR + self.LOG_FILE
+        logging.basicConfig(
+            filename=log, 
+            format='%(asctime)s %(levelname)s: %(message)s', 
+            level=level
+        )
+        
+        if not isinstance(message, list): message = [message]
+        
+        msg = ''
+        for i in message:
+            msg += '{} '.format(i)
+
+        logging.info(msg)
+    
     def send_headers(self):
         """
         @Author:        Harrison Hubbell
@@ -34,6 +56,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         self.send_headers()
         self.wfile.write(self.server.response)
+        self.log_message(logging.INFO, ['Socket Server:', 'Request from', self.client_address[0]])
 
 
 class TCPServer(SocketServer.TCPServer):
