@@ -46,7 +46,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         self.send_headers()
         self.wfile.write(self.server.response)
-        self.log_message(['Socket Server:', 'Request from', self.client_address[0]])
+        self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
 
 
 class TCPServer(SocketServer.TCPServer):

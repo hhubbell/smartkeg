@@ -106,7 +106,7 @@ class TemperatureSensorReader(ChildProcess):
             celcius_temps = self.sensor_read_all()
             for sensor in celcius_temps:
                 fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
-                self.logger.log(['Temperature Sensor:', sensor, fahrenheit_temps[sensor]])
+                self.logger.log(['[Temperature Sensor]', sensor, fahrenheit_temps[sensor]])
                     
             self.proc_send(farenheit_temps)
             time.sleep(self.interval)
