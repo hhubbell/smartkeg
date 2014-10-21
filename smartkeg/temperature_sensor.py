@@ -14,9 +14,10 @@ import re
 class TemperatureSensor:
     TEMP_SCALE = 1000.00
     
-    def __init__(self, sensor_path, name):
+    def __init__(self, sensor_path, name, logger):
         self.name = name
         self.sensor = sensor_path
+        self.logger = logger
 
     def get_name(self):
         """
@@ -43,9 +44,14 @@ class TemperatureSensor:
                         file because the DS18B20 is a digital 3-pin sensor
                         and writes directly using STDIN.
         """
-        with open(self.sensor, 'r') as thermo:
-            temperature = re.split('t=', thermo.read())
-            self.temperature = float(temperature[1]) / self.TEMP_SCALE
+        try:
+            with open(self.sensor, 'r') as thermo:
+                temperature = re.split('t=', thermo.read())
+                self.temperature = float(temperature[1]) / self.TEMP_SCALE
+        except IOError as e:
+            self.logger.log(['[Temperature Sensor]', e])
+            self.temperature = None
+
         
 
 class TemperatureSensorReader(ChildProcess):
@@ -61,7 +67,7 @@ class TemperatureSensorReader(ChildProcess):
         @Description:   Creates dict of TemperatureSensor Objects.
         """
         path = therm_dir + sensor + '/' + filename
-        self.sensors[sensor] = TemperatureSensor(path, sensor)
+        self.sensors[sensor] = TemperatureSensor(path, sensor, self.logger)
 
     def sensor_read(self, name):
         """
@@ -82,7 +88,10 @@ class TemperatureSensorReader(ChildProcess):
         temperatures = {}
         for sensor in self.sensors:
             self.sensors[sensor].read()
-            temperatures[sensor] = self.sensors[sensor].get_temperature()
+            celcius_temp = self.sensors[sensor].get_temperature()
+            
+            if celcius_temp:
+                temperatures[sensor] = celcius_temp
 
         return temperatures
 
@@ -101,13 +110,15 @@ class TemperatureSensorReader(ChildProcess):
         @Description:   When a read job is received get the current temperature
                         and return the data to the parent proc as a tuple.
         """
+        fahrenheit_temps = {}
+        
         while True:
-            fahrenheit_temps = {}
             celcius_temps = self.sensor_read_all()
+            
             for sensor in celcius_temps:
-                fahrenheit_temps[sensor] = celcius_to_fahrenheit(celcius_temps[sensor])
+                fahrenheit_temps[sensor] = self.celcius_to_fahrenheit(celcius_temps[sensor])
                 self.logger.log(['[Temperature Sensor]', sensor, fahrenheit_temps[sensor]])
-                    
-            self.proc_send(farenheit_temps)
+            
+            if fahrenheit_temps: self.proc_send(fahrenheit_temps)
+            
             time.sleep(self.interval)
-
