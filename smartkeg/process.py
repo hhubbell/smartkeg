@@ -8,9 +8,13 @@
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Process, Pipe
+from logger import SmartkegLogger
 
 class ParentProcess(object):
+    _CONFIG_PATH = 'etc/config.cfg'
+    
     def __init__(self):
+        self.logger = SmartkegLogger(self._CONFIG_PATH)        
         self.procs = {}
         self.pipes = {}
 
@@ -22,6 +26,8 @@ class ParentProcess(object):
                         between both nodes.
         """
         args = None
+
+        self.logger.log(['Creating Process', proc_name])
 
         if pipe:
             self.pipes[proc_name] = {'TO': None, 'FROM': None}
@@ -69,32 +75,11 @@ class ParentProcess(object):
 
 
 class ChildProcess(object):
-    LOG_DIR = 'etc/log/'
-    LOG_FILE = 'smartkeg.log'
-
+    _CONFIG_PATH = 'etc/config.cfg'
+    
     def __init__(self, pipe):
+        self.logger = SmartkegLogger(self._CONFIG_PATH)        
         self.pipe = pipe
-
-    def log_message(self, level, message):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/11/2014
-        @Description:   Logs a message.
-        """
-        log = self.LOG_DIR + self.LOG_FILE
-        logging.basicConfig(
-            filename=log, 
-            format='%(asctime)s %(levelname)s: %(message)s', 
-            level=level
-        )
-        
-        if not isinstance(message, list): message = [message]
-        
-        msg = ''
-        for i in message:
-            msg += '{} '.format(i)
-
-        logging.info(msg)
 
     def proc_poll_recv(self):
         """

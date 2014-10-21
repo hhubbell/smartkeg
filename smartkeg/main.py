@@ -38,6 +38,9 @@ class Smartkeg(ParentProcess):
                         selecting data.
         """
         HEADER = 'MariaDB'
+
+        self.logger.log('Initializing Database Connection.')
+
         cfg = ConfigParser()
         cfg.read(self._CONFIG_PATH)
         usr = cfg.get(HEADER, 'usr')

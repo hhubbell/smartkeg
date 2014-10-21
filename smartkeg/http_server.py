@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Filename:     smartkeg_server.py
+# Filename:     http_server.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
 # Description:  Is responsible for serving data over HTTP
@@ -8,7 +8,7 @@
 from ConfigParser import ConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
-import logging
+from logger import SmartkegLogger
 import json
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -16,8 +16,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     HTTP_PAGE_NOT_FOUND = 404
     SERVER_DIR = 'srv/'
     INDEX = 'index.html'
-    LOG_DIR = 'etc/log/'
-    LOG_FILE = 'smartkeg.log'
+    _CONFIG_PATH = 'etc/config.cfg'
 
     def get_content_type(self, req):
         """ 
@@ -53,17 +52,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         @Description:   Overrides standard logging functionality to
                         log server actions to a file.
         """
-        log = self.LOG_DIR + self.LOG_FILE
-        logging.basicConfig(
-            filename=log, 
-            format='%(asctime)s %(levelname)s: %(message)s',
-            level=logging.INFO
-        )
-        
-        msg = ''
-        for arg in args:
-            msg += '{}'.format(arg)
-        logging.info(msg)
+        logger = SmartkegLogger(self._CONFIG_PATH)
+        logger.log(['HTTP Server:', args])
 
     # --------------------
     # BUILTIN HTTP METHODS

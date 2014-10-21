@@ -4,6 +4,10 @@ pwd = password  # Make it strong
 adr = localhost
 dbn = Kegerator
 
+[SmartkegLogger]
+dir = etc/log/      # Local path, change it if you want
+file = smartkeg.log # Seems pretty standard to call it this
+
 [SmartkegHTTPServer]
 host =          # AKA localhost
 port = 80       # Or, whatever port you want to serve over

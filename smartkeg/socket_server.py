@@ -10,31 +10,21 @@
 # ----------------------------------------------------------------------------
 
 import SocketServer
-import logging
+from logger import SmartkegLogger
 import json
 import time
 
 class TCPHandler(SocketServer.StreamRequestHandler):
-    def log_message(self, level, message):
+    _CONFIG_PATH = 'etc/config.cfg'
+    
+    def log_message(self, message):
         """
         @Author:        Harrison Hubbell
         @Created:       10/11/2014
         @Description:   Logs a message.
         """
-        log = self.LOG_DIR + self.LOG_FILE
-        logging.basicConfig(
-            filename=log, 
-            format='%(asctime)s %(levelname)s: %(message)s', 
-            level=level
-        )
-        
-        if not isinstance(message, list): message = [message]
-        
-        msg = ''
-        for i in message:
-            msg += '{} '.format(i)
-
-        logging.info(msg)
+        logger = SmartkegLogger(self._CONFIG_PATH)
+        logger.log(message)
     
     def send_headers(self):
         """
@@ -56,7 +46,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         self.send_headers()
         self.wfile.write(self.server.response)
-        self.log_message(logging.INFO, ['Socket Server:', 'Request from', self.client_address[0]])
+        self.log_message(['Socket Server:', 'Request from', self.client_address[0]])
 
 
 class TCPServer(SocketServer.TCPServer):
