@@ -84,8 +84,8 @@ p {
 
 .content-header {
     background-color:       #006969;
-    border-top-right-radius: 3px;
-    border-top-left-radius: 3px;
+    border-top-right-radius: inherit;
+    border-top-left-radius: inherit;
     margin:                 0;
 }
 

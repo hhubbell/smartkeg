@@ -53,6 +53,15 @@ class Model(ChildProcess):
             },
             'remaining': {
                 'y': 94.13241234
+            },
+            'beer_info': {
+                'brand': 'Fiddlehead',
+                'name': 'Mastermind',
+                'type': 'Ale',
+                'subtype': 'Double IPA',
+                'ABV': 8.2,
+                'IBU': '???',
+                'rating': 5
             }
         }
 
