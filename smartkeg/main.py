@@ -18,7 +18,8 @@ import RPi.GPIO as GPIO
 import time
 
 class Smartkeg(ParentProcess):
-    _CONFIG_PATH = 'etc/config.cfg'
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     
     def __init__(self):
         super(Smartkeg, self).__init__()

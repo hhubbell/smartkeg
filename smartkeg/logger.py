@@ -11,6 +11,8 @@ from ConfigParser import ConfigParser
 import logging
 
 class SmartkegLogger(object):
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    
     def __init__(self, config_path):
         self.set_logger(config_path, logging.INFO)
 
@@ -26,7 +28,7 @@ class SmartkegLogger(object):
         cfg.read(config_path)
         log_dir = cfg.get(HEADER, 'dir')
         log_file = cfg.get(HEADER, 'file')
-        self.log_path = log_dir + log_file
+        self.log_path = self._BASE_DIR + log_dir + log_file
         
         logging.basicConfig(
             filename=self.log_path,

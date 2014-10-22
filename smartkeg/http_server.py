@@ -12,11 +12,12 @@ from logger import SmartkegLogger
 import json
 
 class RequestHandler(BaseHTTPRequestHandler):
-    HTTP_OK             = 200
+    HTTP_OK  = 200
     HTTP_PAGE_NOT_FOUND = 404
-    SERVER_DIR = 'srv/'
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'    
+    _SERVER_DIR = _BASE_DIR + 'srv/'
     INDEX = 'index.html'
-    _CONFIG_PATH = 'etc/config.cfg'
 
     def get_content_type(self, req):
         """ 
@@ -39,9 +40,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         @Description:   Locates the requested page.
         """
         if self.path[1:] is '': 
-            page = self.SERVER_DIR + self.INDEX
+            page = self._SERVER_DIR + self.INDEX
         else:
-            page = self.SERVER_DIR + self.path[1:]
+            page = self._SERVER_DIR + self.path[1:]
 
         return page
 
@@ -84,7 +85,8 @@ class SmartkegHTTPServer:
         self.httpd.serve_forever()
 
 if __name__ == '__main__':
-    _CONFIG_PATH = 'etc/config.cfg'
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     _HEADER = 'SmartkegHTTPServer'
 
     cfg = ConfigParser()

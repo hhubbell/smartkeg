@@ -11,11 +11,10 @@
 
 import SocketServer
 from logger import SmartkegLogger
-import json
-import time
 
 class TCPHandler(SocketServer.StreamRequestHandler):
-    _CONFIG_PATH = 'etc/config.cfg'
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     
     def log_message(self, message):
         """
@@ -30,7 +29,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
-        @Description:   Sends headers to the requester
+        @Description:   Sends headers to the requester.
         """
         self.request.send(
             "HTTP/1.1 200 OK\r\n" \
@@ -54,7 +53,7 @@ class TCPServer(SocketServer.TCPServer):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
-        @Description:   Allows other Python objects to set the default 
+        @Description:   Allows other Python objects to set the default
                         response date of the handler.
         """
         self.response = response
@@ -82,7 +81,6 @@ class SmartkegSocketServer:
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
-        @Description:   
+        @Description:   Handle a single request.
         """
         self.tcpd.handle_request()
-        time.sleep(0.1)
