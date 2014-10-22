@@ -31,7 +31,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         @Created:       10/07/2014
         @Description:   Sends headers to the requester.
         """
-        self.request.send(
+        self.wfile.write(
             "HTTP/1.1 200 OK\r\n" \
             "Access-Control-Allow-Origin: *\r\n" \
             "Content-Type: text/plain\r\n\r\n"
