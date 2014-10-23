@@ -19,6 +19,7 @@ Smartkeg has the following dependencies, the build script will check to see if y
 * pip (For installing Python dependencies)
 * MySQL-python (Python MySQL driver)
 * RPi.GPIO (Python-Raspberry Pi GPIO driver)
+
 The build script will configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into te systems `/usr/local/src/` directory, and create the service files.
 To run the Smartkeg system at startup on Arch Linux, run the following:
 `# systemctl enable smartkeg`
