@@ -30,8 +30,8 @@ USE Kegerator;
 -- --------------------
 CREATE TABLE BeerType (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
-    type            VARCHAR(16) NOT NULL,
-    subtype         VARCHAR(32),
+    type            VARCHAR(16) NOT NULL CHECK(type IN ('Ale', 'Lager')),
+    subtype         VARCHAR(32), /* IPA, STOUT, ETC.. */
     PRIMARY KEY(id)
 );
 
@@ -56,8 +56,6 @@ CREATE TABLE Beer (
     type_id         INTEGER
     name            VARCHAR(50) NOT NULL,
     brewer          VARCHAR(50) NOT NULL,  
-    type            VARCHAR(5)  CHECK(type IN ('Ale', 'Lager')),
-    subtype         VARCHAR(25),   /* IPA, STOUT, ETC.. */
     ABV             FLOAT(3,1),
     IBU             INTEGER(3),
     color_primary   CHAR(7),
