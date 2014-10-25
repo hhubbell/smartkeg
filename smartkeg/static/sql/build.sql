@@ -26,12 +26,35 @@ GRANT ALL PRIVILEGES ON Kegerator.* TO smartkeg;
 USE Kegerator;
 
 -- --------------------
+-- BEER TYPE TABLE
+-- --------------------
+CREATE TABLE BeerType (
+    id              INTEGER     NOT NULL AUTO_INCREMENT,
+    type            VARCHAR(16) NOT NULL,
+    subtype         VARCHAR(32),
+    PRIMARY KEY(id)
+);
+
+-- --------------------
+-- BREWER TABLE
+-- --------------------
+CREATE TABLE Brewer (
+    id              INTEGER     NOT NULL AUTO_INCREMENT,
+    name            VARCHAR(64),
+    city            VARCHAR(64),
+    state           VARCHAR(64),
+    country         VARCHAR(64),
+    PRIMARY KEY(id)
+)
+
+-- --------------------
 -- BEER TABLE
 -- -------------------- 
 CREATE TABLE Beer (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
+    brewer_id       INTEGER
+    type_id         INTEGER
     name            VARCHAR(50) NOT NULL,
-    brand           VARCHAR(50),
     brewer          VARCHAR(50) NOT NULL,  
     type            VARCHAR(5)  CHECK(type IN ('Ale', 'Lager')),
     subtype         VARCHAR(25),   /* IPA, STOUT, ETC.. */
@@ -39,6 +62,8 @@ CREATE TABLE Beer (
     IBU             INTEGER(3),
     color_primary   CHAR(7),
     color_secondary CHAR(7),
+    FOREIGN KEY(brewer_id) REFERENCES Brewer(id),
+    FOREIGN KEY(type_id) REFERENCES BeerType(id),
     PRIMARY KEY(id)
 );
 
