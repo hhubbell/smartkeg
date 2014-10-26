@@ -26,7 +26,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         logger = SmartkegLogger(self._CONFIG_PATH)
         logger.log(message)
-    
+
     def send_headers(self):
         """
         @Author:        Harrison Hubbell
@@ -45,12 +45,22 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         @Created:       10/07/2014
         @Description:   Returns JSON to client containing supplied data.
         """
+        self.server.add_requester(self.client_address)
         self.send_headers()
         self.wfile.write(self.server.response)
         self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
 
 
 class TCPServer(SocketServer.TCPServer):
+    def add_requester(self, requester):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   Remembers the requester so updates can be sent
+                        to them.
+        """
+        self.client_list.append({'ip': requester[0], 'port': requester[1]})
+
     def set_response(self, response):
         """
         @Author:        Harrison Hubbell
@@ -69,6 +79,8 @@ class SmartkegSocketServer(ChildProcess):
     def __init__(self, pipe, host, port):
         super(SmartkegSocketServer, self).__init__(pipe)    
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
+        self.tcpd.client_list = []
+        self.tcpd.response = None        
 
     def set_response(self, response):
         """
