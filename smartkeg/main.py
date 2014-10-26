@@ -12,10 +12,12 @@ from database_interface import DatabaseInterface
 from flow_meter import FlowMeterReader
 from led_display import LEDDisplay
 from temperature_sensor import TemperatureSensorReader
+from socket_server import SmartkegSocketServer
 from model import Model
 from query import Query
 import RPi.GPIO as GPIO
 import time
+import json
 
 class Smartkeg(ParentProcess):
     _BASE_DIR = '/usr/local/src/smartkeg/'
@@ -24,9 +26,57 @@ class Smartkeg(ParentProcess):
     def __init__(self):
         super(Smartkeg, self).__init__()
         self.dbi = self.set_database_connection()
-        self.query_set_current_keg()
-        #self.percent_remaining = self.get_percent_remaining()
-        #self.current_keg = self.get_current_keg()
+        
+        # This is an example of the JSON being sent.
+        self.model = {
+            'consumption': {
+                'x': {
+                    50: {
+                        'y':[3, 5, 17, 23, 8, 6, 13, 14, 5, 16],
+                        'mean': None,
+                    },
+                    150: {
+                        'y':[6, 3, 7, 13, 16, 8, 16, 3, 4, 6],
+                        'mean': None,
+                    },
+                    250: {
+                        'y':[3, 8, 17, 9, 16, 8, 16, 13, 10, 6],
+                        'mean': None,
+                    },
+                    350: {
+                        'y':[9, 18, 56, 13, 6, 28, 16, 23, 24, 36],
+                        'mean': None,
+                    },
+                    450: {
+                        'y':[33, 43, 67, 53, 56, 48, 46, 33, 44, 36],
+                        'mean': None,
+                    },
+                    550: {
+                        'y':[93, 83, 77, 93, 96, 98, 116, 63, 64, 36],
+                        'mean': None,
+                    },
+                    650: {
+                        'y':[83, 83, 77, 93, 96, 98, 90, 43, 44, 46],
+                        'mean': None,
+                    }
+                },
+                'radius': 2,
+                'style': 'circle'
+            },
+            'remaining': {
+                'y': 94.13241234
+            },
+            'beer_info': {
+                'brand': 'Fiddlehead',
+                'name': 'Mastermind',
+                'type': 'Ale',
+                'subtype': 'Double IPA',
+                'ABV': 8.2,
+                'IBU': '???',
+                'rating': 5
+            }
+        }
+
 
     # --------------------
     # SETTERS
@@ -53,18 +103,35 @@ class Smartkeg(ParentProcess):
     # --------------------
     # GETTERS
     # --------------------
+    # XXX Necessary?
     def get_current_keg(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
         @Descreption:   Returns current keg id
         """
-        return self.dbi.SELECT(self.QUERY['SELECT']['KEG_ID'])
+        return self.dbi.SELECT(Query.SELECT_KEG_ID)
 
     # --------------------
-    # QUERY SET METHODS
+    # QUERY METHODS
     # --------------------
-    def query_set_current_keg(self):
+    def query_insert_fridge_temperature(self, temperature):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   INSERTS the fridge temperature values.
+        """
+        self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, params=temperature)
+    
+    def query_insert_pour(self, pour):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   INSERTS the pour value.
+        """
+        self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
+
+    def query_select_current_keg(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
@@ -72,10 +139,7 @@ class Smartkeg(ParentProcess):
         """
         self.current_kegs = self.dbi.SELECT(Query.SELECT_KEG_ID)
 
-    # --------------------
-    # QUERY GET METHODS
-    # --------------------
-    def query_get_percent_remaining(self):
+    def query_select_percent_remaining(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
@@ -84,7 +148,7 @@ class Smartkeg(ParentProcess):
         """
         return self.dbi.SELECT(Query.SELECT_PERCENT_REMAINING)
         
-    def get_volume_remaining(self):
+    def query_select_volume_remaining(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
@@ -94,7 +158,7 @@ class Smartkeg(ParentProcess):
         return self.dbi.SELECT(Query.SELECT_VOLUME_REMAINING)
 
     # --------------------
-    # PROC EVENT HANDLERS
+    # FLOW METER 
     # --------------------
     def handle_flow_meter(self, proc_name, callback=None, args=None):
         """
@@ -110,6 +174,29 @@ class Smartkeg(ParentProcess):
         if pour:
             self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
 
+    def flow_meter_get_pour(self, proc):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   pulls the last pour from the pipe connected to the
+                        flow meter process, and sets the last_pour field as 
+                        that value.  Returns true if a pour is detected, 
+                        false otherwise.
+        """
+        pour = self.proc_poll_recv(proc)
+        res = None
+        
+        if pour:
+            res = True            
+            self.last_pour = pour
+        else:
+            res = False
+
+        return res
+
+    # --------------------
+    # LED DISPLAY
+    # --------------------
     def handle_led_display(self, proc_name):
         """
         @Author:        Harrison Hubbell
@@ -133,14 +220,56 @@ class Smartkeg(ParentProcess):
                 
             self.proc_send(proc_name, rows)
 
+    # --------------------
+    # MODEL
+    # --------------------
     def handle_model(self, proc_name):
         """
         @Author:        Harrison Hubbell
-
+        @Created:       
+        @Description:   For now, it is just example data.
         
         """
-        return
+        self.proc_send(proc_name, 'EXAMPLE DATA')
+        self.model = self.proc_recv(proc_name)
+
+    # --------------------
+    # SOCKET SERVER
+    # --------------------
+    def socket_server_set_response(self, proc_name, response):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   Updates the Socket Server procs response.
+        """
+        self.proc_send(proc_name, json.dumps(response))
             
+    # --------------------
+    # TEMPERATURE SENSOR
+    # --------------------
+    def temperature_sensor_read(self, proc_name):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   Polls the temperature sensor proc and gets the
+                        values if there has been a reading.  Returns true
+                        if a reading has occured and false otherwise.
+        """
+        temperatures = self.proc_poll_recv(proc_name)
+        res = None
+        
+        if temperatures:
+            res = True        
+            temp_tuples = []
+            for sensor in temps:
+                temp_tuples.append((sensor, temps[sensor]))
+            
+        else:
+            res = False
+            
+        return res
+
+    # XXX Reconsider
     def handle_temperature_sensor(self, proc_name):
         """
         @Author:        Harrison Hubbell
@@ -168,7 +297,7 @@ class Smartkeg(ParentProcess):
     def spawn_flow_meter(self, conn):
         """
         @Author:        Harrison Hubbell
-        @Created:       08/31/2104
+        @Created:       08/31/2014
         @Description:   Creates the Flow Meter process.
         """
         HEADER = 'SmartkegFlowMeter'
@@ -183,7 +312,7 @@ class Smartkeg(ParentProcess):
     def spawn_led_display(self, conn):
         """
         @Author:        Harrison Hubbell
-        @Created:       08/31/2104
+        @Created:       08/31/2014
         @Description:   Creates the LED Display process.
         """
         led = LEDDisplay(conn, GPIO)
@@ -192,16 +321,32 @@ class Smartkeg(ParentProcess):
     def spawn_model(self, conn):
         """
         @Author:        Harrison Hubbell
-        @Created:       10/07/2104
+        @Created:       10/07/2014
         @Description:   Creates the Modeling process.
         """        
         mod = Model(conn)
         mod.main()
 
+    def spawn_socket_server(self, conn):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   Creates the Socket Server process
+        """
+        HEADER = 'SmartkegSocketServer'
+        cfg = ConfigParser()
+        cfg.read(self._CONFIG_PATH)
+        host = cfg.get(HEADER, 'host')
+        port = cfg.getint(HEADER, 'port')
+
+        soc = SmartkegSocketServer(conn, host, port)
+        soc.main()
+        
+
     def spawn_temp_sensor(self, conn):
         """
         @Author:        Harrison Hubbell
-        @Created:       08/31/2104
+        @Created:       08/31/20q4
         @Description:   Creates the Temperature Sensor process.
         """
         HEADER = 'SmartkegTemperatureSensor'
@@ -226,19 +371,35 @@ if __name__ == '__main__':
         'FLO': 'flow_meter',        
         'LED': 'led_display',
         'MOD': 'model',
+        'SOC': 'socket_server',
         'TMP': 'temperature_sensor'
     }
 
     smartkeg = Smartkeg()
     smartkeg.proc_add(PROC['FLO'], target=smartkeg.spawn_flow_meter, pipe=True)    
     smartkeg.proc_add(PROC['LED'], target=smartkeg.spawn_led_display, pipe=True)
+    smartkeg.proc_add(PROC['MOD'], target=smartkeg.spawn_model, pipe=True)    
+    smartkeg.proc_add(PROC['SOC'], target=smartkeg.spawn_socket_server, pipe=True)        
     smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)    
-    smartkeg.proc_add(PROC['MOD'], target=smartkeg.spawn_model, pipe=True)
     smartkeg.proc_start_all()
  
+    smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
+
     while True:
-        smartkeg.handle_flow_meter(PROC['FLO'])
-        smartkeg.handle_led_display(PROC['LED'])
-        smartkeg.handle_temperature_sensor(PROC['TMP'])
-        smartkeg.handle_model(PROC['MOD'])
+        if smartkeg.flow_meter_get_pour(PROC['FLO']):
+            smartkeg.query_insert_pour(smartkeg.last_pour)
+    
+            ### XXX Build new data structure ### 
+
+            smartkeg.handle_led_display(PROC['LED'])
+            smartkeg.handle_model(PROC['MOD'])
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
+
+        if smartkeg.temperature_sensor_read(PROC['TMP']):
+            smartkeg.query_insert_fridge_temperature(smartkeg.fridge_temperature)
+
+            ### XXX Build new data structure ###
+            
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)            
+
         time.sleep(0.1)

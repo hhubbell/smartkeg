@@ -9,8 +9,10 @@
 #               allow connections from any origin.
 # ----------------------------------------------------------------------------
 
-import SocketServer
+from process import ChildProcess
 from logger import SmartkegLogger
+import SocketServer
+import time
 
 class TCPHandler(SocketServer.StreamRequestHandler):
     _BASE_DIR = '/usr/local/src/smartkeg/'
@@ -63,8 +65,9 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
     """Handle Requests in a Seperate Thread."""
 
 
-class SmartkegSocketServer:
-    def __init__(self, host, port):
+class SmartkegSocketServer(ChildProcess):
+    def __init__(self, pipe, host, port):
+        super(SmartkegSocketServer, self).__init__(pipe)    
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
 
     def set_response(self, response):
@@ -84,3 +87,17 @@ class SmartkegSocketServer:
         @Description:   Handle a single request.
         """
         self.tcpd.handle_request()
+
+    def main(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/25/2014
+        @Description:   Checks for updated response data and responds.
+        """
+        while True:
+            response = self.proc_poll_recv()
+            if response:
+                self.set_response(response)
+                
+            self.respond()
+            time.sleep(0.1)

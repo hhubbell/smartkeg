@@ -8,12 +8,10 @@
 from socket_server import SmartkegSocketServer
 from process import ChildProcess
 import time
-import json
 
 class Model(ChildProcess):
     def __init__(self, pipe):
         super(Model, self).__init__(pipe)
-        self.server = SmartkegSocketServer('', 8000)
 
     def main(self):
         # This is an example of the JSON being sent.
@@ -65,7 +63,16 @@ class Model(ChildProcess):
                 'rating': 5
             }
         }
-        self.server.set_response(json.dumps(self.model))
+        
+        while True:
+            data = self.proc_recv()
+
+            ### XXX Do something with data
+
+            self.proc_send(self.model)
+            
+
+        """self.server.set_response(json.dumps(self.model))
 
         while True:
             beer_data = self.proc_poll_recv()
@@ -74,4 +81,4 @@ class Model(ChildProcess):
                 self.server.set_response(json.dumps(self.model))
             
             self.server.respond()
-            time.sleep(0.1)
+            time.sleep(0.1)"""

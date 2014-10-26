@@ -5,56 +5,66 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 
 echo -e "\n\033[1mWelcome to the Smartkeg build process!\033[0m"
-echo "Checking dependencies..."
 
-# MySQL
-if command -v mysql > /dev/null;
+nocheck="--no-check"
+nodb="--no-db"
+
+if [ "$1" != "$nocheck" ] && [ "$2" != "$nocheck" ];
 then
-    MYSQL_COLOR=$GREEN
-else
-    MYSQL_COLOR=$RED
-fi
-
-# pip
-if command -v pip2 > /dev/null;
-then
-    PIP_COLOR=$GREEN
-
-    # MySQLdb
-    if pip2 list | grep MySQL-python > /dev/null;
+    echo "Checking dependencies..."
+    # MySQL
+    if command -v mysql > /dev/null;
     then
-        MYSQLDB_COLOR=$GREEN
+        MYSQL_COLOR=$GREEN
     else
+        MYSQL_COLOR=$RED
+    fi
+
+    # pip
+    if command -v pip2 > /dev/null;
+    then
+        PIP_COLOR=$GREEN
+
+        # MySQLdb
+        if pip2 list | grep MySQL-python > /dev/null;
+        then
+            MYSQLDB_COLOR=$GREEN
+        else
+            MYSQLDB_COLOR=$RED
+        fi
+
+        # RPi.GPIO
+        if pip2 list | grep RPi.GPIO > /dev/null;
+        then
+            GPIO_COLOR=$GREEN
+        else
+            GPIO_COLOR=$RED
+        fi
+    else
+        PIP_COLOR=$RED
         MYSQLDB_COLOR=$RED
+        GPIO=$RED
     fi
 
-    # RPi.GPIO
-    if pip2 list | grep RPi.GPIO > /dev/null;
-    then
-        GPIO_COLOR=$GREEN
-    else
-        GPIO_COLOR=$RED
-    fi
-else
-    PIP_COLOR=$RED
-    MYSQLDB_COLOR=$RED
-    GPIO=$RED
+    echo -e "\nThe following \033[1;33msystem\033[0m dependencies are required:"
+    echo -e "${MYSQL_COLOR}MySQL or MariaDB${RESET}"
+    echo -e "\nThe following \033[1;33mpython\033[0m dependencies are required:"
+    echo -e "${PIP_COLOR}pip${RESET}"
+    echo -e "${MYSQLDB_COLOR}MySQL-python${RESET}"
+    echo -e "${GPIO_COLOR}RPi.GPIO${RESET}"
 fi
-
-echo -e "\nThe following \033[1;33msystem\033[0m dependencies are required:"
-echo -e "${MYSQL_COLOR}MySQL or MariaDB${RESET}"
-echo -e "\nThe following \033[1;33mpython\033[0m dependencies are required:"
-echo -e "${PIP_COLOR}pip${RESET}"
-echo -e "${MYSQLDB_COLOR}MySQL-python${RESET}"
-echo -e "${GPIO_COLOR}RPi.GPIO${RESET}"
 
 echo -e "\n\033[1mBeginning the build process.\033[0m"
 
-echo -e "\n\033[4;93mDatabase\033[0m"
-echo "Create user"
-echo "Create tables"
-echo "Insert defaults"
-mysql -u root -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
+if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ];
+then
+    echo -e "\n\033[4;93mDatabase\033[0m"
+    echo "Create user"
+    echo "Create tables"
+    echo "Insert defaults"
+    mysql -u root -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
+
+fi
 
 echo -e "\n\033[4;93mSystem\033[0m"
 echo "Move files"
