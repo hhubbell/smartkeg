@@ -24,6 +24,10 @@ Smartkeg has the following dependencies, the build script will check to see if y
 
 The build script will configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into te systems `/usr/local/src/` directory, and create the service files.
 
+To skip the dependency check when building, add the following arg: `--no-check`
+
+To skip the database creation proces, add the following arg: `--no-db`
+
 To run the Smartkeg system at startup on Arch Linux, run the following:
 
 `# systemctl enable smartkeg`
