@@ -13,7 +13,9 @@ Smartkeg logs refrigerator temperature, beer temperature, and consumption rates 
 ### Getting Started
 To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board.  As of now this script supports only Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
 
-`# ./build`
+```Shell
+# ./build
+```
 
 Easy as that!
 Smartkeg has the following dependencies, the build script will check to see if you have the following installed:
@@ -30,11 +32,15 @@ To skip the database creation proces, add the following arg: `--no-db`
 
 To run the Smartkeg system at startup on Arch Linux, run the following:
 
-`# systemctl enable smartkeg`
+```Shell
+# systemctl enable smartkeg
+```
 
 To run the Smartkeg web server at startup on Arch Linux, run the following:
 
-`# systemctl enable smartkeg-server`
+```Shell
+# systemctl enable smartkeg-server
+```
 
 ### History
 Originally, we scoped the project to gather information using distinct processes and let a web server handle displaying the information to the user.  This had some very distinct drawbacks:
