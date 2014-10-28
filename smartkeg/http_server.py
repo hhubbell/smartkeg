@@ -13,11 +13,11 @@ import json
 
 class RequestHandler(BaseHTTPRequestHandler):
     HTTP_OK  = 200
-    HTTP_PAGE_NOT_FOUND = 404
+    HTTP_FILE_NOT_FOUND = 404
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'    
     _SERVER_DIR = _BASE_DIR + 'srv/'
-    INDEX = 'index.html'
+    _INDEX = 'index.html'
 
     def get_content_type(self, req):
         """ 
@@ -40,7 +40,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         @Description:   Locates the requested page.
         """
         if self.path[1:] is '': 
-            page = self._SERVER_DIR + self.INDEX
+            page = self._SERVER_DIR + self._INDEX
         else:
             page = self._SERVER_DIR + self.path[1:]
 
@@ -57,21 +57,26 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.log(['[HTTP Server]', args])
 
     # --------------------
-    # BUILTIN HTTP METHODS
+    # HTTP METHODS
     # --------------------
     def do_GET(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       09/01/2014
+        @Description:   Overrides built in GET method to handle GET requests
+        """
         page = self.get_page()
         content_type = self.get_content_type(page)
 
-        with open(page) as p:
-            self.send_response(self.HTTP_OK)
-            self.send_header('Content-type', content_type)
-            self.end_headers()
-            self.wfile.write(p.read())
+        try:
+            with open(page) as p:
+                self.send_response(self.HTTP_OK)
+                self.send_header('Content-type', content_type)
+                self.end_headers()
+                self.wfile.write(p.read())
+        except IOError:
+            self.send_error(self.HTTP_FILE_NOT_FOUND)
 
-    def do_POST(self):
-        #POST Stuff
-        return
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle Requests in a Seperate Thread."""
