@@ -1,42 +1,39 @@
 # Smartkeg
-
 ##### By: Harrison Hubbell and  Christopher Young
 
-Never run out of beer with smarter, integrated, monitoring systems.
+Accurate demand forecasting is critical to successful long term business strategy. Using smarter, integrated monitoring systems for food and beverage consumption, retailers are able to take advantage of lean "JIT" supply practices; benefits of lowered holding costs and higher satisfaction of demand are thus able to realize.  Using Time Series Regression and Continuous Review Modeling the Smartkeg can accurately forecast stock supply and demand levels, and propagate this information to a wide range of interconnected devices.
 
 ## Status
-This project is still under construction; some parts are currently not in a working state, while others may not have been implemented yet.
+This project is currently under construction.
 
 ## How it works
-Smartkeg logs refrigerator temperature, beer temperature, and consumption rates to help facilitate ordering and cost management.  The machine uses historic consumption data and future predictions to analyze when a refill will be necessary - and gives alerts via email and a web interface, which is served up through the Raspberry Pi on a simple Python stack.
+The system is currently designed to be run on a Raspberry Pi board with Arch Linux ARM Operating System.  The Smartkeg system logs refrigerator temperature and beer temperature using a 3-pin temperature sensor, and consumption rates are logged using a 3-pin flow meter.  These peripherals are connected to the Raspberry Pi's GPIO pins.  The machine uses historic consumption data to build future predictions, allowing users to be notified when a refill will be necessary - and gives alerts via a web interface, which is served up through the Raspberry Pi on a simple Python stack.
 
 ## Getting Started
-To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board.  As of now this script supports only Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
+To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board running Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
 
 ```Shell
 # ./build
 ```
 
 Easy as that!
-Smartkeg has the following dependencies, the build script will check to see if you have the following installed:
+
+#### How the Build Script Works
+Smartkeg has the following dependencies, and the build script will check first to see if you have the following installed:
+###### Note: This step can be skipped by including the following argument: `--no-check`
 * MySQL (We prefer MariaDB)
 * pip (For installing Python dependencies)
 * MySQL-python (Python MySQL driver)
 * RPi.GPIO (Python-Raspberry Pi GPIO driver)
 
-The build script will configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into te systems `/usr/local/src/` directory, and create the service files.
-
-#### Build Options
-* To skip the dependency check when building, add the following arg: `--no-check`
-* To skip the database creation proces, add the following arg: `--no-db`
+The build script will also configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
+###### Note: This step can be skipped by including the following argument: `--no-db`
 
 #### Post Install
-To run the Smartkeg system at startup on Arch Linux, run the following:
+The build script creates systemd service files for the Smartkeg system, and the Smartkeg Server. To run the Smartkeg system and the Smartkeg Server at startup on Arch Linux, run the following, respectively:
 ```Shell
 # systemctl enable smartkeg
 ```
-
-To run the Smartkeg web server at startup on Arch Linux, run the following:
 ```Shell
 # systemctl enable smartkeg-server
 ```
