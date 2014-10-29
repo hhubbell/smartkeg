@@ -5,8 +5,9 @@ adr = localhost
 dbn = Kegerator
 
 [SmartkegLogger]
-dir = etc/log/      # Local path, change it if you want
-file = smartkeg.log # Seems pretty standard to call it this
+dir = etc/log/  # Local path, change it if you want
+file = smartkeg # Seems pretty standard to call it this, a date will 
+                # also be appended before the file extension.
 
 [SmartkegHTTPServer]
 host =          # AKA localhost

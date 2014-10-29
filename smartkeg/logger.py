@@ -9,10 +9,11 @@
 
 from ConfigParser import ConfigParser
 import logging
+import time
 
 class SmartkegLogger(object):
     _BASE_DIR = '/usr/local/src/smartkeg/'
-    
+
     def __init__(self, config_path):
         self.set_logger(config_path, logging.INFO)
 
@@ -23,16 +24,17 @@ class SmartkegLogger(object):
         @Description:   Sets up the logger based on config files.
         """
         HEADER = 'SmartkegLogger'
-        
+
         cfg = ConfigParser()
         cfg.read(config_path)
         log_dir = cfg.get(HEADER, 'dir')
         log_file = cfg.get(HEADER, 'file')
-        self.log_path = self._BASE_DIR + log_dir + log_file
-        
+        date = time.strftime("%Y%m%d")
+        self.log_path = self._BASE_DIR + log_dir + log_file + date + '.log'
+
         logging.basicConfig(
             filename=self.log_path,
-            format='%(asctime)s %(levelname)s: %(message)s', 
+            format='%(asctime)s %(levelname)s: %(message)s',
             level=level
         )
 
