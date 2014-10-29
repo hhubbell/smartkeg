@@ -3,11 +3,10 @@
 
 Accurate demand forecasting is critical to successful long term business strategy. Using smarter, integrated monitoring systems for food and beverage consumption, retailers are able to take advantage of lean "JIT" supply practices; benefits of lowered holding costs and higher satisfaction of demand are thus able to realize.  Using Time Series Regression and Continuous Review Modeling the Smartkeg can accurately forecast stock supply and demand levels, and propagate this information to a wide range of interconnected devices.
 
+The system is currently designed to be run on a Raspberry Pi board with Arch Linux ARM Operating System.  The Smartkeg system logs refrigerator temperature and beer temperature using a 3-pin temperature sensor, and consumption rates are logged using a 3-pin flow meter.  These peripherals are connected to the Raspberry Pi's GPIO pins.  The machine uses historic consumption data to build future predictions, allowing users to be notified when a refill will be necessary - and gives alerts via a web interface, which is served up through the Raspberry Pi on a simple Python stack.
+
 ## Status
 This project is currently under construction.
-
-## How it works
-The system is currently designed to be run on a Raspberry Pi board with Arch Linux ARM Operating System.  The Smartkeg system logs refrigerator temperature and beer temperature using a 3-pin temperature sensor, and consumption rates are logged using a 3-pin flow meter.  These peripherals are connected to the Raspberry Pi's GPIO pins.  The machine uses historic consumption data to build future predictions, allowing users to be notified when a refill will be necessary - and gives alerts via a web interface, which is served up through the Raspberry Pi on a simple Python stack.
 
 ## Getting Started
 To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board running Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
