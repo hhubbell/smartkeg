@@ -19,14 +19,18 @@ To try the Smartkeg Keg Monitoring system out, pull down a copy of the source on
 Easy as that!
 
 #### How the Build Script Works
+##### Dependency Check
 Smartkeg has the following dependencies, and the build script will check first to see if you have the following installed:
+
 **Note:** This step can be skipped by including the following argument: `--no-check`
 * MySQL (We prefer MariaDB)
 * pip (For installing Python dependencies)
 * MySQL-python (Python MySQL driver)
 * RPi.GPIO (Python-Raspberry Pi GPIO driver)
 
+##### Database
 The build script will also configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
+
 **Note:** This step can be skipped by including the following argument: `--no-db`
 
 #### Post Install
