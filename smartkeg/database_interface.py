@@ -4,7 +4,7 @@
 # Date:         09/01/2014
 # Description:  Manages connection with MariaDB database. The current scope
 #               of the project does not allow users to delete records via this
-#               interface. In fact, the database user should not only have 
+#               interface. In fact, the database user should not only have
 #               INSERT and SELECT permissions.
 # ----------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ import MySQLdb.cursors
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd):
         self.connect(addr, dbn, user, pwd)
-        
+
     def __exit__(self):
         self.conn.close()
 
@@ -22,7 +22,7 @@ class DatabaseInterface(object):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
-        @Description:   Attempts to connect to the MySQL database.  Handles 
+        @Description:   Attempts to connect to the MySQL database.  Handles
                         errors if attempt fails.
         """
         try:
@@ -30,7 +30,7 @@ class DatabaseInterface(object):
         except MySQLdb.OperationalError as e:
             print "Could not connect to the database:"
             print e
-            
+
     def prepare(self):
         """
         @Author:        Harrison Hubbell
@@ -64,5 +64,5 @@ class DatabaseInterface(object):
             res = self.cur.fetchall()
         except:
             self.conn.rollback()
-        
+
         return res

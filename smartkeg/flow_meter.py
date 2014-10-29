@@ -2,8 +2,8 @@
 # Filename:     flow_meter.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
-# Description:  Reads flow from flow meter. For the current scope of the 
-#               project ther is only one flow meter per kegerator.  The 
+# Description:  Reads flow from flow meter. For the current scope of the
+#               project ther is only one flow meter per kegerator.  The
 #               FlowMeterReader object can however, with some modification,
 #               be made to handle multiple FlowMeters in form of child procs.
 # ----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ import time
 class FlowMeter(ChildProcess):
     _TIME_ACCY = 1000
     _TIMEOUT = 1
-    
+
     def __init__(self, pipe, gpio, pin):
         super(FlowMeter, self).__init__(pipe)
         self.GPIO = gpio
@@ -52,11 +52,11 @@ class FlowMeter(ChildProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
-        @Description:   The main loop. checks for a pour and handles 
+        @Description:   The main loop. checks for a pour and handles
                         it if true.
         """
         self.last_tick = time.time()
-        
+
         while True:
             if time.time() - self.last_tick > self._TIMEOUT and self.ticks > 0:
                 self.convert_ticks_to_pints()
@@ -74,7 +74,7 @@ class FlowMeterReader(ChildProcess):
     def __init__(self, pipe, gpio, pin):
         super(FlowMeterReader, self).__init__(pipe)
         self.flow_meter = FlowMeter(pipe, gpio, pin)
-        
+
     def main(self):
         """
         @Author:        Harrison Hubbell
@@ -83,4 +83,4 @@ class FlowMeterReader(ChildProcess):
         """
         self.flow_meter.setup_data_pin()
         self.flow_meter.monitor_flow()
-        
+

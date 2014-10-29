@@ -13,9 +13,9 @@ from logger import SmartkegLogger
 class ParentProcess(object):
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    
+
     def __init__(self):
-        self.logger = SmartkegLogger(self._CONFIG_PATH)        
+        self.logger = SmartkegLogger(self._CONFIG_PATH)
         self.procs = {}
         self.pipes = {}
 
@@ -23,7 +23,7 @@ class ParentProcess(object):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
-        @Description:   Adds a process and manages creating the pipes 
+        @Description:   Adds a process and manages creating the pipes
                         between both nodes.
         """
         args = None
@@ -36,7 +36,7 @@ class ParentProcess(object):
             args = (self.pipes[proc_name]['FROM'],)
 
         self.procs[proc_name] = Process(name=proc_name, target=target, args=args)
-   
+
     def proc_poll_recv(self, proc_name):
         """
         @Author:        Harrison Hubbell
@@ -78,9 +78,9 @@ class ParentProcess(object):
 class ChildProcess(object):
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    
+
     def __init__(self, pipe):
-        self.logger = SmartkegLogger(self._CONFIG_PATH)        
+        self.logger = SmartkegLogger(self._CONFIG_PATH)
         self.pipe = pipe
 
     def proc_poll_recv(self):

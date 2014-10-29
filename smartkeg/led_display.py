@@ -2,13 +2,13 @@
 # Filename:     led_display.py
 # Author:       Harrison Hubbell
 # Date:         08/31/2014
-# Description:  Manages lighting the LED display on the kegerator based on 
+# Description:  Manages lighting the LED display on the kegerator based on
 #               the amount of beer left in the keg.  The LEDs are multiplexed
-#               to limit the amount of GPIO pins required to light each row, 
+#               to limit the amount of GPIO pins required to light each row,
 #               as well as saving some energy over lighting all rows at once;
-#               approximately 120 mA.  Multiplexing is expensive however, and 
-#               the perfomance of the loop - starting the time a row lights 
-#               and stopping when the row is lit again - must not fall below 
+#               approximately 120 mA.  Multiplexing is expensive however, and
+#               the perfomance of the loop - starting the time a row lights
+#               and stopping when the row is lit again - must not fall below
 #               50Hz - to prevent noticable light flicker.
 # ----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ class LEDDisplay(ChildProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
-        @Description:   Lights a given row of LEDs based on the List of 
+        @Description:   Lights a given row of LEDs based on the List of
                         pin numbers passed in
         """
         self.GPIO.setup(row[0], self.GPIO.OUT)
@@ -56,7 +56,7 @@ class LEDDisplay(ChildProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
-        @Description:   Lights each the number of rows it is told to light, 
+        @Description:   Lights each the number of rows it is told to light,
                         which is received from its parent proc.
         """
         while True:
