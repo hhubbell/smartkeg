@@ -12,8 +12,9 @@ import MySQLdb
 import MySQLdb.cursors
 
 class DatabaseInterface(object):
-    def __init__(self, addr, dbn, user, pwd):
+    def __init__(self, addr, dbn, user, pwd, logger=None):
         self.connect(addr, dbn, user, pwd)
+        self.logger = logger
 
     def __exit__(self):
         self.conn.close()
@@ -27,9 +28,17 @@ class DatabaseInterface(object):
         """
         try:
             self.conn = MySQLdb.connect(addr, user, pwd, dbn, cursorclass=MySQLdb.cursors.DictCursor)
+            self.log_message(['[Database Interface]', 'Successfully connected to', dbn, 'as user', user])
         except MySQLdb.OperationalError as e:
-            print "Could not connect to the database:"
-            print e
+            self.log_message(['[Database Interface]', 'Could not connect to the database for the following reason:', e])
+
+    def log_message(self, message):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/31/2014
+        @Description:   Logs a message if the logger has been specified.
+        """
+        if self.logger: self.logger.log(message)
 
     def prepare(self):
         """
@@ -49,8 +58,10 @@ class DatabaseInterface(object):
         try:
             self.cur.executemany(query, params)
             self.conn.commit()
+            self.log_message(['[Database Interface]', 'Successful INSERT transaction with the following data:', '\nQuery:', query, '\nParams', params])
         except:
             self.conn.rollback()
+            self.log_message(['[Database Interface]', 'Failed INSERT transaction with the following data:', '\nQuery:', query, '\nParams', params])
 
     def SELECT(self, query, params=None):
         """
@@ -62,7 +73,10 @@ class DatabaseInterface(object):
         try:
             self.cur.execute(query, params)
             res = self.cur.fetchall()
+            self.log_message(['[Database Interface]', 'Successful SELECT transaction with the following data:', '\nQuery:', query, '\nParams', params])
         except:
             self.conn.rollback()
+            self.log_message(['[Database Interface]', 'Failed SELECT transaction with the following data:', '\nQuery:', query, '\nParams', params])
+
 
         return res

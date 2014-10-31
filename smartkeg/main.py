@@ -98,7 +98,7 @@ class Smartkeg(ParentProcess):
         pwd = cfg.get(HEADER, 'pwd')
         dbn = cfg.get(HEADER, 'dbn')
         adr = cfg.get(HEADER, 'adr')
-        return DatabaseInterface(adr, dbn, usr, pwd)
+        return DatabaseInterface(adr, dbn, usr, pwd, logger=self.logger)
 
     # --------------------
     # GETTERS
