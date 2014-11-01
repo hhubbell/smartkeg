@@ -13,8 +13,8 @@ import MySQLdb.cursors
 
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd, logger=None):
+        self.logger = logger        
         self.connect(addr, dbn, user, pwd)
-        self.logger = logger
 
     def __exit__(self):
         self.conn.close()
