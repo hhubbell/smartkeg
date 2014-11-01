@@ -36,10 +36,22 @@ function render_beer_info(set) {
 }
 
 function main() {
-    var ajax = new Ajax('10.0.0.35', '8000');
-    ajax.send('GET', example);
-    //render_consumption_graph('#consumption-graph');
-    //render_volume_remaining('#remaining-graph');
+    //var ajax = new Ajax('10.0.0.35', '8000');
+    var source = new EventSource('http://10.0.0.35:8000');
+
+    source.addEventListener('init', function(e) {
+        console.log('Connection Initialized');
+        example(e.data);
+        e.target.removeEventListener(e.type, this);
+    }
+
+    source.addEventListener('update', function(e) {
+        console.log('Update Received, Re-rendering');
+        example(e.data);
+    });
+    
+
+    //ajax.send('GET', example);
 }
 
 
