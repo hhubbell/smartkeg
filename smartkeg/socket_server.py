@@ -27,17 +27,38 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         logger = SmartkegLogger(self._CONFIG_PATH)
         logger.log(message)
 
-    def send_headers(self):
+    def set_headers(self, fields):
         """
         @Author:        Harrison Hubbell
-        @Created:       10/07/2014
-        @Description:   Sends headers to the requester.
+        @Created:       11/01/2014
+        @Description:   Sets the response headers based on the fields
+                        dictionary paramter
         """
-        self.wfile.write(
-            "HTTP/1.1 200 OK\r\n" \
-            "Access-Control-Allow-Origin: *\r\n" \
-            "Content-Type: text/plain\r\n\r\n"
-        )        
+        self.response_headers = 'HTTP/1.1 200 OK\r\n'
+
+        for field in fields:
+            self.response_headers += field + ': ' + fields[field] + '\r\n'
+
+        self.response_headers += '\r\n'
+
+    def split_headers(self, request):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/01/2014
+        @Description:   Spits the request headers into a dictionary so 
+                        header content can be easily queried.
+        """
+        headers = request.split('\n\n')[0]
+        request_headers = {}
+        
+        for line in headers.splitlines():
+            field = line.split(': ')
+            if len(field) > 1:
+                request_headers[field[0]] = field[1]
+            else:
+                request_headers['Client Request'] = field[0]
+
+        return request_headers
 
     def handle(self):
         """
@@ -45,30 +66,32 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         @Created:       10/07/2014
         @Description:   Returns JSON to client containing supplied data.
         """
-        self.server.add_requester(self.client_address)
-        self.send_headers()
-        self.wfile.write(self.server.response)
+        
+        request = self.request.recv(1024).strip()
+        request_headers = self.split_headers(request)
+        
+        response_fields = {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': request_headers['Accept']
+        }
+        
+        self.set_headers(response_fields)
+        self.wfile.write(self.response_headers)
+        self.wfile.write('asdfasdf')
+        
         self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
 
 
 class TCPServer(SocketServer.TCPServer):
-    def add_requester(self, requester):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/25/2014
-        @Description:   Remembers the requester so updates can be sent
-                        to them.
-        """
-        self.client_list.append({'ip': requester[0], 'port': requester[1]})
-
-    def set_response(self, response):
+    def set_response(self, event, response):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
         @Description:   Allows other Python objects to set the default
                         response date of the handler.
         """
-        self.response = response
+        self.response = 'event: ' + event + '\n' \
+                        'data: ' + response + '\n\n'
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
@@ -79,10 +102,9 @@ class SmartkegSocketServer(ChildProcess):
     def __init__(self, pipe, host, port):
         super(SmartkegSocketServer, self).__init__(pipe)    
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
-        self.tcpd.client_list = []
-        self.tcpd.response = None        
+        self.tcpd.set_response('init', '')
 
-    def set_response(self, response):
+    def set_response(self, event, response):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
@@ -90,7 +112,7 @@ class SmartkegSocketServer(ChildProcess):
                         further to add the ability for any object using
                         SmartkegSocketServer to set the response.
         """
-        self.tcpd.set_response(response)
+        self.tcpd.set_response(event, response)
         
     def respond(self):
         """
@@ -107,9 +129,10 @@ class SmartkegSocketServer(ChildProcess):
         @Description:   Checks for updated response data and responds.
         """
         while True:
-            response = self.proc_poll_recv()
-            if response:
-                self.set_response(response)
-                
-            self.respond()
+            self.set_response('init', self.tcpd.response)
+            update = self.proc_poll_recv()
+            if update:
+                self.set_response('update', update)
+ 
+            self.respond()                
             time.sleep(0.1)
