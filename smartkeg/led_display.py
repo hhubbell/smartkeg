@@ -13,6 +13,7 @@
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
+import time
 
 class LEDDisplay(ChildProcess):
     ROW = [
@@ -66,3 +67,8 @@ class LEDDisplay(ChildProcess):
                 while i >= 0:
                     self.light_row(ROW[i])
                     i -= 1
+
+            # This prevents the CPU from running out of control.  If this
+            # causes a noticable flicker in the display, it will have to 
+            # be refactored.
+            time.sleep(0.1)
