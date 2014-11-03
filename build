@@ -1,79 +1,91 @@
 #!/bin/bash
 
 RESET="\033[0m"
+BOLD="\033[1m"
 RED="\033[0;31m"
 GREEN="\033[0;32m"
+BLUE="\033[1;34m"
 
-echo -e "\n\033[1mWelcome to the Smartkeg build process!\033[0m"
+DEP_OK="${GREEN}OK${RESET}"
+DEP_NO="${RED}NO${RESET}"
+
+DEP_PASS=true
 
 nocheck="--no-check"
 nodb="--no-db"
 
+echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
+
 if [ "$1" != "$nocheck" ] && [ "$2" != "$nocheck" ];
 then
-    echo "Checking dependencies..."
+    echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
+    echo -ne "\tMySQL           "
     # MySQL
     if command -v mysql > /dev/null;
     then
-        MYSQL_COLOR=$GREEN
+        echo -e $DEP_OK
     else
-        MYSQL_COLOR=$RED
+        DEP_PASS=false
+        echo -e $DEP_NO
     fi
 
     # pip
+    echo -ne "\tpip             "
     if command -v pip2 > /dev/null;
     then
-        PIP_COLOR=$GREEN
+        echo -e $DEP_OK
 
         # MySQLdb
+        echo -ne "\tMySQLdb         "
         if pip2 list | grep MySQL-python > /dev/null;
         then
-            MYSQLDB_COLOR=$GREEN
+            echo -e $DEP_OK
         else
-            MYSQLDB_COLOR=$RED
+            DEP_PASS=false
+            echo -e $DEP_NO
         fi
 
         # RPi.GPIO
+        echo -ne "\tRPi.GPIO        "
         if pip2 list | grep RPi.GPIO > /dev/null;
         then
-            GPIO_COLOR=$GREEN
+            echo -e $DEP_OK
         else
-            GPIO_COLOR=$RED
+            DEP_PASS=false
+            echo -e $DEP_NO
         fi
     else
-        PIP_COLOR=$RED
-        MYSQLDB_COLOR=$RED
-        GPIO=$RED
+        DEP_PASS=false
+        echo -e $DEP_NO
     fi
 
-    echo -e "\nThe following \033[1;33msystem\033[0m dependencies are required:"
-    echo -e "${MYSQL_COLOR}MySQL or MariaDB${RESET}"
-    echo -e "\nThe following \033[1;33mpython\033[0m dependencies are required:"
-    echo -e "${PIP_COLOR}pip${RESET}"
-    echo -e "${MYSQLDB_COLOR}MySQL-python${RESET}"
-    echo -e "${GPIO_COLOR}RPi.GPIO${RESET}"
-fi
 
-echo -e "\n\033[1mBeginning the build process.\033[0m"
+    if [ !"$DEP_PASS" ];
+    then
+        echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system.  Please install them and then try to build again."
+    fi
+fi
 
 if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ];
 then
-    echo -e "\n\033[4;93mDatabase\033[0m"
-    echo "Create user"
-    echo "Create tables"
-    echo "Insert defaults"
+    echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
+    echo -e "\tCreate user"
+    echo -e "\tCreate tables"
+    echo -e "\tInsert defaults"
     mysql -u root -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
 
 fi
 
-echo -e "\n\033[4;93mSystem\033[0m"
-echo "Move files"
+echo -e "\n${BLUE}=>${RESET} Configuring System\n"
+echo -e "\tMove files"
 sudo cp -r smartkeg/ /usr/local/src/
-echo "Create service"
-echo "Reload Service Daemons"
+
+echo -e "\tCreate service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
 sudo echo -e "[Unit]\nDescription=Smartkeg Web Server\nRequires=smartkeg.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/http_server.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg-server.service
+
+echo -e "\tReload Service Daemons"
 sudo systemctl daemon-reload
 
-echo -e "\n\033[1mDone!\033[0m"
+echo -e "\n${BOLD}Done!${RESET}"
 
