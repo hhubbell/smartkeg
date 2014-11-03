@@ -62,7 +62,7 @@ then
 
     if [ !"$DEP_PASS" ];
     then
-        echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system.  Please install them and then try to build again."
+        echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system.  The Smartkeg software may act erroneously without the required libraries.  Please ensure they are installed before attempting to execute the Smartkeg Consumption Monitoring System."
     fi
 fi
 
