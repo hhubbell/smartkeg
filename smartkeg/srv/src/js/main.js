@@ -36,22 +36,18 @@ function render_beer_info(set) {
 }
 
 function main() {
-    var host = new Socket(document.URL, 8000);
+    var host = new Socket('10.0.0.35', 8000);
     var source = new EventSource(host.toString());
-
     var min_update_id = 0
-    //var ajax = new Ajax('10.0.0.35', '8000');
 
     source.onmessage = function(e) {
-        console.log('Message received');
-        
-        if (e.origin === host.toString() && e.id > min_update_id) {
-            min_update_id = e.id;
+        var id = parseInt(e.lastEventId);
+
+        if (id > min_update_id) {
+            min_update_id = id;
             example(e.data);
         }
     }    
-
-    //ajax.send('GET', example);
 }
 
 

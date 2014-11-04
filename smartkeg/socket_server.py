@@ -77,9 +77,10 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         
         self.set_headers(response_fields)
         self.wfile.write(self.response_headers)
-        self.wfile.write('asdfasdf')
+        self.wfile.write(self.server.response)
         
         self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
+        self.log_message(['[Socket Server]', 'Response ID', self.server.update_id])
 
 
 class TCPServer(SocketServer.TCPServer):
@@ -90,8 +91,9 @@ class TCPServer(SocketServer.TCPServer):
         @Description:   Allows other Python objects to set the default
                         response date of the handler.
         """
-        self.response = 'id: ' + identifier + '\n' \
-                        'data: ' + response + '\n\n'
+        self.update_id = identifier
+        self.response = 'id: ' + str(identifier) + '\n' \
+                        'data: ' + data + '\n\n'
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
@@ -104,7 +106,7 @@ class SmartkegSocketServer(ChildProcess):
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
         self.update_id = 0
 
-    def set_response(self, event, response):
+    def set_response(self, identifier, data):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
@@ -112,7 +114,7 @@ class SmartkegSocketServer(ChildProcess):
                         further to add the ability for any object using
                         SmartkegSocketServer to set the response.
         """
-        self.tcpd.set_response(event, response)
+        self.tcpd.set_response(identifier, data)
         
     def respond(self):
         """
