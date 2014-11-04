@@ -11,7 +11,7 @@ class TimeSeriesRegression(ChildProcess):
     PERIODS = 7
 
     def __init__(self, pipe):
-        super(Model, self).__init__(pipe)
+        super(TimeSeriesRegression, self).__init__(pipe)
 
     def calculate_regression_line(self, data):
         """
@@ -45,7 +45,7 @@ class TimeSeriesRegression(ChildProcess):
         intercept = (sy * ssx - sx * sxy) / (n * ssx - sx ** 2)
         slope = (n * sxy - sx * sy) / (n * ssx - sx ** 2)
 
-        self.log_message(['[Model]','New trend line:','y =', intercept, '+', slope, '(x)'])
+        self.log_message(['[Modeler]','New trend line:','y =', intercept, '+', slope, '(x)'])
 
         return lambda x: intercept + slope * x
 
