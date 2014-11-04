@@ -12,7 +12,9 @@
 from process import ChildProcess
 from logger import SmartkegLogger
 import SocketServer
+import StringIO
 import time
+import zlib
 
 class TCPHandler(SocketServer.StreamRequestHandler):
     _BASE_DIR = '/usr/local/src/smartkeg/'
@@ -72,15 +74,20 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         
         response_fields = {
             'Access-Control-Allow-Origin': '*',
-            'Content-Type': request_headers['Accept']
+            'Content-Type': request_headers['Accept'],
+            #'Content-Encoding': 'gzip'
         }
         
         self.set_headers(response_fields)
         self.wfile.write(self.response_headers)
         self.wfile.write(self.server.response)
         
-        self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
-        self.log_message(['[Socket Server]', 'Response ID', self.server.update_id])
+        self.log_message(['[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id])
+
+    def gzip(self, body):
+        
+        output = StringIO.StringIO()
+        return output.write(zlib.compressobj(body))
 
 
 class TCPServer(SocketServer.TCPServer):
