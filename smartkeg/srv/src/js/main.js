@@ -36,8 +36,10 @@ function render_beer_info(set) {
 }
 
 function main() {
+    var host = new Socket(document.URL, 8000);
+    var source = new EventSource(host.toString());
+
     //var ajax = new Ajax('10.0.0.35', '8000');
-    var source = new EventSource('http://10.0.0.35:8000');
 
     source.addEventListener('init', function(e) {
         console.log('Connection Initialized');
