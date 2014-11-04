@@ -75,7 +75,6 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         response_fields = {
             'Access-Control-Allow-Origin': '*',
             'Content-Type': request_headers['Accept'],
-            #'Content-Encoding': 'gzip'
         }
         
         self.set_headers(response_fields)
@@ -85,7 +84,13 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         self.log_message(['[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id])
 
     def gzip(self, body):
-        
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/03/2014
+        @Description:   Compresses response body.  
+
+        XXX: Currently Not Used
+        """
         output = StringIO.StringIO()
         return output.write(zlib.compressobj(body))
 
