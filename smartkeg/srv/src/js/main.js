@@ -39,19 +39,17 @@ function main() {
     var host = new Socket(document.URL, 8000);
     var source = new EventSource(host.toString());
 
+    var min_update_id = 0
     //var ajax = new Ajax('10.0.0.35', '8000');
 
-    source.addEventListener('init', function(e) {
-        console.log('Connection Initialized');
-        example(e.data);
-        e.target.removeEventListener(e.type, this);
-    }
-
-    source.addEventListener('update', function(e) {
-        console.log('Update Received, Re-rendering');
-        example(e.data);
-    });
-    
+    source.onmessage = function(e) {
+        console.log('Message received');
+        
+        if (e.origin === host.toString() && e.id > min_update_id) {
+            min_update_id = e.id;
+            example(e.data);
+        }
+    }    
 
     //ajax.send('GET', example);
 }

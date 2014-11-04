@@ -83,14 +83,14 @@ class TCPHandler(SocketServer.StreamRequestHandler):
 
 
 class TCPServer(SocketServer.TCPServer):
-    def set_response(self, event, response):
+    def set_response(self, identifier, data):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
         @Description:   Allows other Python objects to set the default
                         response date of the handler.
         """
-        self.response = 'event: ' + event + '\n' \
+        self.response = 'id: ' + identifier + '\n' \
                         'data: ' + response + '\n\n'
 
 
@@ -102,7 +102,7 @@ class SmartkegSocketServer(ChildProcess):
     def __init__(self, pipe, host, port):
         super(SmartkegSocketServer, self).__init__(pipe)    
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
-        self.tcpd.set_response('init', '')
+        self.update_id = 0
 
     def set_response(self, event, response):
         """
@@ -129,10 +129,10 @@ class SmartkegSocketServer(ChildProcess):
         @Description:   Checks for updated response data and responds.
         """
         while True:
-            self.set_response('init', self.tcpd.response)
             update = self.proc_poll_recv()
             if update:
-                self.set_response('update', update)
+                self.update_id += 1
+                self.set_response(self.update_id, update)
  
             self.respond()                
             time.sleep(0.1)
