@@ -12,7 +12,9 @@
 from process import ChildProcess
 from logger import SmartkegLogger
 import SocketServer
+import StringIO
 import time
+import zlib
 
 class TCPHandler(SocketServer.StreamRequestHandler):
     _BASE_DIR = '/usr/local/src/smartkeg/'
@@ -72,14 +74,25 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         
         response_fields = {
             'Access-Control-Allow-Origin': '*',
-            'Content-Type': request_headers['Accept']
+            'Content-Type': request_headers['Accept'],
         }
         
         self.set_headers(response_fields)
         self.wfile.write(self.response_headers)
-        self.wfile.write('asdfasdf')
+        self.wfile.write(self.server.response)
         
-        self.log_message(['[Socket Server]', 'Request from', self.client_address[0]])
+        self.log_message(['[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id])
+
+    def gzip(self, body):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/03/2014
+        @Description:   Compresses response body.  
+
+        XXX: Currently Not Used
+        """
+        output = StringIO.StringIO()
+        return output.write(zlib.compressobj(body))
 
 
 class TCPServer(SocketServer.TCPServer):
@@ -90,8 +103,9 @@ class TCPServer(SocketServer.TCPServer):
         @Description:   Allows other Python objects to set the default
                         response date of the handler.
         """
-        self.response = 'id: ' + identifier + '\n' \
-                        'data: ' + response + '\n\n'
+        self.update_id = identifier
+        self.response = 'id: ' + str(identifier) + '\n' \
+                        'data: ' + data + '\n\n'
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
@@ -104,7 +118,7 @@ class SmartkegSocketServer(ChildProcess):
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
         self.update_id = 0
 
-    def set_response(self, event, response):
+    def set_response(self, identifier, data):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
@@ -112,7 +126,7 @@ class SmartkegSocketServer(ChildProcess):
                         further to add the ability for any object using
                         SmartkegSocketServer to set the response.
         """
-        self.tcpd.set_response(event, response)
+        self.tcpd.set_response(identifier, data)
         
     def respond(self):
         """
