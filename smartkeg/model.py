@@ -7,7 +7,7 @@
 
 from process import ChildProcess
 
-class Model(ChildProcess):
+class TimeSeriesRegression(ChildProcess):
     PERIODS = 7
 
     def __init__(self, pipe):

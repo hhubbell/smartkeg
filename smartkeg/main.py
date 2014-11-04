@@ -13,7 +13,7 @@ from flow_meter import FlowMeterReader
 from led_display import LEDDisplay
 from temperature_sensor import TemperatureSensorReader
 from socket_server import SmartkegSocketServer
-from model import Model
+from model import TimeSeriesRegression
 from query import Query
 import RPi.GPIO as GPIO
 import time
@@ -324,7 +324,7 @@ class Smartkeg(ParentProcess):
         @Created:       10/07/2014
         @Description:   Creates the Modeling process.
         """
-        mod = Model(conn)
+        mod = TimeSeriesRegression(conn)
         mod.main()
 
     def spawn_socket_server(self, conn):
