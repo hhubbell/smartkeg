@@ -15,12 +15,58 @@ class Model(ChildProcess):
     def __init__(self, pipe):
         super(Model, self).__init__(pipe)
 
+    def calculate_regression_line(self, data):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/04/2014
+        @Description:   Calculate the regression line based on given data.
+                        Returns a lambda function of the trend line function.
+        """
+        y_vals = []
+        x_vals = []
+        x_y = []
+        x_sq = []
+        y_sq = []
+
+        for y, x in enumerate(data):
+            y_vals.append(y + 1)
+            x_vals.append(x)
+            x_y.append(x * y)
+            x_sq.append(x ** 2)
+            y_sq.append(y ** 2)
+
+        n = len(data)
+        sx = sum(x_vals)
+        sy = sum(y_vals)
+        sxy = sum(x_y)
+        sxx = sum(x_sq)
+        syy = sum(y_sq)
+
+
+        intercept = (sy * sxx - sx * sxy) / (n * sxx - sx ** 2)
+        slope = (n * sxy - sx * sy) / (n * sxx - sx ** 2)
+
+        return lambda x: intercept + slope * x
+
+    def calculate_seasonal_indicies(self, data, periods=None):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/04/2104
+        @Description:   Calculate the seasonal indecies for each period.  If
+                        no amount of periods is specified, it will default to
+                        self.PERIODS.
+        """
+        sma = self.simple_moving_avg(data, periods=periods)
+        cma = self.centered_moving_avg(sma)
+
+        return seasonal_indicies
+
     def centered_moving_avg(self, simple_moving_avg):
         """
         @Author:        Harrison Hubbell
         @Created:       11/04/2014
         @Description:   Calculate centered moving average from a simple
-                        moving average
+                        moving average.
         """
         i = 0
         moving_avg = []
@@ -39,7 +85,7 @@ class Model(ChildProcess):
         @Description:   Create simple moving average set based on input
                         data and the optional number of periods.  If no
                         periods is specified it defaults to the model
-                        PERIOD.
+                        PERIODS.
         """
         i = 0
         moving_avg = []
@@ -105,8 +151,9 @@ class Model(ChildProcess):
         
         while True:
             data = self.proc_recv()
-            sma = self.simple_moving_avg(data)
-            cma = self.centered_moving_avg(sma)
+
+            self.trend = self.calculate_regression_line(data)
+            self.seasonality = self.calculate_seasonal_indices(data)
             
             ### XXX Do something with data
 
