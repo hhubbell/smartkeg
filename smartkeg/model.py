@@ -10,8 +10,47 @@ from process import ChildProcess
 import time
 
 class Model(ChildProcess):
+    PERIODS = 7
+
     def __init__(self, pipe):
         super(Model, self).__init__(pipe)
+
+    def centered_moving_avg(self, simple_moving_avg):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/04/2014
+        @Description:   Calculate centered moving average from a simple
+                        moving average
+        """
+        i = 0
+        moving_avg = []
+
+        while i < len(simple_moving_avg) - 1:
+            avg = float(sum(simple_moving_avg[i:i + 1])) / 2.0
+            moving_avg.append(avg)
+            i += 1
+
+        return moving_avg
+
+    def simple_moving_avg(self, data_set, periods=None):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/04/2014
+        @Description:   Create simple moving average set based on input
+                        data and the optional number of periods.  If no
+                        periods is specified it defaults to the model
+                        PERIOD.
+        """
+        i = 0
+        moving_avg = []
+        if periods is None: periods = self.PERIODS
+
+        while i < len(data_set) - periods:
+            period_avg = float(sum(data_set[i:periods])) / float(periods)
+            moving_avg.append(period_avg)
+            i += 1
+
+        return moving_avg
 
     def main(self):
         # This is an example of the JSON being sent.
@@ -66,7 +105,9 @@ class Model(ChildProcess):
         
         while True:
             data = self.proc_recv()
-
+            sma = self.simple_moving_avg(data)
+            cma = self.centered_moving_avg(sma)
+            
             ### XXX Do something with data
 
             self.proc_send(self.model)
