@@ -5,9 +5,7 @@
 # Description:  Statistical modeling package for the Smartkeg
 # ----------------------------------------------------------------------------
 
-from socket_server import SmartkegSocketServer
 from process import ChildProcess
-import time
 
 class Model(ChildProcess):
     PERIODS = 7
@@ -28,8 +26,9 @@ class Model(ChildProcess):
         x_sq = []
         y_sq = []
 
-        for y, x in enumerate(data):
-            y_vals.append(y + 1)
+        for i, x in enumerate(data):
+            y = i + 1            
+            y_vals.append(y)
             x_vals.append(x)
             x_y.append(x * y)
             x_sq.append(x ** 2)
@@ -39,12 +38,14 @@ class Model(ChildProcess):
         sx = sum(x_vals)
         sy = sum(y_vals)
         sxy = sum(x_y)
-        sxx = sum(x_sq)
-        syy = sum(y_sq)
+        ssx = sum(x_sq)
+        ssy = sum(y_sq)
 
 
-        intercept = (sy * sxx - sx * sxy) / (n * sxx - sx ** 2)
-        slope = (n * sxy - sx * sy) / (n * sxx - sx ** 2)
+        intercept = (sy * ssx - sx * sxy) / (n * ssx - sx ** 2)
+        slope = (n * sxy - sx * sy) / (n * ssx - sx ** 2)
+
+        self.log_message(['[Model]','New trend line:','y =', intercept, '+', slope, '(x)'])
 
         return lambda x: intercept + slope * x
 
@@ -58,6 +59,8 @@ class Model(ChildProcess):
         """
         sma = self.simple_moving_avg(data, periods=periods)
         cma = self.centered_moving_avg(sma)
+
+        ### Find seasonal Indicies
 
         return seasonal_indicies
 
@@ -154,19 +157,5 @@ class Model(ChildProcess):
 
             self.trend = self.calculate_regression_line(data)
             self.seasonality = self.calculate_seasonal_indices(data)
-            
-            ### XXX Do something with data
 
             self.proc_send(self.model)
-            
-
-        """self.server.set_response(json.dumps(self.model))
-
-        while True:
-            beer_data = self.proc_poll_recv()
-            if beer_data:
-                self.calculate_model(beer_data)
-                self.server.set_response(json.dumps(self.model))
-            
-            self.server.respond()
-            time.sleep(0.1)"""
