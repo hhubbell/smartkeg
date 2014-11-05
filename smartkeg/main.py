@@ -13,7 +13,7 @@ from flow_meter import FlowMeterReader
 from led_display import LEDDisplay
 from temperature_sensor import TemperatureSensorReader
 from socket_server import SmartkegSocketServer
-from model import TimeSeriesRegression
+from model import SmartkegModelMaker, TimeSeriesRegression
 from query import Query
 import RPi.GPIO as GPIO
 import time
@@ -22,6 +22,7 @@ import json
 class Smartkeg(ParentProcess):
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
+    TSR_PERIODS = 7
 
     def __init__(self):
         super(Smartkeg, self).__init__()
@@ -324,7 +325,7 @@ class Smartkeg(ParentProcess):
         @Created:       10/07/2014
         @Description:   Creates the Modeling process.
         """
-        mod = TimeSeriesRegression(conn)
+        mod = SmartkegModelMaker(TimeSeriesRegression(self.TSR_PERIODS))
         mod.main()
 
     def spawn_socket_server(self, conn):
