@@ -2,16 +2,44 @@
 # Filename:     model.py
 # Author:       Harrison Hubbell
 # Date:         10/07/2014
-# Description:  Statistical modeling package for the Smartkeg
+# Description:  Statistical modeling package for the Smartkeg. All "Models"
+#               MUST have a forecast() methed.
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
 
-class TimeSeriesRegression(ChildProcess):
-    PERIODS = 7
+class SmartkegModelMaker(ChildProcess):
+    def __init__(self, pipe, model):
+        super(SmartkegModelMaker, self).__init__(pipe)
+        self.model = model
 
-    def __init__(self, pipe):
-        super(TimeSeriesRegression, self).__init__(pipe)
+    def main(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/05/2014
+        @Description:   Main method of SmartkegModelMaker. Is responsible for
+                        receiving data and calculating the forecast model.
+        """
+        while True:
+            data = self.proc_recv()
+            forecast = self.model.forecast()
+            self.log_message(['[ModelMaker]','New model:', self.model.to_string()])
+            self.proc_send(forecast)
+
+
+class TimeSeriesRegression(object):
+    def __init__(self, periods):
+        self.periods = periods
+
+    def forecast(self, data):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/05/2014
+        @Description:   Creates the time-series regression model.
+        """
+        self.trend = self.calculate_regression_line(data)
+        self.seasonality = self.calculate_seasonal_indices(data)
+
 
     def calculate_regression_line(self, data):
         """
@@ -27,7 +55,7 @@ class TimeSeriesRegression(ChildProcess):
         y_sq = []
 
         for i, x in enumerate(data):
-            y = i + 1            
+            y = i + 1
             y_vals.append(y)
             x_vals.append(x)
             x_y.append(x * y)
@@ -41,24 +69,22 @@ class TimeSeriesRegression(ChildProcess):
         ssx = sum(x_sq)
         ssy = sum(y_sq)
 
+        self.intercept = (sy * ssx - sx * sxy) / (n * ssx - sx ** 2)
+        self.slope = (n * sxy - sx * sy) / (n * ssx - sx ** 2)
 
-        intercept = (sy * ssx - sx * sxy) / (n * ssx - sx ** 2)
-        slope = (n * sxy - sx * sy) / (n * ssx - sx ** 2)
+        return lambda x: self.intercept + self.slope * x
 
-        self.log_message(['[Modeler]','New trend line:','y =', intercept, '+', slope, '(x)'])
-
-        return lambda x: intercept + slope * x
-
-    def calculate_seasonal_indicies(self, data, periods=None):
+    def calculate_seasonal_indicies(self, data):
         """
         @Author:        Harrison Hubbell
         @Created:       11/04/2104
-        @Description:   Calculate the seasonal indecies for each period.  If
-                        no amount of periods is specified, it will default to
-                        self.PERIODS.
+        @Description:   Calculate the seasonal indecies for each period.
         """
-        sma = self.simple_moving_avg(data, periods=periods)
-        cma = self.centered_moving_avg(sma)
+        if self.periods % 2 == 0:
+            sma = self.simple_moving_avg(data)
+            cma = self.centered_moving_avg(sma)
+        else:
+            cma = self.simple_moving_avg(data)
 
         ### Find seasonal Indicies
 
@@ -81,81 +107,31 @@ class TimeSeriesRegression(ChildProcess):
 
         return moving_avg
 
-    def simple_moving_avg(self, data_set, periods=None):
+    def simple_moving_avg(self, data_set):
         """
         @Author:        Harrison Hubbell
         @Created:       11/04/2014
         @Description:   Create simple moving average set based on input
-                        data and the optional number of periods.  If no
-                        periods is specified it defaults to the model
-                        PERIODS.
+                        data and the number of periods
         """
         i = 0
         moving_avg = []
-        if periods is None: periods = self.PERIODS
 
-        while i < len(data_set) - periods:
-            period_avg = float(sum(data_set[i:periods])) / float(periods)
+        while i < len(data_set) - self.periods:
+            period_avg = float(sum(data_set[i:self.periods])) / float(self.periods)
             moving_avg.append(period_avg)
             i += 1
 
         return moving_avg
 
-    def main(self):
-        # This is an example of the JSON being sent.
-        self.model = {
-            'consumption': {
-                'x': {
-                    50: {
-                        'y':[3, 5, 17, 23, 8, 6, 13, 14, 5, 16],
-                        'mean': None,
-                    },
-                    150: {
-                        'y':[6, 3, 7, 13, 16, 8, 16, 3, 4, 6],
-                        'mean': None,
-                    },
-                    250: {
-                        'y':[3, 8, 17, 9, 16, 8, 16, 13, 10, 6],
-                        'mean': None,
-                    },
-                    350: {
-                        'y':[9, 18, 56, 13, 6, 28, 16, 23, 24, 36],
-                        'mean': None,
-                    },
-                    450: {
-                        'y':[33, 43, 67, 53, 56, 48, 46, 33, 44, 36],
-                        'mean': None,
-                    },
-                    550: {
-                        'y':[93, 83, 77, 93, 96, 98, 116, 63, 64, 36],
-                        'mean': None,
-                    },
-                    650: {
-                        'y':[83, 83, 77, 93, 96, 98, 90, 43, 44, 46],
-                        'mean': None,
-                    }
-                },
-                'radius': 2,
-                'style': 'circle'
-            },
-            'remaining': {
-                'y': 94.13241234
-            },
-            'beer_info': {
-                'brand': 'Fiddlehead',
-                'name': 'Mastermind',
-                'type': 'Ale',
-                'subtype': 'Double IPA',
-                'ABV': 8.2,
-                'IBU': '???',
-                'rating': 5
-            }
-        }
-        
-        while True:
-            data = self.proc_recv()
+    def to_string(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/05/2014
+        @Description:   Returns a string representation of the time-series
+                        regression model.
+        """
+        T = "(" + str(self.intercept) + " + " + str(self.slope) + "(x))"
+        S = "(" + str(self.seasonal_index) + ")"
 
-            self.trend = self.calculate_regression_line(data)
-            self.seasonality = self.calculate_seasonal_indices(data)
-
-            self.proc_send(self.model)
+        return T + " * " + S
