@@ -10,7 +10,7 @@ from process import ChildProcess
 
 class SmartkegModelMaker(ChildProcess):
     def __init__(self, pipe, model):
-        super(SmartkegModel, self).__init__(pipe)
+        super(SmartkegModelMaker, self).__init__(pipe)
         self.model = model
 
     def main(self):
