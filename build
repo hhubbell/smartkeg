@@ -69,10 +69,17 @@ fi
 if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ];
 then
     echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
-    echo -e "\tCreate user"
-    echo -e "\tCreate tables"
-    echo -e "\tInsert defaults"
-    mysql -u root -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
+    echo -ne "\tDatabase User: "
+
+    read user
+    
+    echo -ne "\t"
+    mysql -u $user -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
+
+    echo -e "\tCreated user 'smartkeg'"
+    echo -e "\tCreated tables"
+    echo -e "\tInserted defaults"
+    
 
 fi
 
