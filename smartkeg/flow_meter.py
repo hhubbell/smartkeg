@@ -20,6 +20,7 @@ class FlowMeter(ChildProcess):
         super(FlowMeter, self).__init__(pipe)
         self.GPIO = gpio
         self.pin = pin
+        self.units = 'Pints'
         self.ticks = 0
 
     def convert_ticks_to_pints(self):
@@ -55,13 +56,11 @@ class FlowMeter(ChildProcess):
         @Description:   The main loop. checks for a pour and handles
                         it if true.
         """
-        self.last_tick = time.time()
-
         while True:
-            if time.time() - self.last_tick > self._TIMEOUT and self.ticks > 0:
+            if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
                 self.convert_ticks_to_pints()
                 self.proc_send(self.last_pour)
-                self.logger.log(['[Flow Meter]', self.last_pour])
+                self.logger.log(['[Flow Meter]', 'flow detected', self.last_pour, self.units])
                 self.reset_ticks()
 
             if self.GPIO.event_detected(self.pin):

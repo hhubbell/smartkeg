@@ -87,8 +87,7 @@ class TimeSeriesRegression(object):
             sma = self.simple_moving_avg(data)
             cma = self.centered_moving_avg(sma)
         else:
-            # No need to center the MA here because
-            # periods is odd.
+            # No need to center the MA here because periods is odd.
             cma = self.simple_moving_avg(data)
 
         while i < self.periods:
