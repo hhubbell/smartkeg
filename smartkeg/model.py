@@ -98,7 +98,7 @@ class TimeSeriesRegression(object):
         rma = self.ratio_to_moving_avg(data, cma)
 
         while i < self.periods:
-            points = rma[i::i + self.periods]
+            points = rma[i::self.periods]
             season_avg.append(sum(points) / len(points))
             i += 1
          
