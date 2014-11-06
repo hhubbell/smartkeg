@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from process import ChildProcess
+import math
 
 class SmartkegModelMaker(ChildProcess):
     def __init__(self, pipe, model):
@@ -39,7 +40,6 @@ class TimeSeriesRegression(object):
         """
         self.trend = self.calculate_regression_line(data)
         self.seasonality = self.calculate_seasonal_indices(data)
-
 
     def calculate_regression_line(self, data):
         """
@@ -79,22 +79,33 @@ class TimeSeriesRegression(object):
         @Author:        Harrison Hubbell
         @Created:       11/04/2104
         @Description:   Calculate the seasonal indecies for each period.
+                        If periods is EVEN: The simple moving average must
+                        be centered.
+                        If periods is ODD:  The simple moving average is 
+                        already centered and no further calculation is 
+                        necessary.
         """
-        i = 0
-        seasonal_indicies = []
+        self.seasonal_indicies = []
+        season_avg = []
+        i = 0        
         
         if self.periods % 2 == 0:
             sma = self.simple_moving_avg(data)
             cma = self.centered_moving_avg(sma)
         else:
-            # No need to center the MA here because periods is odd.
             cma = self.simple_moving_avg(data)
 
+        rma = self.ratio_to_moving_avg(data, cma)
+
         while i < self.periods:
-            seasonal_indicies.append(sum(cma[i::i + self.periods]))
+            points = rma[i::i + self.periods]
+            season_avg.append(sum(points) / len(points))
             i += 1
+         
+        for avg in season_avg:
+            self.seasonal_indicies.append((avg - self.periods * 100) / sum(season_avg))
             
-        return seasonal_indicies
+        return lambda x: self.seasonal_indicies[(x % self.periods)]
 
     def centered_moving_avg(self, simple_moving_avg):
         """
@@ -112,6 +123,26 @@ class TimeSeriesRegression(object):
             i += 1
 
         return moving_avg
+
+    def ratio_to_moving_avg(self, data_set, cma):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/06/2014
+        @Description:   Calculate the ratio to moving average for the 
+                        centered moving average.  A little black magic
+                        happens here because using 0 based indicies and 
+                        the number of periods allows the index of the 
+                        related observed value (to the CMA value) to be 
+                        found by taking the floor of self.periods / 2.
+        """
+        i = math.floor(self.periods / 2)
+        ratio_to_ma = []
+
+        for avg in cma:
+            ratio_to_ma.append(data_set[i] / avg)
+            i += 1
+
+        return ratio_to_ma
 
     def simple_moving_avg(self, data_set):
         """
