@@ -10,6 +10,16 @@
 # import the wxPython GUI package
 import os
 import wx
+import pprint
+import random
+import matplotlib
+matplotlib.use('WXAgg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import \
+    FigureCanvasWxAgg as FigCanvas, \
+    NavigationToolbar2WxAgg as NavigationToolbar
+
+
 
 
 class MainWindow(wx.Frame):
@@ -40,11 +50,11 @@ class MainWindow(wx.Frame):
         titlePanel.SetBackgroundColour((10,110,186))                #blue
         
         titleText= wx.StaticText(titlePanel, label = "SmartKeg")    #make text
-        titleFont = wx.Font(140, wx.SWISS, wx.SLANT, wx.LIGHT)      #create font
+        titleFont = wx.Font(120, wx.SWISS, wx.SLANT, wx.LIGHT)      #create font
         titleText.SetFont(titleFont)                                #add font to text
         titleText.SetForegroundColour((255,247,0))                  #yellow
         
-        self.quote = titleText                                      #show text
+        #self.quote = titleText                                      #show text
 
         self.Show(True)
 
