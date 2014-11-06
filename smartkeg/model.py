@@ -80,14 +80,21 @@ class TimeSeriesRegression(object):
         @Created:       11/04/2104
         @Description:   Calculate the seasonal indecies for each period.
         """
+        i = 0
+        seasonal_indicies = []
+        
         if self.periods % 2 == 0:
             sma = self.simple_moving_avg(data)
             cma = self.centered_moving_avg(sma)
         else:
+            # No need to center the MA here because
+            # periods is odd.
             cma = self.simple_moving_avg(data)
 
-        ### Find seasonal Indicies
-
+        while i < periods - 1:
+            seasonal_indicies.append(sum(cma[i::i + periods]))
+            i += 1
+            
         return seasonal_indicies
 
     def centered_moving_avg(self, simple_moving_avg):
