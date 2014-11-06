@@ -91,8 +91,8 @@ class TimeSeriesRegression(object):
             # periods is odd.
             cma = self.simple_moving_avg(data)
 
-        while i < periods - 1:
-            seasonal_indicies.append(sum(cma[i::i + periods]))
+        while i < self.periods:
+            seasonal_indicies.append(sum(cma[i::i + self.periods]))
             i += 1
             
         return seasonal_indicies
