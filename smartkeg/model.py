@@ -103,7 +103,7 @@ class TimeSeriesRegression(object):
             i += 1
          
         for avg in season_avg:
-            self.seasonal_indicies.append((avg - self.periods * 100) / sum(season_avg))
+            self.seasonal_indicies.append((avg - self.periods) / sum(season_avg))
             
         return lambda x: self.seasonal_indicies[(x % self.periods)]
 
