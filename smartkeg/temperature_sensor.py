@@ -49,7 +49,7 @@ class TemperatureSensor:
                 temperature = re.split('t=', thermo.read())
                 self.temperature = float(temperature[1]) / self.TEMP_SCALE
         except IOError as e:
-            self.logger.log(['[Temperature Sensor]', e])
+            self.logger.log(('[Temperature Sensor]', e))
             self.temperature = None
 
 
@@ -117,7 +117,7 @@ class TemperatureSensorReader(ChildProcess):
 
             for sensor in celcius_temps:
                 fahrenheit_temps[sensor] = self.celcius_to_fahrenheit(celcius_temps[sensor])
-                self.logger.log(['[Temperature Sensor]', sensor, fahrenheit_temps[sensor], 'F'])
+                self.logger.log(('[Temperature Sensor]', sensor, fahrenheit_temps[sensor], 'F'))
 
             if fahrenheit_temps: 
                 self.proc_send(fahrenheit_temps)

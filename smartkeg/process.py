@@ -28,7 +28,7 @@ class ParentProcess(object):
         """
         args = None
 
-        self.logger.log(['Creating Process', proc_name])
+        self.logger.log(('Creating Process', proc_name))
 
         if pipe:
             self.pipes[proc_name] = {'TO': None, 'FROM': None}

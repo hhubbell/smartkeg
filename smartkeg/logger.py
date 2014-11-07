@@ -44,7 +44,7 @@ class SmartkegLogger(object):
         @Created:       10/21/2014
         @Description:   Logs a message.
         """
-        if not isinstance(message, list):
-            message = [message]
+        if not isinstance(message, tuple):
+            message = (message,)
 
         logging.info(' '.join('{}'.format(i) for i in message))

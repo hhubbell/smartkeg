@@ -60,7 +60,7 @@ class FlowMeter(ChildProcess):
             if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
                 self.convert_ticks_to_pints()
                 self.proc_send(self.last_pour)
-                self.logger.log(['[Flow Meter]', 'flow detected', self.last_pour, self.units])
+                self.logger.log(('[Flow Meter]', 'flow detected', self.last_pour, self.units))
                 self.reset_ticks()
 
             if self.GPIO.event_detected(self.pin):

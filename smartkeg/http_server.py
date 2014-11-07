@@ -54,7 +54,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         log server actions to a file.
         """
         logger = SmartkegLogger(self._CONFIG_PATH)
-        logger.log(['[HTTP Server]', list(args)])
+        logger.log(('[HTTP Server]',) + args)
 
     # --------------------
     # HTTP METHODS

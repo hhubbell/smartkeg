@@ -24,7 +24,7 @@ class SmartkegModelMaker(ChildProcess):
         while True:
             data = self.proc_recv()
             forecast = self.model.forecast()
-            self.log_message(['[ModelMaker]','New model:', self.model.to_string()])
+            self.log_message(('[ModelMaker]','New model:', self.model.to_string()))
             self.proc_send(forecast)
 
 

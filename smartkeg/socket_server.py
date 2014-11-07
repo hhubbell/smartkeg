@@ -81,7 +81,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         self.wfile.write(self.response_headers)
         self.wfile.write(self.server.response)
         
-        self.log_message(['[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id])
+        self.log_message(('[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id))
 
     def gzip(self, body):
         """
