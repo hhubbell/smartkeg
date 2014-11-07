@@ -25,6 +25,10 @@ class Query:
     # --------------------
     # SELECTS
     # --------------------
+    SELECT_FRIDGE_ID = """
+        SELECT id FROM Fridge WHERE name = %s
+    """
+
     SELECT_KEG_ID = """
         SELECT id FROM Keg WHERE now_serving = 1
     """

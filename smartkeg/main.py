@@ -28,6 +28,8 @@ class Smartkeg(ParentProcess):
         super(Smartkeg, self).__init__()
         self.dbi = self.set_database_connection()
 
+        self.set_fridge()
+
         # This is an example of the JSON being sent.
         self.model = {
             'consumption': {
@@ -101,6 +103,21 @@ class Smartkeg(ParentProcess):
         adr = cfg.get(HEADER, 'adr')
         return DatabaseInterface(adr, dbn, usr, pwd, logger=self.logger)
 
+    def set_fridge(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/07/2014
+        @Description:   Reads config file to get fridge name and queries
+                        the database to set the fridge_id.
+        """
+        HEADER = 'Fridge'
+
+        cfg = ConfigParser()
+        cfg.read(self._CONFIG_PATH)
+        name = cfg.get(HEADER, 'name')
+
+        self.query_select_fridge(name)
+
     # --------------------
     # GETTERS
     # --------------------
@@ -116,13 +133,20 @@ class Smartkeg(ParentProcess):
     # --------------------
     # QUERY METHODS
     # --------------------
-    def query_insert_fridge_temperature(self, temperature):
+    def query_insert_temperatures(self, temperature_dict):
         """
         @Author:        Harrison Hubbell
         @Created:       10/25/2014
-        @Description:   INSERTS the fridge temperature values.
+        @Description:   Converts the dict to a list of tuples and
+                        INSERTS the temperature values.
+        XXX: For python3, items must be cast to a list().
         """
-        self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, params=temperature)
+        items = temperature_dict.items()
+        vals = []
+        for tup in items:
+            vals.append((self.fridge_id,) + tup)
+
+        self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, params=vals)
 
     def query_insert_pour(self, pour):
         """
@@ -139,6 +163,14 @@ class Smartkeg(ParentProcess):
         @Description:   Returns current keg id
         """
         self.current_kegs = self.dbi.SELECT(Query.SELECT_KEG_ID)
+
+    def query_select_fridge(self, name):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/07/2014
+        @Description:   SELECTS fridge_id based on name.
+        """
+        self.fridge = self.dbi.SELECT(Query.SELECT_FRIDGE_ID, params=name)
 
     def query_select_percent_remaining(self):
         """
@@ -256,41 +288,17 @@ class Smartkeg(ParentProcess):
                         values if there has been a reading.  Returns true
                         if a reading has occured and false otherwise.
         """
-        temperatures = self.proc_poll_recv(proc_name)
+        self.temperatures = []
+        temp_vals = self.proc_poll_recv(proc_name)
         res = None
 
-        if temperatures:
+        if temp_vals:
+            self.temperatures = dict(temp_vals)
             res = True
-            temp_tuples = []
-            for sensor in temps:
-                temp_tuples.append((sensor, temps[sensor]))
-
         else:
             res = False
 
         return res
-
-    # XXX Reconsider
-    def handle_temperature_sensor(self, proc_name):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       09/10/2014
-        @Description:   Checks if it is time to read the temperature sensors.
-                        If true, gets current temp data and logs to the
-                        database.  This method blocks processing until
-                        temperatures are returned, or an exception is thrown
-                        by the TemperatureSensorReader.
-        """
-        #TODO: Give value to fridge_id
-        fridge_id = 'NULL'
-
-        temperatures = self.proc_poll_recv(proc_name)
-        if temperatures:
-            temp_tuples = []
-            for sensor in temps:
-                temp_tuples.append((fridge_id, sensor, temps[sensor]))
-
-            self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, temps_tuples)
 
     # --------------------
     # PROCS
@@ -366,6 +374,7 @@ class Smartkeg(ParentProcess):
 
         tmp.main()
 
+
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BOARD)
 
@@ -398,7 +407,7 @@ if __name__ == '__main__':
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
-            smartkeg.query_insert_fridge_temperature(smartkeg.fridge_temperature)
+            smartkeg.query_insert_temperature(smartkeg.fridge_temperatures)
 
             ### XXX Build new data structure ###
 

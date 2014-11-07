@@ -1,3 +1,6 @@
+[Fridge]
+name = smartkeg
+
 [MariaDB]
 usr = smartkeg  # This can be whatever you want to call your db reporter
 pwd = password  # Make it strong

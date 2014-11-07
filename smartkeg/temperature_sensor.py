@@ -108,7 +108,7 @@ class TemperatureSensorReader(ChildProcess):
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
         @Description:   When a read job is received get the current temperature
-                        and return the data to the parent proc as a tuple.
+                        and return the data to the parent proc as a dict.
         """
         fahrenheit_temps = {}
 
@@ -117,8 +117,9 @@ class TemperatureSensorReader(ChildProcess):
 
             for sensor in celcius_temps:
                 fahrenheit_temps[sensor] = self.celcius_to_fahrenheit(celcius_temps[sensor])
-                self.logger.log(['[Temperature Sensor]', sensor, fahrenheit_temps[sensor]])
+                self.logger.log(['[Temperature Sensor]', sensor, fahrenheit_temps[sensor], 'F'])
 
-            if fahrenheit_temps: self.proc_send(fahrenheit_temps)
+            if fahrenheit_temps: 
+                self.proc_send(fahrenheit_temps)
 
             time.sleep(self.interval)
