@@ -170,7 +170,7 @@ class Smartkeg(ParentProcess):
         @Created:       11/07/2014
         @Description:   SELECTS fridge_id based on name.
         """
-        self.fridge = self.dbi.SELECT(Query.SELECT_FRIDGE_ID, params=name)
+        self.fridge = self.dbi.SELECT(Query.SELECT_FRIDGE_ID, params=[name])
 
     def query_select_percent_remaining(self):
         """
@@ -333,7 +333,7 @@ class Smartkeg(ParentProcess):
         @Created:       10/07/2014
         @Description:   Creates the Modeling process.
         """
-        mod = SmartkegModelMaker(TimeSeriesRegression(self.TSR_PERIODS))
+        mod = SmartkegModelMaker(conn, TimeSeriesRegression(self.TSR_PERIODS))
         mod.main()
 
     def spawn_socket_server(self, conn):
