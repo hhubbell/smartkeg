@@ -8,13 +8,14 @@ b {
 }
 
 body {
-    background-color:       #119C9C;
-    color:                  #FFFFFF;
+    background-color:       #ECF0F1;
+    color:                  #BDC3C7;
     font-weight:            300;        
     margin:                 0;
 }
 
 footer {
+    display:                none; /* For now */
     margin-top:             1em;
     padding:                .25em;
 }
@@ -29,15 +30,14 @@ header * {
 }
 
 h1 {
+    color:                  #C0392B;
     display:                inline-block;    
-    color:                  #FFFFFF;    
     font-size:              28pt;
     font-weight:            100;
     margin:                 0;    
 }
 
 h4 {
-    color:                  #FFFFFF;
     font-size:              16pt;
     font-weight:            100;
     margin:                 0;
@@ -45,7 +45,6 @@ h4 {
 
 h5 {
     background-color:       #006969;    
-    color:                  #FFFFFF;
     font-size:              24pt;
     font-weight:            300;
     margin:                 0;
@@ -56,7 +55,7 @@ img {
 }
 
 main {
-    width:                  80%;
+    display:                flex;
     margin:                 auto;
 }
 
@@ -65,7 +64,7 @@ p {
 }
 
 .circle-badge {
-    background-color:       #FFFFFF;
+    background-color:       #C0392B;
     width:                  50px;
     height:                 50px;
     border-radius:          50px;
@@ -77,13 +76,13 @@ p {
 }
 
 .content-wrapper {
-    background-color:       #034159;
+    background-color:       #34495E;
     border-radius:          3px;
-    margin-bottom:          .3em;
+    margin:                 .3em;
 }
 
 .content-header {
-    background-color:       #006969;
+    background-color:       #2C3E50;
     border-top-right-radius: inherit;
     border-top-left-radius: inherit;
     margin:                 0;
@@ -123,15 +122,12 @@ p {
     height:                 400px;
 }
 
-#wrap-chart {
-    width:                  69%;
-    display:                inline-block;
+#chart {
+    flex-grow:              2;
     vertical-align:         top;
 }
 
-#wrap-hud {
-    width:                  30%;
-    display:                inline-block;
+#hud {
     vertical-align:         top;    
 }
 
@@ -173,4 +169,25 @@ svg {
 
 .remaining-bar {
     fill:                   yellow;
+}
+
+/* -------------------- *
+ * MEDIA QUERIES
+ * -------------------- */
+@media all and (max-width: 960px) {
+    main {
+        flex-direction:     column;
+    }
+
+    #chart {
+        order:              1
+    }
+
+    #hud {
+        order:              2;
+        display:            flex;
+    }
+
+    .content-wrapper{
+        flex-grow:          1;
 }
