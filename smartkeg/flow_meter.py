@@ -13,6 +13,8 @@ import RPi.GPIO as GPIO
 import time
 
 class FlowMeter(ChildProcess):
+    _PINTS_PER_LITER = 2.11338
+    _PULSES_PER_LITER = 450.00
     _TIME_ACCY = 1000
     _TIMEOUT = 1
 
@@ -27,10 +29,14 @@ class FlowMeter(ChildProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
-        @Description:   Converts flow meter ticks to pint value.
+        @Description:   Converts flow meter ticks to pint value. According
+                        to documentation, the flow meter used:
+                            Liquid Flow Meter - Plastic 1/2" NPS Threaded
+                        from Adafruit (Product ID 828) calculates 
+                        1 Liter = 450 Pulses.
+                        
         """
-        # FIXME
-        self.last_pour = self.ticks
+        self.pints = (float(self.ticks) / self._PULSES_PER_LITER) * self._PINTS_PER_LITER
 
     def reset_ticks(self):
         """
@@ -59,8 +65,8 @@ class FlowMeter(ChildProcess):
         while True:
             if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
                 self.convert_ticks_to_pints()
-                self.proc_send(self.last_pour)
-                self.logger.log(('[Flow Meter]', 'flow detected', self.last_pour, self.units))
+                self.logger.log(('[Flow Meter]', 'flow detected', self.pints, self.units))                
+                self.proc_send(self.pints)
                 self.reset_ticks()
 
             if self.GPIO.event_detected(self.pin):
