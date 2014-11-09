@@ -13,7 +13,7 @@ class Query:
         INSERT INTO Pour 
             (keg_id, volume)
         VALUES 
-            (%s, %s)
+            ((SELECT id FROM Keg WHERE now_serving = 1), %s)
     """
     INSERT_FRIDGE_TEMP = """
         INSERT INTO FridgeTemp 
@@ -26,15 +26,31 @@ class Query:
     # SELECTS
     # --------------------
     SELECT_FRIDGE_ID = """
-        SELECT id FROM Fridge WHERE name = %s
+        SELECT id
+        FROM Fridge
+        WHERE name = %s
     """
 
     SELECT_KEG_ID = """
-        SELECT id FROM Keg WHERE now_serving = 1
+        SELECT id
+        FROM Keg
+        WHERE now_serving = 1
     """
     SELECT_SENSOR_ID = """
-        SELECT id, name FROM Sensor WHERE name IN %s
+        SELECT
+            id,
+            name
+        FROM Sensor
+        WHERE name IN %s
     """
+    SELECT_DAILY_CONSUMPTION = """
+        SELECT
+            DATE(pour_time) AS day,
+            SUM(volume)     AS amount
+        FROM Pour
+        GROUP BY DATE(pour_time)
+    """
+
     SELECT_VOLUME_REMAINING = """
         SELECT *** FROM *** JOIN *** WHERE ***
     """

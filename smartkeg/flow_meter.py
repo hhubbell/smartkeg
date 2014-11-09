@@ -15,7 +15,7 @@ import time
 class FlowMeter(ChildProcess):
     _PINTS_PER_LITER = 2.11338
     _PULSES_PER_LITER = 450.00
-    _TIME_ACCY = 1000
+    _PRECISION = 2.00
     _TIMEOUT = 1
 
     def __init__(self, pipe, gpio, pin):
@@ -63,7 +63,7 @@ class FlowMeter(ChildProcess):
                         it if true.
         """
         while True:
-            if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
+            if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT * self._PRECISION:
                 self.convert_ticks_to_pints()
                 self.logger.log(('[Flow Meter]', 'flow detected', self.pints, self.units))                
                 self.proc_send(self.pints)

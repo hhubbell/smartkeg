@@ -154,15 +154,23 @@ class Smartkeg(ParentProcess):
         @Created:       10/25/2014
         @Description:   INSERTS the pour value.
         """
-        self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
+        self.dbi.INSERT(Query.INSERT_POUR, params=[(pour,)])
 
     def query_select_current_keg(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
-        @Description:   Returns current keg id
+        @Description:   SELECTS current keg id
         """
         self.current_kegs = self.dbi.SELECT(Query.SELECT_KEG_ID)
+
+    def query_select_daily_consumption(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/09/2014
+        @Description:   SELECTS aggregate daily consumption.
+        """
+        self.daily_consumption = self.dbi.SELECT(Query.SELECT_DAILY_CONSUMPTION)
 
     def query_select_fridge(self, name):
         """
@@ -193,20 +201,6 @@ class Smartkeg(ParentProcess):
     # --------------------
     # FLOW METER
     # --------------------
-    def handle_flow_meter(self, proc_name, callback=None, args=None):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Checks for new pour information and writes
-                        to database when a pour occurs
-        """
-        # XXX This will be set elsewhere, eventually when a keg is inserted into the
-        # db (either through the web or through the gui.
-        self.current_keg = 1
-        pour = self.proc_poll_recv(proc_name)
-        if pour:
-            self.dbi.INSERT(Query.INSERT_POUR, params=[(self.current_keg, pour)])
-
     def flow_meter_get_pour(self, proc):
         """
         @Author:        Harrison Hubbell
@@ -263,7 +257,7 @@ class Smartkeg(ParentProcess):
         @Description:   For now, it is just example data.
 
         """
-        self.proc_send(proc_name, 'EXAMPLE DATA')
+        self.proc_send(proc_name, self.daily_consumption)
         self.model = self.proc_recv(proc_name)
 
     # --------------------
@@ -399,8 +393,7 @@ if __name__ == '__main__':
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-
-            ### XXX Build new data structure ###
+            smartkeg.query_select_daily_consumption()
 
             smartkeg.handle_led_display(PROC['LED'])
             smartkeg.handle_model(PROC['MOD'])
