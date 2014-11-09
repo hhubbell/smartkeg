@@ -58,10 +58,10 @@ class DatabaseInterface(object):
         try:
             self.cur.executemany(query, params)
             self.conn.commit()
-            self.log_message(('[Database Interface]', 'Successful INSERT transaction with the following data:', '\nQuery:', query, '\nParams:', params))
+            self.log_message(('[Database Interface]', 'Successful INSERT transaction with the following data:', '\n\tQuery:', query.strip(' \n\r\t'), '\n\tParams:', params))
         except:
             self.conn.rollback()
-            self.log_message(('[Database Interface]', 'Failed INSERT transaction with the following data:', '\nQuery:', query, '\nParams:', params))
+            self.log_message(('[Database Interface]', 'Failed INSERT transaction with the following data:', '\n\tQuery:', query.strip(' \n\r\t'), '\n\tParams:', params))
 
     def SELECT(self, query, params=None):
         """
@@ -73,10 +73,10 @@ class DatabaseInterface(object):
         try:
             self.cur.execute(query, params)
             res = self.cur.fetchall()
-            self.log_message(('[Database Interface]', 'Successful SELECT transaction with the following data:', '\nQuery:', query, '\nParams:', params))
+            self.log_message(('[Database Interface]', 'Successful SELECT transaction with the following data:', '\n\tQuery:', query.strip(' \n\r\t'), '\n\tParams:', params))
         except:
             self.conn.rollback()
-            self.log_message(('[Database Interface]', 'Failed SELECT transaction with the following data:', '\nQuery:', query, '\nParams:', params))
+            self.log_message(('[Database Interface]', 'Failed SELECT transaction with the following data:', '\n\tQuery:', query.strip(' \n\r\t'), '\n\tParams:', params))
 
 
         return res
