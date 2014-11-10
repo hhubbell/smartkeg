@@ -15,14 +15,15 @@ function example(response) {
 }
 
 function render_consumption_graph(selector, set) {
-    graph = new ScatterPlot(selector);
+    var graph = new ScatterPlot(selector);
     graph.add_set(set);
+    graph.set_point_radius(3);
     graph.calculate_means();
-    graph.render(true, true, true, true);
+    graph.render(true, true, true);
 }
 
 function render_volume_remaining(selector, set) {
-    graph = new BarGraph(selector);
+    var graph = new BarGraph(selector);
     graph.add_category(set);
     graph.render();
 }
@@ -37,17 +38,16 @@ function render_beer_info(set) {
 
 function main() {
     var host = new Socket('10.0.0.35', 8000);
-    var source = new EventSource(host.toString());
-    var min_update_id = 0
+    var listener = new ServerListener(host);
 
-    source.onmessage = function(e) {
+    listener.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
-
-        if (id > min_update_id) {
-            min_update_id = id;
+ 
+        if (id > listener.update_id) {
+            listener.update_id = id;
             example(e.data);
         }
-    }    
+    }
 }
 
 

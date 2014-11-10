@@ -5,10 +5,6 @@
  * Description: Manage formatting SVG graphs.
  * ------------------------------------------------------------------------ */
 
-/**
- * ScatterPlot Object is responsible for rendering scatterplots on SVG
- * @param selector: A selector that defines the SVG
- */
 function ScatterPlot(selector) {
     this.set_canvas(selector);
     this.height = this.element.clientHeight;
@@ -16,10 +12,6 @@ function ScatterPlot(selector) {
     this.sets = [];
 }
 
-/**
- * Initialize the SVG area for graphing and define a <defs> child.
- * @param selector: A selector that defines the SVG
- */
 ScatterPlot.prototype.set_canvas = function(selector) {
     this.element = document.querySelector(selector);
     this.defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
@@ -29,17 +21,14 @@ ScatterPlot.prototype.set_canvas = function(selector) {
     }
 }
 
-/**
- * Add a set.
- * @param set_obj: A set Object.
- */
+ScatterPlot.prototype.set_point_radius = function(radius) {
+    this.radius = radius;
+}
+
 ScatterPlot.prototype.add_set = function(set_obj) {
     this.sets.push(set_obj);
 }
 
-/**
- * Calculate y mean if it does not exist for x values of sets.
- */
 ScatterPlot.prototype.calculate_means = function() {
     this.sets.forEach(function(set) {
         for (x in set.x) {
@@ -55,29 +44,27 @@ ScatterPlot.prototype.calculate_means = function() {
     });
 }
 
-/**
- * Draw means on graph.
- */
 ScatterPlot.prototype.render_means = function() {
     var self = this;
     this.sets.forEach(function(set) {
-        var radius = set.radius;
+        var radius = self.radius;
         var style = set.style;
 
         for (x in set.x) {
-            var value = self.height - set.x[x].mean;
+            var y_val = self.height - set.x[x].mean;
+            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
             var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
             point.classList.add('chart-day-mean');
 
             if (style === 'rect') {
-                point.setAttributeNS(null, 'x', x - radius/2);
-                point.setAttributeNS(null, 'y', value - radius/2);
+                point.setAttributeNS(null, 'x', x_val - radius/2);
+                point.setAttributeNS(null, 'y', y_val - radius/2);
                 point.setAttributeNS(null, 'width', radius);
                 point.setAttributeNS(null, 'height', radius);
             } else if (style === 'circle') {
-                point.setAttributeNS(null, 'cx', x);
-                point.setAttributeNS(null, 'cy', value);
+                point.setAttributeNS(null, 'cx', x_val);
+                point.setAttributeNS(null, 'cy', y_val);
                 point.setAttributeNS(null, 'r', radius);
             }
 
@@ -94,24 +81,26 @@ ScatterPlot.prototype.render_sets = function() {
     var self = this;
 
     this.sets.forEach(function(set) {
-        var radius = set.radius;
+        var radius = self.radius;
         var style = set.style;
 
         for (x in set.x) {
+            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
+
             set.x[x].y.forEach(function(y) {
-                var value = self.height - y;
+                var y_val = self.height - y;
                 var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
                 point.classList.add('chart-day');
 
                 if (style === 'rect') {
-                    point.setAttributeNS(null, 'x', x - radius/2);
-                    point.setAttributeNS(null, 'y', value - radius/2);
+                    point.setAttributeNS(null, 'x', x_val - radius/2);
+                    point.setAttributeNS(null, 'y', y_val - radius/2);
                     point.setAttributeNS(null, 'width', radius);
                     point.setAttributeNS(null, 'height', radius);
                 } else if (style === 'circle') {
-                    point.setAttributeNS(null, 'cx', x);
-                    point.setAttributeNS(null, 'cy', value);
+                    point.setAttributeNS(null, 'cx', x_val);
+                    point.setAttributeNS(null, 'cy', y_val);
                     point.setAttributeNS(null, 'r', radius);
                 }
                 self.element.appendChild(point);
@@ -125,6 +114,7 @@ ScatterPlot.prototype.render_sets = function() {
  * @param gradient [optional]: Draws a gradient below the line if true.
  */
 ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
+    var self = this;
     var line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     var line_string = '';
 
@@ -132,8 +122,9 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
         var set = this.sets[i];
 
         for (x in set.x) {
-            var value = this.height - set.x[x].mean;
-            line_string += x + ',' + value + ' ';
+            var y_val = this.height - set.x[x].mean;
+            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
+            line_string += x_val + ',' + y_val + ' ';
         }
 
         line.classList.add('chart-trendline');
@@ -221,7 +212,8 @@ BarGraph.prototype.add_category = function(category) {
  * Render the Bar Chart.
  */
 BarGraph.prototype.render = function() {
-    var bar_width = this.width / this.categories.length;
+    var bar_width = (100 / this.categories.length || 1) + "%";
+    var bar_x = this.width / this.categories.length;
     
     for (var i = 0; i < this.categories.length; i++) {
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -230,7 +222,7 @@ BarGraph.prototype.render = function() {
 
         rect.classList.add('remaining-bar');
         
-        rect.setAttributeNS(null, 'x', bar_width * i);
+        rect.setAttributeNS(null, 'x', bar_x * i);
         rect.setAttributeNS(null, 'y', bar_top);
         rect.setAttributeNS(null, 'width', bar_width);
         rect.setAttributeNS(null, 'height', this.height - bar_top);

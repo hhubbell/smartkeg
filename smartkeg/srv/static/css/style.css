@@ -119,7 +119,8 @@ p {
 }
 
 #remaining-graph {
-    height:                 400px;
+    vertical-align:         bottom;   
+    /*height:                 400px;*/
 }
 
 #chart {
@@ -139,16 +140,16 @@ svg {
 }
 
 .chart-day {
-    fill:                   #94D31B;
+    fill:                   #F1C40F;
 }
 
 .chart-day-mean {
-    fill:                   red;
+    fill:                   #E74C3C;
 }
 
 .chart-trendline {
-    stroke:                 yellow;
-    stroke-width:           2px;
+    stroke:                 #16A085;
+    stroke-width:           6px;
 }
 
 .chart-trendline-fill {
@@ -168,7 +169,7 @@ svg {
 }
 
 .remaining-bar {
-    fill:                   yellow;
+    fill:                   #16A085
 }
 
 /* -------------------- *
