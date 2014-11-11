@@ -23,16 +23,19 @@ Easy as that!
 
 Smartkeg has the following dependencies, and the build script will check first to see if you have the following installed:
 
-* MySQL (We prefer MariaDB)
-* pip (For installing Python dependencies)
-* MySQL-python (Python MySQL driver)
-* RPi.GPIO (Python-Raspberry Pi GPIO driver)
+* MySQL/MariaDB
+* pip
+* MySQL-python
+* RPi.GPIO
+* wxPython
 
 ##### Database
 **Note:** This step can be skipped by including the following argument: `--no-db`
 
-The build script will also configure the MySQL database user and create the required tables; it will require root access (or any user with `CREATE/DROP` rights) to your MySQL database.  It will also make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
+The build script will also configure the MySQL database user and create the required tables; it will require user access with `CREATE/DROP` rights to the MySQL database.  
 
+##### Installation
+The build script will make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
 
 #### Post Install
 The build script creates systemd service files for the Smartkeg system, and the Smartkeg Server. To run the Smartkeg system and the Smartkeg Server at startup on Arch Linux, run the following, respectively:
@@ -44,13 +47,8 @@ The build script creates systemd service files for the Smartkeg system, and the 
 ```
 
 ## History
-Originally, we scoped the project to gather information using distinct processes and let a web server handle displaying the information to the user.  This had some very distinct drawbacks:
-* Contention
-* Data Sharing
-* Bloat
+Originally, the Smartkeg system scope was to gather information using distinct processes and let a web server handle displaying the information to the user; this had some very distinct drawbacks.  First, and most important, was interprocess communication.  By creating a main process that is responsible for spawning, managing, and maintaining communication with other child processes, the system becomes much more robust; the main process is now able to see into all the seperate elements of the system and asynchronously create new data models, update server responses, and read/write to the database.
 
-## Today
-Smartkeg is driven by a main process with 4 distinct child processes; Temperature Sensor, LED Display, Flow Meter, and Smartkeg Server.
+Of course, this comes at a cost; particularly, the cost of developing these processes is much higher than combining pre-built components.  Large scale web servers had too large a footprint for the Smartkeg's needs.  The system required the optimal amount of control of how data is transmitted to different client devices at the lowest possible expense.
 
-## Accessing Data Through the Web
-Smartkeg serves current information about its contents with a python web server, and data is asynchronously updated with JavaScript.
+Ultimately, the Smartkeg system is lean, intellegent, responsive, and fast.  The system is able to quickly respond to each new request instantly, and push new data to clients with minimal overhead.
