@@ -68,7 +68,7 @@ main {
 
 .content-box {
     background-color:       #34495E;
-    border-radius:          3px;
+    /*border-radius:          3px;*/
     margin:                 .3em;
     box-shadow:             3px 3px 5px 0px #A5A5A5;
 }
