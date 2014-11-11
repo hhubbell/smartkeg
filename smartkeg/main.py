@@ -31,7 +31,7 @@ class Smartkeg(ParentProcess):
         self.set_fridge()
 
         # This is an example of the JSON being sent.
-        self.model = {
+        self.model = [{
             'consumption': {
                 'x': [
                     {
@@ -69,7 +69,7 @@ class Smartkeg(ParentProcess):
             'remaining': {
                 'y': 94.13241234
             },
-            'beer_info': {
+            'beer': {
                 'brand': 'Fiddlehead',
                 'name': 'Mastermind',
                 'type': 'Ale',
@@ -78,7 +78,7 @@ class Smartkeg(ParentProcess):
                 'IBU': '???',
                 'rating': 5
             }
-        }
+        }]
 
 
     # --------------------

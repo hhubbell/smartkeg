@@ -2,13 +2,13 @@
  * Filename:    ajax.js
  * Author:      Harrison Hubbell
  * Date:        10/07/2014
- * Description: Manage asyncronous calls to the server
+ * Description: Manage asyncronous calls to a server.
+ * Requires:    socket.js
  * ------------------------------------------------------------------------ */
 
-function Ajax(host, port) {
-    this.socket = new Socket(host, port);
+function Ajax(socket) {
     this.xmlhttp = new XMLHttpRequest();
-    
+    this.socket = socket;    
 }
 
 Ajax.prototype.send = function(method, callback, payload) {

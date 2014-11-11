@@ -20,6 +20,8 @@ function render_consumption_graph(selector, set) {
     graph.set_point_radius(3);
     graph.calculate_means();
     graph.render(true, true, true);
+    console.log(graph);
+    
 }
 
 function render_volume_remaining(selector, set) {
@@ -37,15 +39,26 @@ function render_beer_info(set) {
 }
 
 function main() {
-    var host = new Socket('10.0.0.35', 8000);
-    var listener = new ServerListener(host);
+    var client = new SmartkegClient(new Socket('10.0.0.35', 8000));
 
-    listener.source.onmessage = function(e) {
+    client.set_beer_display('#serving');
+    client.set_consumption_display('#consumption-graph');
+    client.set_remaining_display('#remaining-graph');
+    
+    client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
- 
-        if (id > listener.update_id) {
-            listener.update_id = id;
-            example(e.data);
+
+        if (id > client.last_update_id) {
+            var payload = JSON.parse(e.data);
+            
+            client.last_update_id = id;
+            client.kegs = []
+            for (keg in payload) {
+                keg_obj = new Keg(payload[keg])
+                client.kegs.push(keg_obj);
+            }
+
+            client.render()
         }
     }
 }
