@@ -32,6 +32,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if req.endswith('.js'):     return 'application/javascript'
         if req.endswith('.pdf'):    return 'application/pdf'
         if req.endswith('.png'):    return 'image/png'
+        if req.endswith('.svg'):    return 'image/svg+xml'
 
     def get_page(self):
         """
