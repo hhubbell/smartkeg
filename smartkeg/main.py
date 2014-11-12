@@ -74,8 +74,8 @@ class Smartkeg(ParentProcess):
                 'name': 'Mastermind',
                 'type': 'Ale',
                 'subtype': 'Double IPA',
-                'ABV': 8.2,
-                'IBU': '???',
+                'abv': 8.2,
+                'ibu': '???',
                 'rating': 5
             }
         }]

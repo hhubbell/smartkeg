@@ -17,21 +17,13 @@ function Keg(keg_obj) {
 Keg.prototype.render_beer = function(selector) {
     element = document.querySelector(selector);
 
-    for (attribute in this.beer) {
-        data_wrapper = document.createElement('div');
-        data_title = document.createElement('span');
-        data_content = document.createElement('span');
+    for (var i = 0; i < element.children.length; i++) {
+        var node = element.children[i]
+        var data_content = document.createElement('span');
+        
+        data_content.innerHTML = this.beer[node.id] || '';
 
-        data_wrapper.classList.add('serving-data');
-        data_content.id = attribute;
-
-        data_title.innerHTML = attribute;
-        data_content.innerHTML = this.beer[attribute];
-
-        data_wrapper.appendChild(data_title);
-        data_wrapper.appendChild(data_content);
-
-        element.appendChild(data_wrapper);
+        node.appendChild(data_content);
     }
 }
 
