@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BUILD_PATH="/usr/local/src/"
+
 RESET="\033[0m"
 BOLD="\033[1m"
 RED="\033[0;31m"
@@ -72,20 +74,18 @@ then
     echo -ne "\tDatabase User: "
 
     read user
-    
+
     echo -ne "\t"
     mysql -u $user -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
 
     echo -e "\tCreated user 'smartkeg'"
     echo -e "\tCreated tables"
     echo -e "\tInserted defaults"
-    
-
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
 echo -e "\tMove files"
-sudo cp -r smartkeg/ /usr/local/src/
+sudo cp -r smartkeg/ $BUILD_PATH
 
 echo -e "\tCreate service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
