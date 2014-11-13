@@ -15,10 +15,11 @@ DEP_PASS=true
 
 nocheck="--no-check"
 nodb="--no-db"
+nogui="--no-gui"
 
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
-if [ "$1" != "$nocheck" ] && [ "$2" != "$nocheck" ];
+if [ "$1" != "$nocheck" ] && [ "$2" != "$nocheck" ] && [ "$3" != "$nocheck" ];
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
     echo -ne "\tMySQL           "
@@ -68,7 +69,7 @@ then
     fi
 fi
 
-if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ];
+if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ] && [ "$3" != "$nodb" ];
 then
     echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
     echo -ne "\tDatabase User: "
@@ -81,6 +82,14 @@ then
     echo -e "\tCreated user 'smartkeg'"
     echo -e "\tCreated tables"
     echo -e "\tInserted defaults"
+fi
+
+if [ "$1" != "$nogui" ] && [ "$2" != "$nogui" ] && [ "$3" != "$nogui" ];
+then
+    echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
+
+    sudo cp smartkeg/gui.py /usr/local/bin/smartkeg
+    chmod +x /usr/local/bin/smartkeg
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
