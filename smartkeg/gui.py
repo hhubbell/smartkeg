@@ -4,6 +4,7 @@
 # Purpose:      Display info from the SmartKeg database live.
 # Author:       Christopher Young
 # Created:      11/1/14
+# Modifed:      11/13/14 [Harrison Hubbell]
 #----------------------------------------------------------------------------
 
 import gtk
