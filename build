@@ -24,7 +24,7 @@ nogui="--no-gui"
 
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
-if [ "$1" != "$nocheck" ] && [ "$2" != "$nocheck" ] && [ "$3" != "$nocheck" ];
+if ! echo $@ | grep $nocheck > /dev/null;
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
     echo -ne "\tMySQL           "
@@ -87,7 +87,7 @@ then
     fi
 fi
 
-if [ "$1" != "$nodb" ] && [ "$2" != "$nodb" ] && [ "$3" != "$nodb" ];
+if ! echo $@ | grep $nodb > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
     echo -ne "\tDatabase User: "
@@ -102,7 +102,7 @@ then
     echo -e "\tInserted defaults"
 fi
 
-if [ "$1" != "$nogui" ] && [ "$2" != "$nogui" ] && [ "$3" != "$nogui" ];
+if ! echo $@ | grep $nogui > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
