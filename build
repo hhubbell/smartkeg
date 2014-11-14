@@ -4,6 +4,7 @@ SRC_PATH="/usr/local/src"
 BIN_PATH="/usr/local/bin"
 
 PKG_MGR="pacman"
+PKG_INSTALL="-S"
 PKG_QUERY="-Qs"
 
 RESET="\033[0m"
@@ -15,6 +16,7 @@ BLUE="\033[1;34m"
 DEP_OK="${GREEN}OK${RESET}"
 DEP_NO="${RED}NO${RESET}"
 DEP_PASS=true
+DEP_NEED=()
 
 nocheck="--no-check"
 nodb="--no-db"
@@ -32,6 +34,7 @@ then
         echo -e $DEP_OK
     else
         DEP_PASS=false
+        DEP_NEED+=('mysql')
         echo -e $DEP_NO
     fi
 
@@ -42,6 +45,7 @@ then
         echo -e $DEP_OK
     else
         DEP_PASS=false
+        DEP_NEED+=('mysql-python')
         echo -e $DEP_NO
     fi
 
@@ -53,7 +57,8 @@ then
         echo -e $DEP_OK
     else
         DEP_PASS=false
-        echo -e $DEP_NO
+        echo -ne $DEP_NO
+        echo -e "    ${BOLD}NOTICE:${RESET} RPi.GPIO must be installed using pip or built from source.  You must complete this step yourself."
     fi
 
     # pywebkitgtk
@@ -63,12 +68,22 @@ then
         echo -e $DEP_OK
     else
         DEP_PASS=false
+        DEP_NEED+=('pywebkitgtk')
         echo -e $DEP_NO
     fi
 
     if [ ! "$DEP_PASS" ];
     then
         echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system.  The Smartkeg software may act erroneously without the required libraries.  Please ensure they are installed before attempting to execute the Smartkeg Consumption Monitoring System."
+        echo -e "Would you like to install these dependencies now? (Y/n): "
+        read response
+
+        if [ "$response" == "y" ] || [ "$response" == "Y" ];
+        then
+            echo -e "\n${BLUE}=>${RESET} Installing Dependencies\n"
+            echo -e "\tInstalling ${DEP_NEED[@]}"
+            sudo $PKG_MGR $PKG_INSTALL ${DEP_NEED[@]}
+        fi
     fi
 fi
 
