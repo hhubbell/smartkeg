@@ -1,16 +1,15 @@
 #!/usr/bin/env python2
 #----------------------------------------------------------------------------
 # Name:         gui.py
-# Purpose:      Display info from the SmartKeg database live.
 # Author:       Christopher Young
 # Created:      11/1/14
-# Modifed:      11/13/14 [Harrison Hubbell]
+# Description:  Create a webkit enabled GUI to render the web interface in a
+#               special purpose window.
 #----------------------------------------------------------------------------
 
 import gtk
 import webkit
 import gobject
-
 
 if __name__ == '__main__':
     gobject.threads_init()
