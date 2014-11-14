@@ -27,8 +27,8 @@ echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 if ! echo $@ | grep $nocheck > /dev/null;
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
-    echo -ne "\tMySQL           "
-    # MySQL
+    echo -ne "\tMySQL/MariaDB   "
+    # MySQL/MariaDB
     if command -v mysql > /dev/null;
     then
         echo -e $DEP_OK
@@ -38,8 +38,8 @@ then
         echo -e $DEP_NO
     fi
 
-    # MySQLdb
-    echo -ne "\tMySQLdb         "
+    # python-mysql
+    echo -ne "\tpython-mysql    "
     if $PKG_MGR $PKG_QUERY mysql-python > /dev/null;
     then
         echo -e $DEP_OK
