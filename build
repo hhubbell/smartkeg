@@ -1,6 +1,10 @@
 #!/bin/bash
 
-BUILD_PATH="/usr/local/src/"
+SRC_PATH="/usr/local/src"
+BIN_PATH="/usr/local/bin"
+
+PKG_MGR="pacman"
+PKG_QUERY="-Qs"
 
 RESET="\033[0m"
 BOLD="\033[1m"
@@ -10,7 +14,6 @@ BLUE="\033[1;34m"
 
 DEP_OK="${GREEN}OK${RESET}"
 DEP_NO="${RED}NO${RESET}"
-
 DEP_PASS=true
 
 nocheck="--no-check"
@@ -32,36 +35,36 @@ then
         echo -e $DEP_NO
     fi
 
-    # pip
-    echo -ne "\tpip             "
-    if command -v pip2 > /dev/null;
+    # MySQLdb
+    echo -ne "\tMySQLdb         "
+    if $PKG_MGR $PKG_QUERY mysql-python > /dev/null;
     then
         echo -e $DEP_OK
-
-        # MySQLdb
-        echo -ne "\tMySQLdb         "
-        if pip2 list | grep MySQL-python > /dev/null;
-        then
-            echo -e $DEP_OK
-        else
-            DEP_PASS=false
-            echo -e $DEP_NO
-        fi
-
-        # RPi.GPIO
-        echo -ne "\tRPi.GPIO        "
-        if pip2 list | grep RPi.GPIO > /dev/null;
-        then
-            echo -e $DEP_OK
-        else
-            DEP_PASS=false
-            echo -e $DEP_NO
-        fi
     else
         DEP_PASS=false
         echo -e $DEP_NO
     fi
 
+    # RPi.GPIO
+    # This also requires pip, unless the user builds from source.
+    echo -ne "\tRPi.GPIO        "
+    if pip2 list | grep RPi.GPIO > /dev/null;
+    then
+        echo -e $DEP_OK
+    else
+        DEP_PASS=false
+        echo -e $DEP_NO
+    fi
+
+    # pywebkitgtk
+    echo -ne "\tpywebkitgtk     "
+    if $PKG_MGR $PKG_QUERY pywebkitgtk > /dev/null;
+    then
+        echo -e $DEP_OK
+    else
+        DEP_PASS=false
+        echo -e $DEP_NO
+    fi
 
     if [ ! "$DEP_PASS" ];
     then
@@ -88,13 +91,13 @@ if [ "$1" != "$nogui" ] && [ "$2" != "$nogui" ] && [ "$3" != "$nogui" ];
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
-    sudo cp smartkeg/gui.py /usr/local/bin/smartkeg
-    chmod +x /usr/local/bin/smartkeg
+    sudo cp smartkeg/gui.py $BIN_PATH/smartkeg
+    chmod +x $BIN_PATH/smartkeg
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
 echo -e "\tMove files"
-sudo cp -r smartkeg/ $BUILD_PATH
+sudo cp -r smartkeg/ $SRC_PATH/
 
 echo -e "\tCreate service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
