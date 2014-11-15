@@ -9,7 +9,7 @@ function main() {
     var protocol_re = new RegExp('^(http(s)?:\/\/)');
     var trailing_re = new RegExp('\/$');
 
-    var host = document.URL.replace(protocol_re, '//').replace(trailing_re, '');
+    var host = document.URL.replace(protocol_re, '').replace(trailing_re, '');
     var port = 8000;
     
     var client = new SmartkegClient(new Socket(host, port));
