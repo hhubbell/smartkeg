@@ -12,10 +12,12 @@ import webkit
 import gobject
 
 if __name__ == '__main__':
+    HOST = 'http://localhost'
+
     gobject.threads_init()
     window = gtk.Window()
     browser = webkit.WebView()
-    browser.open("http://localhost")
+    browser.open(HOST)
     window.add(browser)
     window.show_all()
 
