@@ -31,7 +31,6 @@ class Smartkeg(ParentProcess):
         self.set_database_connection()
         self.set_fridge()
         self.set_kegs()
-        self.create_model()
 
         # This is an example of the JSON being sent.
         self.model = [{
@@ -127,7 +126,30 @@ class Smartkeg(ParentProcess):
         @Created:       11/17/2014
         @Description:   Sets the current kegs.
         """
-        self.kegs = self.query_select_current_kegs()
+        self.kegs = []
+        res = self.query_select_current_kegs()
+
+        for keg in res:
+            self.kegs.append({
+                'consumption': {
+                    'days': [],
+                    'radius': self.DOT_RADIUS,
+                    'style': self.DOT_STYLE
+                },
+                'remaining': {
+                    'value': keg['remaining']
+                },
+                'beer': {
+                    'brand': keg['brewer'],
+                    'name': keg['name'],
+                    'type': keg['type'],
+                    'subtype': keg['subtype'],
+                    'abv': keg['abv'],
+                    'ibu': keg['ibu'],
+                    'rating': keg['rating']
+                }
+            })
+
 
     # --------------------
     # QUERY METHODS
@@ -161,7 +183,7 @@ class Smartkeg(ParentProcess):
         @Created:       10/04/2014
         @Description:   SELECTS current keg id
         """
-        return self.dbi.SELECT(Query.SELECT_KEG_ID)
+        return self.dbi.SELECT(Query.SELECT_CURRENT_KEGS)
 
     def query_select_daily_consumption(self):
         """
@@ -227,24 +249,22 @@ class Smartkeg(ParentProcess):
         """
         @Author:        Harrison Hubbell
         @Created:       09/10/2014
-        @Description:   Checks for a new remaining volume and tells
-                        the LED process how many rows to light.
+        @Description:   Tells the LED process how many rows to light.
         """
-        prev_rem = None #self.percent_remaining
-        new_rem = None #self.get_percent_remaining()
+        KEG_INDEX = 0
 
-        if new_rem != prev_rem:
-            self.percent_remaining = new_rem
-            if self.percent_remaining > .75:
-                rows = 4
-            elif self.percent_remaining > .5:
-                rows = 3
-            elif self.percent_remaining > .25:
-                rows = 2
-            else:
-                rows = 1
+        percent_remaining = self.kegs[KEG_INDEX]['remaining']['value']
 
-            self.proc_send(proc_name, rows)
+        if percent_remaining > .75:
+            rows = 4
+        elif percent_remaining > .5:
+            rows = 3
+        elif percent_remaining > .25:
+            rows = 2
+        else:
+            rows = 1
+
+        self.proc_send(proc_name, rows)
 
     # --------------------
     # MODEL
@@ -258,39 +278,10 @@ class Smartkeg(ParentProcess):
         """
         self.daily_consumption = self.query_select_daily_consumption()
         self.proc_send(proc_name, self.daily_consumption)
-        create_data_model(self.proc_recv(proc_name))
-
-    def create_data_model(self, regression_model):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/17/2014
-        @Description:   Creates the data model based on the current kegs.
-        """
-        self.model = []
-        self.percent_remaining = self.query_select_percent_remaining()
-        self.beer_info = self.query_select_beer_info()
+        prediction = self.proc_recv(proc_name)
 
         for keg in self.kegs:
-            self.model.append({
-                'consumption': {
-                    'days': regression_model,
-                    'radius': self.DOT_RADIUS,
-                    'style': self.DOT_STYLE
-                },
-                'remaining': {
-                    'value': self.percent_remaining[keg]
-                },
-                'beer': {
-                    'brand': self.beer_info[keg]['brand'],
-                    'name': self.beer_info[keg]['name'],
-                    'type': self.beer_info[keg]['type'],
-                    'subtype': self.beer_info[keg]['subtype'],
-                    'abv': self.beer_info[keg]['abv'],
-                    'ibu': self.beer_info[keg]['ibu'],
-                    'rating': self.beer_info[keg]['rating']
-                }
-            })
-
+            self.kegs[keg]['consumption']['days'] = prediction
 
     # --------------------
     # SOCKET SERVER
@@ -375,7 +366,7 @@ class Smartkeg(ParentProcess):
         port = cfg.getint(HEADER, 'port')
 
         soc = SmartkegSocketServer(conn, host, port)
-        soc.set_response(soc.update_id, json.dumps(self.model))
+        soc.set_response(soc.update_id, json.dumps(self.kegs))
         soc.main()
 
 
@@ -420,22 +411,19 @@ if __name__ == '__main__':
     smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)
     smartkeg.proc_start_all()
 
-    smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
+    # XXX Might not need this
+    smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
 
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-
             smartkeg.calculate_model(PROC['MOD'])
-
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
             smartkeg.handle_led_display(PROC['LED'])
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
             smartkeg.query_insert_temperature(smartkeg.fridge_temperatures)
-
-            ### XXX Build new data structure ###
-
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
+            smartkeg.update_temperature_value()
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
 
         time.sleep(0.1)

@@ -36,6 +36,29 @@ class Query:
         FROM Keg
         WHERE now_serving = 1
     """
+    
+    SELECT_CURRENT_KEGS = """
+        SELECT
+            k.id        AS keg_id,
+            k.volume    AS volume,
+            (k.volume - SUM(p.volume)) / k.volume AS remaining,
+            b.name      AS name,
+            b.abv       AS abv,
+            b.ibu       AS ibu,
+            br.name     AS brewer,
+            bt.type     AS type,
+            bt.subtype  AS subtype,
+            bra.rating  AS rating
+        FROM Keg AS k
+        JOIN Beer AS b ON k.beer_id = b.id
+        JOIN BeerType AS bt ON b.type_id = bt.id
+        JOIN Brewer AS br ON b.brewer_id = br.id
+        LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id        
+        JOIN Pour AS p ON k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id
+    """
+
     SELECT_SENSOR_ID = """
         SELECT
             id,
@@ -43,6 +66,7 @@ class Query:
         FROM Sensor
         WHERE name IN %s
     """
+    
     SELECT_DAILY_CONSUMPTION = """
         SELECT
             DATE(pour_time) AS day,
@@ -52,8 +76,17 @@ class Query:
     """
 
     SELECT_VOLUME_REMAINING = """
-        SELECT *** FROM *** JOIN *** WHERE ***
+        SELECT k.volume - SUM(p.volume)
+        FROM Keg AS k
+        JOIN Pour AS p ON k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id
     """
+    
     SELECT_PERCENT_REMAINING = """
-                
+        SELECT (k.volume - SUM(p.volume)) / k.volume
+        FROM Keg AS k
+        JOIN Pour AS p ON k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id        
     """

@@ -45,7 +45,7 @@ CREATE TABLE Brewer (
     state           VARCHAR(64),
     country         VARCHAR(64),
     PRIMARY KEY(id)
-)
+);
 
 -- --------------------
 -- BEER TABLE
@@ -55,8 +55,8 @@ CREATE TABLE Beer (
     brewer_id       INTEGER     NOT NULL,
     type_id         INTEGER     NOT NULL,
     name            VARCHAR(50) NOT NULL,
-    ABV             FLOAT(3,1),
-    IBU             INTEGER(3),
+    abv             FLOAT(3,1),
+    ibu             INTEGER(3),
     color_primary   CHAR(7),
     color_secondary CHAR(7),
     FOREIGN KEY(brewer_id) REFERENCES Brewer(id),
@@ -151,7 +151,7 @@ CREATE TABLE Pour (
     FOREIGN KEY(keg_id) REFERENCES Keg(id),
     FOREIGN KEY(person_id) REFERENCES Person(id),
     PRIMARY KEY(id)
-    );
+);
 
 -- --------------------
 -- BEER RATING TABLE
