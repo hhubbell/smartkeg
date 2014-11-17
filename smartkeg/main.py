@@ -23,12 +23,15 @@ class Smartkeg(ParentProcess):
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     TSR_PERIODS = 7
+    DOT_RADIUS = 2
+    DOT_STYLE = 'circle'
 
     def __init__(self):
         super(Smartkeg, self).__init__()
-        self.dbi = self.set_database_connection()
-
+        self.set_database_connection()
         self.set_fridge()
+        self.set_kegs()
+        self.create_model()
 
         # This is an example of the JSON being sent.
         self.model = [{
@@ -63,8 +66,8 @@ class Smartkeg(ParentProcess):
                         'mean': None,
                     }
                 ],
-                'radius': 2,
-                'style': 'circle'
+                'radius': self.DOT_RADIUS,
+                'style': self.DOT_STYLE
             },
             'remaining': {
                 'y': 94.13241234
@@ -79,7 +82,6 @@ class Smartkeg(ParentProcess):
                 'rating': 5
             }
         }]
-
 
     # --------------------
     # SETTERS
@@ -101,7 +103,8 @@ class Smartkeg(ParentProcess):
         pwd = cfg.get(HEADER, 'pwd')
         dbn = cfg.get(HEADER, 'dbn')
         adr = cfg.get(HEADER, 'adr')
-        return DatabaseInterface(adr, dbn, usr, pwd, logger=self.logger)
+
+        self.dbi = DatabaseInterface(adr, dbn, usr, pwd, logger=self.logger)
 
     def set_fridge(self):
         """
@@ -116,19 +119,15 @@ class Smartkeg(ParentProcess):
         cfg.read(self._CONFIG_PATH)
         name = cfg.get(HEADER, 'name')
 
-        self.query_select_fridge(name)
+        self.fridge = self.query_select_fridge(name)
 
-    # --------------------
-    # GETTERS
-    # --------------------
-    # XXX Necessary?
-    def get_current_keg(self):
+    def set_kegs(self):
         """
         @Author:        Harrison Hubbell
-        @Created:       09/10/2014
-        @Descreption:   Returns current keg id
+        @Created:       11/17/2014
+        @Description:   Sets the current kegs.
         """
-        return self.dbi.SELECT(Query.SELECT_KEG_ID)
+        self.kegs = self.query_select_current_kegs()
 
     # --------------------
     # QUERY METHODS
@@ -156,13 +155,13 @@ class Smartkeg(ParentProcess):
         """
         self.dbi.INSERT(Query.INSERT_POUR, params=[(pour,)])
 
-    def query_select_current_keg(self):
+    def query_select_current_kegs(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
         @Description:   SELECTS current keg id
         """
-        self.current_kegs = self.dbi.SELECT(Query.SELECT_KEG_ID)
+        return self.dbi.SELECT(Query.SELECT_KEG_ID)
 
     def query_select_daily_consumption(self):
         """
@@ -170,7 +169,7 @@ class Smartkeg(ParentProcess):
         @Created:       11/09/2014
         @Description:   SELECTS aggregate daily consumption.
         """
-        self.daily_consumption = self.dbi.SELECT(Query.SELECT_DAILY_CONSUMPTION)
+        return self.dbi.SELECT(Query.SELECT_DAILY_CONSUMPTION)
 
     def query_select_fridge(self, name):
         """
@@ -178,7 +177,7 @@ class Smartkeg(ParentProcess):
         @Created:       11/07/2014
         @Description:   SELECTS fridge_id based on name.
         """
-        self.fridge = self.dbi.SELECT(Query.SELECT_FRIDGE_ID, params=[name])
+        return self.dbi.SELECT(Query.SELECT_FRIDGE_ID, params=[name])
 
     def query_select_percent_remaining(self):
         """
@@ -250,15 +249,48 @@ class Smartkeg(ParentProcess):
     # --------------------
     # MODEL
     # --------------------
-    def handle_model(self, proc_name):
+    def calculate_model(self, proc_name):
         """
         @Author:        Harrison Hubbell
         @Created:
         @Description:   For now, it is just example data.
 
         """
+        self.daily_consumption = self.query_select_daily_consumption()
         self.proc_send(proc_name, self.daily_consumption)
-        self.model = self.proc_recv(proc_name)
+        create_data_model(self.proc_recv(proc_name))
+
+    def create_data_model(self, regression_model):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/17/2014
+        @Description:   Creates the data model based on the current kegs.
+        """
+        self.model = []
+        self.percent_remaining = self.query_select_percent_remaining()
+        self.beer_info = self.query_select_beer_info()
+
+        for keg in self.kegs:
+            self.model.append({
+                'consumption': {
+                    'days': regression_model,
+                    'radius': self.DOT_RADIUS,
+                    'style': self.DOT_STYLE
+                },
+                'remaining': {
+                    'value': self.percent_remaining[keg]
+                },
+                'beer': {
+                    'brand': self.beer_info[keg]['brand'],
+                    'name': self.beer_info[keg]['name'],
+                    'type': self.beer_info[keg]['type'],
+                    'subtype': self.beer_info[keg]['subtype'],
+                    'abv': self.beer_info[keg]['abv'],
+                    'ibu': self.beer_info[keg]['ibu'],
+                    'rating': self.beer_info[keg]['rating']
+                }
+            })
+
 
     # --------------------
     # SOCKET SERVER
@@ -393,10 +425,10 @@ if __name__ == '__main__':
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-            smartkeg.query_select_daily_consumption()
+
+            smartkeg.calculate_model(PROC['MOD'])
 
             smartkeg.handle_led_display(PROC['LED'])
-            smartkeg.handle_model(PROC['MOD'])
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.model)
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
