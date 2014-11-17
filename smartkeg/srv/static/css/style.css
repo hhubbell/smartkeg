@@ -150,6 +150,7 @@ svg {
 }
 
 label[for='beer-menu-action'] {
+    cursor:                 pointer;
     float:                  right;
 }
 
@@ -170,6 +171,16 @@ label[for='beer-menu-action'] {
     list-style:             none;
     margin:                 0;
     padding:                0;
+}
+
+.beer-menu-list li {
+    background-color:       #ECF0F1;
+    color:                  #34495E;
+    cursor:                 pointer;
+    padding:                .25em;
+    margin:                 .5em;
+    font-size:              10pt;
+    box-shadow:             3px 3px 5px 0px #2F2F2F;
 }
 
 /* -------------------- *
