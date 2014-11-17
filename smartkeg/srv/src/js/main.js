@@ -6,7 +6,7 @@
  * ------------------------------------------------------------------------ */
 
 function setup_beer_menu() {
-    var menu = document.querySelector('#beer-menu-list');
+    var menu = document.querySelector('#beer-options');
     var tap_form = document.querySelector('#tap-form');
     var tap_item = menu.children[0];
     
