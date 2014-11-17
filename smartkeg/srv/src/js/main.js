@@ -5,6 +5,17 @@
  * Description: The main method
  * ------------------------------------------------------------------------ */
 
+function setup_beer_menu() {
+    var menu = document.querySelector('#beer-menu-list');
+    var tap_form = document.querySelector('#tap-form');
+    var tap_item = menu.children[0];
+    
+    tap_item.addEventListener('click', function() {
+        menu.style.display = 'none';
+        tap_form.style.display = 'block'
+    });
+}
+
 function main() {
     var protocol_re = new RegExp('^(http(s)?:\/\/)');
     var trailing_re = new RegExp('\/$');
@@ -31,9 +42,14 @@ function main() {
                 client.kegs.push(keg_obj);
             }
 
-            client.render()
+            client.render();
+            client.render_taps('#tap-form-taps');
         }
     }
+
+    client.host_get_beer_menu();
+
+    setup_beer_menu();
 }
 
 

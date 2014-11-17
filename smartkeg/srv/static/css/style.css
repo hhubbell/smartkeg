@@ -50,10 +50,37 @@ img {
     width:                  75%;
 }
 
+label[for='beer-menu-action'] {
+    text-rendering:         geometricPrecision; /* Prevent's blurryness on some devices */
+    cursor:                 pointer;
+    float:                  right;
+}
+
 main {
     display:                flex;
     margin:                 auto;
 }
+
+.beer-menu-list {
+    list-style:             none;
+    margin:                 0;
+    padding:                0;
+}
+
+.beer-menu-list li {
+    background-color:       #34495E;
+    color:                  #F1C40F;
+    cursor:                 pointer;
+    padding:                .35em;
+    margin:                 .5em 0em .5em 0em;
+    font-size:              10pt;
+    box-shadow:             1px 1px 7px 0px #2F2F2F;
+}
+
+.beer-menu-list li:last-child {
+    margin-bottom:          0px;
+}
+
 
 .circle-badge {
     background-color:       #C0392B;
@@ -91,14 +118,19 @@ main {
     font-weight:            400;
 }
 
-#serving {
-    padding:                .5em;
+#beer-menu {
+    margin-top:             .5em;
+    display:                none;
 }
 
-#remaining-graph {
-    vertical-align:         bottom;
-    /*height:                 400px;*/
+#beer-menu-action {
+    display:                none;
 }
+
+#beer-menu-action:checked + #beer-menu {
+    display:                block;
+}
+
 
 #chart {
     flex-grow:              2;
@@ -107,6 +139,27 @@ main {
 
 #hud {
     vertical-align:         top;
+}
+
+#serving {
+    padding:                .5em;
+}
+
+#tap-form {
+    display:                none;
+}
+
+#tap-form-beer {
+    display:                none;
+}
+
+#tap-form-brewer {
+    display:                none;
+}
+
+#remaining-graph {
+    vertical-align:         bottom;
+    /*height:                 400px;*/
 }
 
 /* -------------------- *
@@ -147,45 +200,6 @@ svg {
 
 .remaining-bar {
     fill:                   #16A085
-}
-
-label[for='beer-menu-action'] {
-    text-rendering:         geometricPrecision; /* Prevent's blurryness on some devices */
-    cursor:                 pointer;
-    float:                  right;
-}
-
-#beer-menu {
-    margin-top:             .5em;
-    display:                none;
-}
-
-#beer-menu-action {
-    display:                none;
-}
-
-#beer-menu-action:checked + #beer-menu {
-    display:                block;
-}
-
-.beer-menu-list {
-    list-style:             none;
-    margin:                 0;
-    padding:                0;
-}
-
-.beer-menu-list li {
-    background-color:       #34495E;
-    color:                  #F1C40F;
-    cursor:                 pointer;
-    padding:                .35em;
-    margin:                 .5em 0em .5em 0em;
-    font-size:              10pt;
-    box-shadow:             1px 1px 7px 0px #2F2F2F;
-}
-
-.beer-menu-list li:last-child {
-    margin-bottom:          0px;
 }
 
 /* -------------------- *

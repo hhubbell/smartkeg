@@ -18,12 +18,25 @@
             <section class='content-box'>
                 <header class='content-header'>
                     <h4>Now Serving</h4>
-                    <label for='beer-menu-action'>&#9776; Menu</label>                    
+                    <label for='beer-menu-action'>&#9776; Menu</label>
                     <input type='checkbox' name='beer-menu-action' id='beer-menu-action'>
                     <aside id='beer-menu'>
-                        <ul class='beer-menu-list'>
+                        <ul id='beer-menu-list'>
                             <li>Tap a new keg</li>
                         </ul>
+                        <form id='tap-form' method='post'>
+                            <fieldset id='tap-form-taps'>
+                                <legend>Taps</legend>
+                            </fieldset>
+                            <fieldset id='tap-form-brewer'>
+                                <legend>Brewer</legend>
+                                <ul class='beer-menu-list'></ul>
+                            </fieldset>
+                            <fieldset id='tap-form-beer'>
+                                <legend>Beer</legend>
+                                <ul class='beer-menu-list'></ul>
+                            </fieldset>
+                        </form>
                     </aside>
                 </header>
                 <section class='content-area' id='serving'>
