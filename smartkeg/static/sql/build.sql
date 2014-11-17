@@ -3,21 +3,21 @@
 -- Author:      Harrison Hubbell
 -- Created:     03/10/2014
 -- Updated:     09/02/2014
--- Description: Create tables for the smart kegerator that tracks temperature 
---              and consumption using a raspberry pi.  Data will be pushed to 
---              the the database from the main process in communication with 
---              local sensors, as well as through the web.  Data will mostly 
---              be pulled via the web, however there may be instances where 
+-- Description: Create tables for the smart kegerator that tracks temperature
+--              and consumption using a raspberry pi.  Data will be pushed to
+--              the the database from the main process in communication with
+--              local sensors, as well as through the web.  Data will mostly
+--              be pulled via the web, however there may be instances where
 --              debugging is done locally, as well as physical displays that
 --              also required data.
---              
+--
 --              This script covers the creation of the Kegerator Schema, which
---              handles facets of the beer portion of the Smartkeg - this 
---              also includes users who may drink or purchase the beer.  
---              
---              Because the smartkeg DB user does not have permissions to 
---              CREATE and DROP schemas - for data security concerns - this 
---              script must be run as root.
+--              handles facets of the beer portion of the Smartkeg - this
+--              also includes users who may drink or purchase the beer.
+--
+--              Because the smartkeg DB user does not have permissions to
+--              CREATE and DROP schemas - for data security concerns - this
+--              script must be run as a user with these permissions.
 -- ---------------------------------------------------------------------------
 
 DROP SCHEMA IF EXISTS Kegerator;
@@ -49,13 +49,12 @@ CREATE TABLE Brewer (
 
 -- --------------------
 -- BEER TABLE
--- -------------------- 
+-- --------------------
 CREATE TABLE Beer (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
-    brewer_id       INTEGER
-    type_id         INTEGER
+    brewer_id       INTEGER     NOT NULL,
+    type_id         INTEGER     NOT NULL,
     name            VARCHAR(50) NOT NULL,
-    brewer          VARCHAR(50) NOT NULL,  
     ABV             FLOAT(3,1),
     IBU             INTEGER(3),
     color_primary   CHAR(7),
@@ -89,7 +88,7 @@ CREATE TABLE Sensor (
 -- --------------------
 CREATE TABLE Keg (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
-    fridge_id       INTEGER     NOT NULL, 
+    fridge_id       INTEGER     NOT NULL,
     beer_id         INTEGER     NOT NULL,
     volume          FLOAT(5,2)  NOT NULL,
     date_started    DATE        NOT NULL,
@@ -105,7 +104,7 @@ CREATE TABLE Keg (
 -- FRIDGE TEMP TABLE
 -- --------------------
 CREATE TABLE FridgeTemp (
-    id          INTEGER     NOT NULL AUTO_INCREMENT,  
+    id          INTEGER     NOT NULL AUTO_INCREMENT,
     fridge_id   INTEGER     NOT NULL,
     sensor_id   INTEGER     NOT NULL,
     read_time   TIMESTAMP   NOT NULL,
@@ -121,7 +120,7 @@ CREATE TABLE FridgeTemp (
 CREATE TABLE KegTemp (
     id          INTEGER     NOT NULL AUTO_INCREMENT,
     keg_id      INTEGER     NOT NULL,
-    sensor_id   INTEGER     NOT NULL,    
+    sensor_id   INTEGER     NOT NULL,
     read_time   TIMESTAMP   NOT NULL,
     temperature FLOAT(5,2),
     FOREIGN KEY(keg_id) REFERENCES Keg(id),
