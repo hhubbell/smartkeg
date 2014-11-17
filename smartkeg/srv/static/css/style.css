@@ -33,6 +33,7 @@ h1 {
 }
 
 h4 {
+    display:                inline;
     font-size:              16pt;
     font-weight:            100;
     margin:                 0;
@@ -146,6 +147,29 @@ svg {
 
 .remaining-bar {
     fill:                   #16A085
+}
+
+label[for='beer-menu-action'] {
+    float:                  right;
+}
+
+#beer-menu {
+    margin:                 .5em 0em .5em 0em;
+    display:                none;
+}
+
+#beer-menu-action {
+    display:                none;
+}
+
+#beer-menu-action:checked + #beer-menu {
+    display:                block;
+}
+
+.beer-menu-list {
+    list-style:             none;
+    margin:                 0;
+    padding:                0;
 }
 
 /* -------------------- *
