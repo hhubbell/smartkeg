@@ -32,56 +32,6 @@ class Smartkeg(ParentProcess):
         self.set_fridge()
         self.set_kegs()
 
-        # This is an example of the JSON being sent.
-        self.model = [{
-            'consumption': {
-                'x': [
-                    {
-                        'y':[3, 5, 17, 23, 8, 6, 13, 14, 5, 16],
-                        'mean': None,
-                    },
-                    {
-                        'y':[6, 3, 7, 13, 16, 8, 16, 3, 4, 6],
-                        'mean': None,
-                    },
-                    {
-                        'y':[3, 8, 17, 9, 16, 8, 16, 13, 10, 6],
-                        'mean': None,
-                    },
-                    {
-                        'y':[9, 18, 56, 13, 6, 28, 16, 23, 24, 36],
-                        'mean': None,
-                    },
-                    {
-                        'y':[33, 43, 67, 53, 56, 48, 46, 33, 44, 36],
-                        'mean': None,
-                    },
-                    {
-                        'y':[93, 83, 77, 93, 96, 98, 116, 63, 64, 36],
-                        'mean': None,
-                    },
-                    {
-                        'y':[83, 83, 77, 93, 96, 98, 90, 43, 44, 46],
-                        'mean': None,
-                    }
-                ],
-                'radius': self.DOT_RADIUS,
-                'style': self.DOT_STYLE
-            },
-            'remaining': {
-                'y': 94.13241234
-            },
-            'beer': {
-                'brand': 'Fiddlehead',
-                'name': 'Mastermind',
-                'type': 'Ale',
-                'subtype': 'Double IPA',
-                'abv': 8.2,
-                'ibu': '???',
-                'rating': 5
-            }
-        }]
-
     # --------------------
     # SETTERS
     # --------------------
@@ -417,7 +367,7 @@ if __name__ == '__main__':
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-            smartkeg.calculate_model(PROC['MOD'])
+            #smartkeg.calculate_model(PROC['MOD'])
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
             smartkeg.handle_led_display(PROC['LED'])
 

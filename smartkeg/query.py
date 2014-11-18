@@ -54,7 +54,7 @@ class Query:
         JOIN BeerType AS bt ON b.type_id = bt.id
         JOIN Brewer AS br ON b.brewer_id = br.id
         LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id        
-        JOIN Pour AS p ON k.id = p.keg_id
+        LEFT JOIN Pour AS p ON k.id = p.keg_id
         WHERE k.now_serving = 1
         GROUP BY k.id
     """

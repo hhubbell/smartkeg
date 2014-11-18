@@ -65,7 +65,7 @@ class LEDDisplay(ChildProcess):
             if self.light:
                 i = self.light - 1
                 while i >= 0:
-                    self.light_row(ROW[i])
+                    self.light_row(self.ROW[i])
                     i -= 1
 
             # This prevents the CPU from running out of control.  If this
