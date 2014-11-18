@@ -12,6 +12,7 @@
     <header>
         <img src='static/img/logo.png' class='circle-badge header-logo'>
         <h1>Smartkeg</h1>
+        <img src='static/img/qrcode.svg' class='header-logo' id='qrcode'>
     </header>
     <main>
         <section id='hud' class='wrapper'>
@@ -48,8 +49,8 @@
                     </aside>
                 </header>
                 <section class='content-area' id='serving'>
-                    <div class='serving-data' id='brand'><span class='serving-attribute'>Brand: </span></div>
                     <div class='serving-data' id='name'><span class='serving-attribute'>Name: </span></div>
+                    <div class='serving-data' id='brand'><span class='serving-attribute'>Brand: </span></div>
                     <div class='serving-data' id='abv'><span class='serving-attribute'>ABV: </span></div>
                     <div class='serving-data' id='ibu'><span class='serving-attribute'>IBU: </span></div>
                     <div class='serving-data' id='rating'><span class='serving-attribute'>Rating: </span></div>
@@ -78,12 +79,6 @@
         </section>
     </main>
     <footer>
-        <!-- NOTICE:
-            Google Infographics was officially depreciated on April 20, 2012.  This
-            QR Code below should not be a vital aspect of this web page, and should
-            function with or without it.
-        -->
-        <img src='https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=http%3A%2F%2F10.0.0.35%0A' alt='http://10.0.0.35' id='qrcode'>
     </footer>
     <script type='application/javascript' src='src/js/ajax.js'></script>
     <script type='application/javascript' src='src/js/client.js'></script>

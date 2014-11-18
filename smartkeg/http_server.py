@@ -9,6 +9,9 @@ from ConfigParser import ConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
 from logger import SmartkegLogger
+import socket
+import qrcode
+import qrcode.image.svg
 import json
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -84,8 +87,38 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 class SmartkegHTTPServer:
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _SERVER_DIR = _BASE_DIR + 'srv/'
+    
     def __init__(self, host, port):
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
+        self.create_qrcode()
+
+    def create_qrcode(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/18/2014
+        @Description:   Gets the current interface address of the server, and
+                        renders a QR Code that allows devices to go to that
+                        address.
+        """
+        GOOGLE = ('8.8.8.8', 80)
+        
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(GOOGLE)
+        address = 'http://' + sock.getsockname()[0]
+        sock.close()
+ 
+        factory = qrcode.image.svg.SvgPathImage
+        factory.QR_PATH_STYLE = 'fill:#C0392B;fill-opacity:1;fill-rule:nonzero;stroke:none'
+
+        qr = qrcode.QRCode(version=1, box_size=10, border=0)
+        qr.image_factory = factory
+        qr.add_data(address)
+        qr.make()
+
+        image = qr.make_image()
+        image.save(self._SERVER_DIR + 'static/img/qrcode.svg')
 
     def main(self):
         self.httpd.serve_forever()
