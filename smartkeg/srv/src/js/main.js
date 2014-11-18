@@ -47,9 +47,9 @@ function main() {
         }
     }
 
-    client.host_get_beer_menu();
+    //client.host_get_brewer_list();
 
-    setup_beer_menu();
+    //setup_beer_menu();
 }
 
 

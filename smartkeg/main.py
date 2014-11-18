@@ -23,7 +23,7 @@ class Smartkeg(ParentProcess):
     _BASE_DIR = '/usr/local/src/smartkeg/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     TSR_PERIODS = 7
-    DOT_RADIUS = 2
+    DOT_RADIUS = 3
     DOT_STYLE = 'circle'
 
     def __init__(self):

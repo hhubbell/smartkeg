@@ -21,6 +21,10 @@ ScatterPlot.prototype.set_canvas = function(selector) {
     }
 }
 
+ScatterPlot.prototype.set_independent_variable = function(key) {
+    this.independent_variable = key;
+}
+
 ScatterPlot.prototype.set_point_radius = function(radius) {
     this.radius = radius;
 }
@@ -30,9 +34,10 @@ ScatterPlot.prototype.add_set = function(set_obj) {
 }
 
 ScatterPlot.prototype.calculate_means = function() {
+    var self = this;
     this.sets.forEach(function(set) {
-        for (x in set.x) {
-            var y = set.x[x].y;
+        for (x in set[self.independent_variable]) {
+            var y = set[self.independent_variable][x].y;
             var sum = 0;
 
             y.forEach(function(point) {
@@ -49,10 +54,11 @@ ScatterPlot.prototype.render_means = function() {
     this.sets.forEach(function(set) {
         var radius = self.radius;
         var style = set.style;
+        var length = set[self.independent_variable].length;
 
-        for (x in set.x) {
-            var y_val = self.height - set.x[x].mean;
-            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
+        for (x in set[self.independent_variable]) {
+            var y_val = self.height - set[self.independent_variable][x].mean;
+            var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
             point.classList.add('chart-day-mean');
@@ -74,20 +80,18 @@ ScatterPlot.prototype.render_means = function() {
 
 }
 
-/**
- * Draw all sets on the graph.
- */
 ScatterPlot.prototype.render_sets = function() {
     var self = this;
 
     this.sets.forEach(function(set) {
         var radius = self.radius;
-        var style = set.style;
+        var style = set.style;        
+        var length = set[self.independent_variable].length;
 
-        for (x in set.x) {
-            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
+        for (x in set[self.independent_variable]) {
+            var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
 
-            set.x[x].y.forEach(function(y) {
+            set[this.independent_variable][x].y.forEach(function(y) {
                 var y_val = self.height - y;
                 var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
@@ -109,10 +113,6 @@ ScatterPlot.prototype.render_sets = function() {
     });
 }
 
-/**
- * Draw the seasonal trendline on the graph.
- * @param gradient [optional]: Draws a gradient below the line if true.
- */
 ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
     var self = this;
     var line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
@@ -120,10 +120,11 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
 
     for (var i = 0; i < this.sets.length; i++) {
         var set = this.sets[i];
+        var length = set[this.independent_variable].length
 
-        for (x in set.x) {
-            var y_val = this.height - set.x[x].mean;
-            var x_val = ((x / set.x.length) * self.width) + ((self.width / set.x.length) / 2);
+        for (x in set[this.independent_variable]) {
+            var y_val = this.height - set[this.independent_variable][x].mean;
+            var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             line_string += x_val + ',' + y_val + ' ';
         }
 
@@ -161,25 +162,14 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
     }
 }
 
-/**
- * Render is a wrapper to apply subrender routines with one function call.
- * All parameters are optional.
- * @param set: Render set points if true.
- * @param mean: Render mean points if true.
- * @param trend: Render trendline if true.
- * @param gradient: Render a trendline gradient if true.
- */
 ScatterPlot.prototype.render = function(set, mean, trend, gradient) {
-    if (gradient) this.render_seasonal_trendline(gradient);
     if (set) this.render_sets();
     if (trend) this.render_seasonal_trendline();
     if (mean) this.render_means();
+    if (gradient) this.render_seasonal_trendline(gradient);    
 }
 
 
-/**
- * BarGraph Object is responsible for rendering bar graphs on SVG
- */
 function BarGraph(selector) {
     this.set_canvas(selector);
     this.height = this.element.clientHeight;
@@ -187,10 +177,6 @@ function BarGraph(selector) {
     this.categories = []
 }
 
-/**
- * Initialize the SVG area for graphing and define a <defs> child.
- * @param selector: A selector that defines the SVG
- */
 BarGraph.prototype.set_canvas = function(selector) {
     this.element = document.querySelector(selector);
     this.defs = this.element.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'defs')[0];
@@ -200,17 +186,10 @@ BarGraph.prototype.set_canvas = function(selector) {
     }
 }
 
-/**
- * Add a category.
- * @param category: A category Object.
- */
 BarGraph.prototype.add_category = function(category) {
     this.categories.push(category);
 }
 
-/**
- * Render the Bar Chart.
- */
 BarGraph.prototype.render = function() {
     var bar_width = (100 / this.categories.length || 1) + "%";
     var bar_x = this.width / this.categories.length;
@@ -218,7 +197,7 @@ BarGraph.prototype.render = function() {
     for (var i = 0; i < this.categories.length; i++) {
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         
-        var bar_top = (1 - (this.categories[i].y / 100)) * this.height
+        var bar_top = (1 - (this.categories[i].value)) * this.height
 
         rect.classList.add('remaining-bar');
         
