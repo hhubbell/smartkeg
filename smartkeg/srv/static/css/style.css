@@ -259,4 +259,8 @@ svg {
     #hud {
         flex-direction:     column;
     }
+
+    #qrcode {
+        display:            none;
+    }
 }
