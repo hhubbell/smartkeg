@@ -23,8 +23,9 @@
                     <aside id='beer-menu'>
                         <ul id='beer-options' class='beer-menu-list'>
                             <li>Tap a new keg</li>
+                            <li>Rate this beer</li>
                         </ul>
-                        <form id='tap-form' method='post'>
+                        <form id='tap-form' class='beer-menu-form' method='post'>
                             <fieldset id='tap-form-taps'>
                                 <legend>Taps</legend>
                             </fieldset>
@@ -35,6 +36,13 @@
                             <fieldset id='tap-form-beer'>
                                 <legend>Beer</legend>
                                 <ul class='beer-menu-list'></ul>
+                            </fieldset>
+                        </form>
+                        <form id='rate-form' class='beer-menu-form' method='post' oninput='ratingoutput.value = ratingslider.value'>
+                            <fieldset>
+                                <input class='rating-slider' name='ratingslider' type='range' min='1' max='5' step='1'>
+                                <output class='rating-slider' name='ratingoutput' for='rating-slider'>3</output>
+                                <textarea rows="7"></textarea>
                             </fieldset>
                         </form>
                     </aside>
