@@ -372,7 +372,7 @@ if __name__ == '__main__':
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
-            smartkeg.query_insert_temperature(smartkeg.fridge_temperatures)
+            smartkeg.query_insert_temperatures(smartkeg.temperatures)
             smartkeg.update_temperature_value()
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
 
