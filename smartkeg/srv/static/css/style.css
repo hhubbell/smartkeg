@@ -11,9 +11,9 @@ body {
 }
 
 footer {
-    display:                none; /* For now */
     margin-top:             1em;
     padding:                .25em;
+    text-align:             center;
 }
 
 header {
@@ -116,6 +116,12 @@ main {
 
 .serving-attribute {
     font-weight:            400;
+}
+
+#qrcode {
+    width:                  150px;
+    height:                 150px;
+    box-shadow:             3px 3px 5px 0px #A5A5A5;
 }
 
 #beer-menu {
