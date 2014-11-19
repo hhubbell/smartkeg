@@ -10,11 +10,36 @@ function ScatterPlot(selector) {
     this.set_canvas(selector);
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
+    this.selector = selector;
     this.sets = [];
+}
+
+ScatterPlot.prototype.push = function(set) {
+    this.sets.push(set);
+}
+
+ScatterPlot.prototype.pop = function() {
+    this.sets.pop();
+}
+
+ScatterPlot.prototype.popall = function() {
+    this.sets.length = 0;
+}
+
+ScatterPlot.prototype.clear = function() {
+    while (this.element.lastChild) {
+        this.element.removeChild(this.element.lastChild);
+    }
+
+    this.set_defs();
 }
 
 ScatterPlot.prototype.set_canvas = function(selector) {
     this.element = document.querySelector(selector);
+    this.set_defs();
+}
+
+ScatterPlot.prototype.set_defs = function() {
     this.defs = this.element.getElementsByTagNameNS(this.SVG_NS, 'defs')[0];
 
     if (!this.defs) {
@@ -23,16 +48,12 @@ ScatterPlot.prototype.set_canvas = function(selector) {
     }
 }
 
-ScatterPlot.prototype.set_independent_variable = function(key) {
-    this.x_var = key;
-}
-
-ScatterPlot.prototype.set_point_radius = function(radius) {
+ScatterPlot.prototype.set_radius = function(radius) {
     this.radius = radius;
 }
 
-ScatterPlot.prototype.add_set = function(set_obj) {
-    this.sets.push(set_obj);
+ScatterPlot.prototype.set_style = function(style) {
+    this.style = style;
 }
 
 ScatterPlot.prototype.render_points = function() {
@@ -40,11 +61,11 @@ ScatterPlot.prototype.render_points = function() {
 
     this.sets.forEach(function(set) {
         var radius = self.radius;
-        var style = set.style;
-        var length = set[self.x_var].length;
+        var style = self.style;
+        var length = set.length;
 
-        for (x in set[self.x_var]) {
-            var y_val = self.height - set[self.x_var][x];
+        for (x in set) {
+            var y_val = self.height - set[x];
             var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             var point = document.createElementNS(this.SVG_NS, style);
 
@@ -74,10 +95,10 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
 
     for (var i = 0; i < this.sets.length; i++) {
         var set = this.sets[i];
-        var length = set[this.x_var].length
+        var length = set.length
 
-        for (x in set[this.x_var]) {
-            var y_val = this.height - set[this.x_var][x];
+        for (x in set) {
+            var y_val = this.height - set[x];
             var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             line_string += x_val + ',' + y_val + ' ';
         }
@@ -130,8 +151,32 @@ function BarGraph(selector) {
     this.categories = []
 }
 
+BarGraph.prototype.push = function(category) {
+    this.categories.push(category);
+}
+
+BarGraph.prototype.pop = function() {
+    this.categories.pop();
+}
+
+BarGraph.prototype.popall = function() {
+    this.categories.length = 0;
+}
+
+BarGraph.prototype.clear = function() {
+    while (this.element.lastChild) {
+        this.element.removeChild(this.element.lastChild);
+    }
+
+    this.set_defs();
+}
+
 BarGraph.prototype.set_canvas = function(selector) {
     this.element = document.querySelector(selector);
+    this.set_defs()
+}
+
+BarGraph.prototype.set_defs = function() {
     this.defs = this.element.getElementsByTagNameNS(this.SVG_NS, 'defs')[0];
 
     if (!this.defs) {
@@ -140,17 +185,13 @@ BarGraph.prototype.set_canvas = function(selector) {
     }
 }
 
-BarGraph.prototype.add_category = function(category) {
-    this.categories.push(category);
-}
-
 BarGraph.prototype.render = function() {
     var bar_width = (100 / this.categories.length || 1) + "%";
     var bar_x = this.width / this.categories.length;
 
     for (var i = 0; i < this.categories.length; i++) {
         var rect = document.createElementNS(this.SVG_NS, 'rect');
-        var bar_top = (1 - (this.categories[i].value)) * this.height
+        var bar_top = (1 - this.categories[i]) * this.height
 
         rect.classList.add('remaining-bar');
         rect.setAttributeNS(null, 'x', bar_x * i);

@@ -14,30 +14,40 @@ function Keg(keg_obj) {
     this.remaining = keg_obj.remaining;
 }
 
-Keg.prototype.render_beer = function(selector) {
-    element = document.querySelector(selector);
+Keg.prototype.set_beer_display = function(selector) {
+    this.beer_display = document.querySelector(selector);
+}
 
-    for (var i = 0; i < element.children.length; i++) {
-        var node = element.children[i]
+Keg.prototype.set_consumption_display = function(selector) {
+    this.consumption_display = new ScatterPlot(selector);
+}
+
+Keg.prototype.set_remaining_display = function(selector) {
+    this.remaining_display = new BarGraph(selector);
+}
+
+Keg.prototype.render_beer = function() {
+    for (var i = 0; i < this.beer_display.children.length; i++) {
+        var node = this.beer_display.children[i]
         var data_content = document.createElement('span');
-        
+
         data_content.innerHTML = this.beer[node.id] || '';
         node.appendChild(data_content);
     }
 }
 
-Keg.prototype.render_consumption = function(selector) {
-    var graph = new ScatterPlot(selector);
-
-    graph.add_set(this.consumption);
-    graph.set_independent_variable('days');
-    graph.set_point_radius(this.consumption.radius);
-    graph.render(true, true);
+Keg.prototype.render_consumption = function() {
+    this.consumption_display.popall();
+    this.consumption_display.clear();
+    this.consumption_display.push(this.consumption.days);
+    this.consumption_display.set_radius(this.consumption.radius);
+    this.consumption_display.set_style(this.consumption.style);
+    this.consumption_display.render(true, true);
 }
 
-Keg.prototype.render_remaining = function(selector) {
-    var graph = new BarGraph(selector);
-
-    graph.add_category(this.remaining);
-    graph.render();
+Keg.prototype.render_remaining = function() {
+    this.remaining_display.popall();
+    this.remaining_display.clear();
+    this.remaining_display.push(this.remaining.value);
+    this.remaining_display.render();
 }

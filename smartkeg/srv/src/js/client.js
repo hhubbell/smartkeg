@@ -41,22 +41,28 @@ SmartkegClient.prototype.host_get_brewer_offering = function(brewer) {
 }
 
 SmartkegClient.prototype.set_beer_display = function(selector) {
-    this.beer_display = selector;
+    this.kegs.forEach(function(keg) {
+        keg.set_beer_display(selector)
+    }
 }
 
 SmartkegClient.prototype.set_consumption_display = function(selector) {
-    this.consumption_display = selector;
+    this.kegs.forEach(function(keg) {
+        keg.set_consumption_display(selector)
+    }
 }
 
 SmartkegClient.prototype.set_remaining_display = function(selector) {
-    this.remaining_display = selector;
+    this.kegs.forEach(function(keg) {
+        keg.set_remaining_display(selector)
+    }
 }
 
 SmartkegClient.prototype.render = function() {
     console.log(this)
-    this.kegs[this.render_index].render_beer(this.beer_display);
-    this.kegs[this.render_index].render_consumption(this.consumption_display);
-    this.kegs[this.render_index].render_remaining(this.remaining_display);
+    this.kegs[this.render_index].render_beer();
+    this.kegs[this.render_index].render_consumption();
+    this.kegs[this.render_index].render_remaining();
 }
 
 SmartkegClient.prototype.render_brewer_list = function(selector) {
