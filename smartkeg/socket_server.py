@@ -17,18 +17,6 @@ import time
 import zlib
 
 class TCPHandler(SocketServer.StreamRequestHandler):
-    _BASE_DIR = '/usr/local/src/smartkeg/'
-    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    
-    def log_message(self, message):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/11/2014
-        @Description:   Logs a message.
-        """
-        logger = SmartkegLogger(self._CONFIG_PATH)
-        logger.log(message)
-
     def set_headers(self, fields):
         """
         @Author:        Harrison Hubbell
@@ -81,7 +69,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         self.wfile.write(self.response_headers)
         self.wfile.write(self.server.response)
         
-        self.log_message(('[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id))
+        #self.log_message(('[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id))
 
     def gzip(self, body):
         """
@@ -96,6 +84,18 @@ class TCPHandler(SocketServer.StreamRequestHandler):
 
 
 class TCPServer(SocketServer.TCPServer):
+    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
+    
+    def log_message(self, message):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       10/11/2014
+        @Description:   Logs a message.
+        """
+        logger = SmartkegLogger(self._CONFIG_PATH)
+        logger.log(message)
+
     def set_response(self, identifier, data):
         """
         @Author:        Harrison Hubbell
@@ -106,6 +106,8 @@ class TCPServer(SocketServer.TCPServer):
         self.update_id = identifier
         self.response = 'id: ' + str(identifier) + '\n' \
                         'data: ' + data + '\n\n'
+
+        self.log_message(('[Socket Server]', 'New response ID:', self.update_id))
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
