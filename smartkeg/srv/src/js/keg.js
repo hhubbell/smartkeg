@@ -22,21 +22,22 @@ Keg.prototype.render_beer = function(selector) {
         var data_content = document.createElement('span');
         
         data_content.innerHTML = this.beer[node.id] || '';
-
         node.appendChild(data_content);
     }
 }
 
 Keg.prototype.render_consumption = function(selector) {
     var graph = new ScatterPlot(selector);
+
     graph.add_set(this.consumption);
     graph.set_independent_variable('days');
     graph.set_point_radius(this.consumption.radius);
-    graph.render(false, true, true);
+    graph.render(true, true);
 }
 
 Keg.prototype.render_remaining = function(selector) {
     var graph = new BarGraph(selector);
+
     graph.add_category(this.remaining);
     graph.render();
 }
