@@ -229,7 +229,6 @@ class Smartkeg(ParentProcess):
         self.daily_consumption = [x['amount'] for x in self.query_select_daily_consumption()]
         self.proc_send(proc_name, self.daily_consumption)
         prediction = self.proc_recv(proc_name)
-        print prediction
 
         for keg in self.kegs:
             keg['consumption']['days'] = prediction

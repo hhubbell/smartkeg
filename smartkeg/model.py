@@ -25,7 +25,7 @@ class SmartkegModelMaker(ChildProcess):
             data = self.proc_recv()
             forecast = self.model.forecast(data)
             self.logger.log(('[ModelMaker]','New model:', self.model.to_string()))
-            self.logger.log(('[ModelMaker]','New forcast:', self.model.prediction))
+            self.logger.log(('[ModelMaker]','New forecast:', self.model.prediction))
             self.proc_send(forecast)
 
 
@@ -185,6 +185,12 @@ class TimeSeriesRegression(object):
                         regression model.
         """
         T = "(" + str(self.intercept) + " + " + str(self.slope) + "(x))"
-        S = "(" + str(self.seasonality) + ")"
+        S = "("
+        
+        for p in range(0, self.periods):
+            S += str(self.seasonality(p)) + "(s" + str(p) + ")"
+            if p != self.periods: S+= " + " 
+            
+        S += ")"
 
         return T + " * " + S
