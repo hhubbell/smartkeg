@@ -2,7 +2,6 @@
 -- Filename:    build.sql
 -- Author:      Harrison Hubbell
 -- Created:     03/10/2014
--- Updated:     09/02/2014
 -- Description: Create tables for the smart kegerator that tracks temperature
 --              and consumption using a raspberry pi.  Data will be pushed to
 --              the the database from the main process in communication with
