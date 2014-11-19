@@ -32,8 +32,7 @@ Keg.prototype.render_consumption = function(selector) {
     graph.add_set(this.consumption);
     graph.set_independent_variable('days');
     graph.set_point_radius(this.consumption.radius);
-    graph.calculate_means();
-    graph.render(true, true, true);
+    graph.render(false, true, true);
 }
 
 Keg.prototype.render_remaining = function(selector) {

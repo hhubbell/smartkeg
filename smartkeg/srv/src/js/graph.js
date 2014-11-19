@@ -33,6 +33,7 @@ ScatterPlot.prototype.add_set = function(set_obj) {
     this.sets.push(set_obj);
 }
 
+/* XXX Depreciated */
 ScatterPlot.prototype.calculate_means = function() {
     var self = this;
     this.sets.forEach(function(set) {
@@ -57,7 +58,7 @@ ScatterPlot.prototype.render_means = function() {
         var length = set[self.independent_variable].length;
 
         for (x in set[self.independent_variable]) {
-            var y_val = self.height - set[self.independent_variable][x].mean;
+            var y_val = self.height - set[self.independent_variable][x];
             var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             var point = document.createElementNS('http://www.w3.org/2000/svg', style);
 
@@ -123,7 +124,7 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
         var length = set[this.independent_variable].length
 
         for (x in set[this.independent_variable]) {
-            var y_val = this.height - set[this.independent_variable][x].mean;
+            var y_val = this.height - set[this.independent_variable][x];
             var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
             line_string += x_val + ',' + y_val + ' ';
         }
