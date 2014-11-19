@@ -121,7 +121,7 @@ class TimeSeriesRegression(object):
         for avg in season_avg:
             self.seasonal_indicies.append((avg - self.periods) / sum(season_avg))
             
-        return lambda x: self.seasonal_indicies[(x % self.periods)] if len(self.seasonal_indicies) > x else 0
+        return lambda x: self.seasonal_indicies[(x % self.periods)] if len(self.seasonal_indicies) > x % self.periods else 0
 
     def centered_moving_avg(self, simple_moving_avg):
         """
