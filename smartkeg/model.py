@@ -24,7 +24,8 @@ class SmartkegModelMaker(ChildProcess):
         while True:
             data = self.proc_recv()
             forecast = self.model.forecast(data)
-            self.log_message(('[ModelMaker]','New model:', self.model.to_string()))
+            self.logger.log(('[ModelMaker]','New model:', self.model.to_string()))
+            self.logger.log(('[ModelMaker]','New forcast:', self.model.prediction))
             self.proc_send(forecast)
 
 
@@ -40,6 +41,16 @@ class TimeSeriesRegression(object):
         """
         self.trend = self.calculate_regression_line(data)
         self.seasonality = self.calculate_seasonal_indices(data)
+
+        self.prediction = []
+        
+        start = len(data)
+        end = start + self.periods
+
+        for i in range(start, end):
+            self.prediction.append(self.trend(i) + self.seasonality(i))
+
+        return self.prediction
 
     def calculate_regression_line(self, data):
         """
@@ -74,7 +85,7 @@ class TimeSeriesRegression(object):
 
         return lambda x: self.intercept + self.slope * x
 
-    def calculate_seasonal_indicies(self, data):
+    def calculate_seasonal_indices(self, data):
         """
         @Author:        Harrison Hubbell
         @Created:       11/04/2104
@@ -97,15 +108,20 @@ class TimeSeriesRegression(object):
 
         rma = self.ratio_to_moving_avg(data, cma)
 
-        while i < self.periods:
+        while i < self.periods and i < len(rma):
             points = rma[i::self.periods]
+            
+            print rma
+            print self.periods
+            print points
+
             season_avg.append(sum(points) / len(points))
             i += 1
          
         for avg in season_avg:
             self.seasonal_indicies.append((avg - self.periods) / sum(season_avg))
             
-        return lambda x: self.seasonal_indicies[(x % self.periods)]
+        return lambda x: self.seasonal_indicies[(x % self.periods)] if len(self.seasonal_indicies) > x else 0
 
     def centered_moving_avg(self, simple_moving_avg):
         """
@@ -135,7 +151,7 @@ class TimeSeriesRegression(object):
                         related observed value (to the CMA value) to be 
                         found by taking the floor of self.periods / 2.
         """
-        i = math.floor(self.periods / 2)
+        i = int(math.floor(self.periods / 2))
         ratio_to_ma = []
 
         for avg in cma:
@@ -154,7 +170,7 @@ class TimeSeriesRegression(object):
         i = 0
         moving_avg = []
 
-        while i < len(data_set) - self.periods:
+        while i <= len(data_set) - self.periods:
             period_avg = float(sum(data_set[i:self.periods])) / float(self.periods)
             moving_avg.append(period_avg)
             i += 1
@@ -169,6 +185,6 @@ class TimeSeriesRegression(object):
                         regression model.
         """
         T = "(" + str(self.intercept) + " + " + str(self.slope) + "(x))"
-        S = "(" + str(self.seasonal_index) + ")"
+        S = "(" + str(self.seasonality) + ")"
 
         return T + " * " + S

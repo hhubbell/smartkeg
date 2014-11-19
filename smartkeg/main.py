@@ -68,7 +68,7 @@ class Smartkeg(ParentProcess):
         cfg.read(self._CONFIG_PATH)
         name = cfg.get(HEADER, 'name')
 
-        self.fridge = self.query_select_fridge(name)
+        self.fridge = self.query_select_fridge(name)[0]['id']
 
     def set_kegs(self):
         """
@@ -115,7 +115,7 @@ class Smartkeg(ParentProcess):
         items = temperature_dict.items()
         vals = []
         for tup in items:
-            vals.append((self.fridge_id,) + tup)
+            vals.append((self.fridge,) + tup)
 
         self.dbi.INSERT(Query.INSERT_FRIDGE_TEMP, params=vals)
 
@@ -226,12 +226,15 @@ class Smartkeg(ParentProcess):
         @Description:   For now, it is just example data.
 
         """
-        self.daily_consumption = self.query_select_daily_consumption()
+        self.daily_consumption = [x['amount'] for x in self.query_select_daily_consumption()]
         self.proc_send(proc_name, self.daily_consumption)
         prediction = self.proc_recv(proc_name)
+        print prediction
 
         for keg in self.kegs:
-            self.kegs[keg]['consumption']['days'] = prediction
+            keg['consumption']['days'] = prediction
+
+        print self.kegs
 
     # --------------------
     # SOCKET SERVER
@@ -363,17 +366,22 @@ if __name__ == '__main__':
 
     # XXX Might not need this
     smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
+    smartkeg.logger.log(smartkeg.kegs)
 
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-            #smartkeg.calculate_model(PROC['MOD'])
+            smartkeg.calculate_model(PROC['MOD'])
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
+            smartkeg.logger.log(smartkeg.kegs)
+            
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
             smartkeg.query_insert_temperatures(smartkeg.temperatures)
-            smartkeg.update_temperature_value()
+            smartkeg.logger.log(smartkeg.kegs)
+            
+            #smartkeg.update_temperature_value()
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
 
         time.sleep(0.1)

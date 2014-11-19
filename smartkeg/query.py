@@ -19,7 +19,7 @@ class Query:
         INSERT INTO FridgeTemp 
             (fridge_id, sensor_id, temperature)
         VALUES 
-            (%s, (SELECT id FROM Sensor WHERE name = %s), %s)
+            (%s, (SELECT id FROM Sensor WHERE name = %s AND type = 'Fridge'), %s)
     """
     
     # --------------------
@@ -41,7 +41,7 @@ class Query:
         SELECT
             k.id        AS keg_id,
             k.volume    AS volume,
-            (k.volume - SUM(p.volume)) / k.volume AS remaining,
+            (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining,
             b.name      AS name,
             b.abv       AS abv,
             b.ibu       AS ibu,
@@ -73,6 +73,7 @@ class Query:
             SUM(volume)     AS amount
         FROM Pour
         GROUP BY DATE(pour_time)
+        ORDER BY pour_time
     """
 
     SELECT_VOLUME_REMAINING = """
