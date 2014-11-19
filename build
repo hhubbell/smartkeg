@@ -50,7 +50,7 @@ then
     fi
 
     # RPi.GPIO
-    # This also requires pip, unless the user builds from source.
+    # This requires pip, unless the user builds from source.
     echo -ne "\tRPi.GPIO        "
     if pip2 list | grep RPi.GPIO > /dev/null;
     then
@@ -60,6 +60,19 @@ then
         echo -ne $DEP_NO
         echo -e "    ${BOLD}NOTICE:${RESET} RPi.GPIO must be installed using pip or built from source.  You must complete this step yourself."
     fi
+
+    # RPi.GPIO
+    # This also requires pip, unless the user builds from source.
+    echo -ne "\tqrcode          "
+    if pip2 list | grep qrcode > /dev/null;
+    then
+        echo -e $DEP_OK
+    else
+        DEP_PASS=false
+        echo -ne $DEP_NO
+        echo -e "    ${BOLD}NOTICE:${RESET} qrcode must be installed using pip or built from source.  You must complete this step yourself."
+    fi
+
 
     # pywebkitgtk
     echo -ne "\tpywebkitgtk     "
