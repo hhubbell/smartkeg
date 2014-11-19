@@ -24,7 +24,7 @@ nogui="--no-gui"
 
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
-if ! echo $@ | grep $nocheck > /dev/null;
+if ! echo $@ | grep -e $nocheck > /dev/null;
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
     echo -ne "\tMySQL/MariaDB   "
@@ -87,7 +87,7 @@ then
     fi
 fi
 
-if ! echo $@ | grep $nodb > /dev/null;
+if ! echo $@ | grep -e $nodb > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
     echo -ne "\tDatabase User: "
@@ -102,7 +102,7 @@ then
     echo -e "\tInserted defaults"
 fi
 
-if ! echo $@ | grep $nogui > /dev/null;
+if ! echo $@ | grep -e $nogui > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
