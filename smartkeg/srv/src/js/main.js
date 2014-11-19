@@ -24,10 +24,6 @@ function main() {
     var port = 8000;
     
     var client = new SmartkegClient(new Socket(host, port));
-
-    client.set_beer_display('#serving');
-    client.set_consumption_display('#consumption-graph');
-    client.set_remaining_display('#remaining-graph');
     
     client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
@@ -41,7 +37,9 @@ function main() {
                 keg_obj = new Keg(payload[keg])
                 client.kegs.push(keg_obj);
             }
-
+            client.set_beer_display('#serving');
+            client.set_consumption_display('#consumption-graph');
+            client.set_remaining_display('#remaining-graph');
             client.render();
             client.render_taps('#tap-form-taps');
         }

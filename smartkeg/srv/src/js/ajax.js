@@ -20,9 +20,3 @@ Ajax.prototype.send = function(method, callback, payload) {
     this.xmlhttp.open(method, this.socket.toString(), true);
     this.xmlhttp.send(payload);
 }
-
-Ajax.prototype.recv = function() {
-    if (this.xmlhttp.readyState == 4 && this.xmlhttp.status == 200) {
-        console.log(this.xmlhttp.responseText);
-    }
-}

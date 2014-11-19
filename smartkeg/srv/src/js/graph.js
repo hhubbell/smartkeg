@@ -67,7 +67,7 @@ ScatterPlot.prototype.render_points = function() {
         for (x in set) {
             var y_val = self.height - set[x];
             var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
-            var point = document.createElementNS(this.SVG_NS, style);
+            var point = document.createElementNS(self.SVG_NS, style);
 
             point.classList.add('chart-day-mean');
 
