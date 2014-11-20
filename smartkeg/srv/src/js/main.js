@@ -6,14 +6,31 @@
  * ------------------------------------------------------------------------ */
 
 function setup_beer_menu() {
-    var menu = document.querySelector('#beer-options');
-    var tap_form = document.querySelector('#tap-form');
-    var tap_item = menu.children[0];
-    
+    var menu = document.getElementById('beer-options');
+    var tap_item = document.getElementById('beer-option-tap');
+    var rate_item = document.getElementById('beer-option-rate');
+    var tap_form = document.getElementById('tap-form');
+    var rate_form = document.getElementById('rate-form');
+    var close_form = document.getElementsByClassName('close-form')
+
+    for (var i = 0; i < close_form.length; i++) {
+        close_form[i].addEventListener('click', function() {
+            this.parentNode.style.display = 'none';
+            menu.style.display = 'block';
+        });
+    }
+
     tap_item.addEventListener('click', function() {
         menu.style.display = 'none';
-        tap_form.style.display = 'block'
+        tap_form.style.display = 'block';
     });
+
+    rate_item.addEventListener('click', function() {
+        menu.style.display = 'none';
+        rate_form.style.display = 'block';
+    });
+
+
 }
 
 function main() {
@@ -44,10 +61,9 @@ function main() {
             client.render_taps('#tap-form-taps');
         }
     }
-
+    
+    setup_beer_menu();    
     //client.host_get_brewer_list();
-
-    //setup_beer_menu();
 }
 
 

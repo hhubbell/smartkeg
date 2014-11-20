@@ -23,10 +23,11 @@
                     <input type='checkbox' name='beer-menu-action' id='beer-menu-action'>
                     <aside id='beer-menu'>
                         <ul id='beer-options' class='beer-menu-list'>
-                            <li>Tap a new keg</li>
-                            <li>Rate this beer</li>
+                            <li id='beer-option-tap'>Tap a new keg</li>
+                            <li id='beer-option-rate'>Rate this beer</li>
                         </ul>
                         <form id='tap-form' class='beer-menu-form' method='post'>
+                            <span class='close-form'>&#x2715;</span>
                             <fieldset id='tap-form-taps'>
                                 <legend>Taps</legend>
                             </fieldset>
@@ -40,6 +41,7 @@
                             </fieldset>
                         </form>
                         <form id='rate-form' class='beer-menu-form' method='post' oninput='ratingoutput.value = ratingslider.value'>
+                            <span class='close-form'>&#x2715;</span>
                             <fieldset>
                                 <input class='rating-slider' name='ratingslider' type='range' min='1' max='5' step='1'>
                                 <output class='rating-slider' name='ratingoutput' for='rating-slider'>3</output>

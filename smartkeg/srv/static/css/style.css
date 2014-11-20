@@ -93,8 +93,8 @@ textarea {
     background-color:       #34495E;
     color:                  #F1C40F;
     cursor:                 pointer;
-    padding:                .35em;
-    margin:                 .5em 0em .5em 0em;
+    padding:                .5em;
+    margin:                 .35em 0em .35em 0em;
     font-size:              10pt;
     box-shadow:             1px 1px 7px 0px #2F2F2F;
 }
@@ -110,6 +110,12 @@ textarea {
     height:                 50px;
     border-radius:          50px;
     display:                inline-block;
+}
+
+.close-form {
+    cursor:                 pointer;
+    padding:                .5em;
+    margin-left:            .5em;
 }
 
 .content-area {
