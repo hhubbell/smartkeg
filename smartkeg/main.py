@@ -363,23 +363,18 @@ if __name__ == '__main__':
     smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)
     smartkeg.proc_start_all()
 
-    # XXX Might not need this
+    smartkeg.calculate_model(PROC['MOD'])
     smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
-    smartkeg.logger.log(smartkeg.kegs)
 
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
             smartkeg.calculate_model(PROC['MOD'])
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
-            smartkeg.logger.log(smartkeg.kegs)
-            
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs) 
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
-            smartkeg.query_insert_temperatures(smartkeg.temperatures)
-            smartkeg.logger.log(smartkeg.kegs)
-            
+            smartkeg.query_insert_temperatures(smartkeg.temperatures) 
             #smartkeg.update_temperature_value()
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
 
