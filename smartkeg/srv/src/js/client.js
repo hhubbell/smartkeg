@@ -58,10 +58,15 @@ SmartkegClient.prototype.set_remaining_display = function(selector) {
     });
 }
 
+SmartkegClient.prototype.set_temperature_display = function(selector) {
+    this.temperature_display = document.querySelector(selector);
+}
+
 SmartkegClient.prototype.render = function() {
     this.kegs[this.render_index].render_beer();
     this.kegs[this.render_index].render_consumption();
     this.kegs[this.render_index].render_remaining();
+    this.temperature_display.innerHTML = this.temperature;
 }
 
 SmartkegClient.prototype.render_brewer_list = function(selector) {

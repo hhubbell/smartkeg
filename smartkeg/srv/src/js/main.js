@@ -48,15 +48,18 @@ function main() {
         if (id > client.last_update_id) {
             var payload = JSON.parse(e.data);
             
+            client.temperature = payload.temperature;
+            
             client.last_update_id = id;
             client.kegs = []
-            for (keg in payload) {
-                keg_obj = new Keg(payload[keg])
+            for (keg in payload.kegs) {
+                keg_obj = new Keg(payload.kegs[keg])
                 client.kegs.push(keg_obj);
             }
             client.set_beer_display('#serving');
             client.set_consumption_display('#consumption-graph');
             client.set_remaining_display('#remaining-graph');
+            client.set_temperature_display('#current-temperature');
             client.render();
             client.render_taps('#tap-form-taps');
         }
