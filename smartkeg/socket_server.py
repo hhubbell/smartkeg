@@ -90,7 +90,7 @@ class TCPServer(SocketServer.TCPServer):
         """
         if self.logger: self.logger.log(message)
 
-   def set_logger(self, logger):
+    def set_logger(self, logger):
         """
         @Author:        Harrison Hubbell
         @Created:       11/21/2014
