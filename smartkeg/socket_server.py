@@ -3,9 +3,9 @@
 # Author:       Harrison Hubbell
 # Date:         10/07/2014
 # Description:  Is responsible for serving data over socket interface to other
-#               processes that need data, as well as 3rd party clients such as 
-#               asyncronous javascript calls from the client web browser or 
-#               some API; for the latter reason, the socket specified will 
+#               processes that need data, as well as 3rd party clients such as
+#               asyncronous javascript calls from the client web browser or
+#               some API; for the latter reason, the socket specified will
 #               allow connections from any origin.
 # ----------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         """
         headers = request.split('\n\n')[0]
         request_headers = {}
-        
+
         for line in headers.splitlines():
             field = line.split(': ')
             if len(field) > 1:
@@ -56,26 +56,24 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         @Created:       10/07/2014
         @Description:   Returns JSON to client containing supplied data.
         """
-        
         request = self.request.recv(1024).strip()
         request_headers = self.split_headers(request)
-        
         response_fields = {
             'Access-Control-Allow-Origin': '*',
             'Content-Type': request_headers['Accept'],
         }
-        
+
         self.set_headers(response_fields)
         self.wfile.write(self.response_headers)
         self.wfile.write(self.server.response)
-        
+
         #self.log_message(('[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id))
 
     def gzip(self, body):
         """
         @Author:        Harrison Hubbell
         @Created:       11/03/2014
-        @Description:   Compresses response body.  
+        @Description:   Compresses response body.
 
         XXX: Currently Not Used
         """
@@ -84,17 +82,21 @@ class TCPHandler(SocketServer.StreamRequestHandler):
 
 
 class TCPServer(SocketServer.TCPServer):
-    _BASE_DIR = '/usr/local/src/smartkeg/'
-    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    
     def log_message(self, message):
         """
         @Author:        Harrison Hubbell
         @Created:       10/11/2014
         @Description:   Logs a message.
         """
-        logger = SmartkegLogger(self._CONFIG_PATH)
-        logger.log(message)
+        if self.logger: self.logger.log(message)
+
+   def set_logger(self, logger):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Sets logger object of server.
+        """
+        self.logger = logger
 
     def set_response(self, identifier, data):
         """
@@ -115,9 +117,10 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
 
 
 class SmartkegSocketServer(ChildProcess):
-    def __init__(self, pipe, host, port):
-        super(SmartkegSocketServer, self).__init__(pipe)    
+    def __init__(self, pipe, host, port, logger=None):
+        super(SmartkegSocketServer, self).__init__(pipe)
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
+        self.tcpd.set_logger(logger)
         self.update_id = 0
 
     def set_response(self, identifier, data):
@@ -129,7 +132,7 @@ class SmartkegSocketServer(ChildProcess):
                         SmartkegSocketServer to set the response.
         """
         self.tcpd.set_response(identifier, data)
-        
+
     def respond(self):
         """
         @Author:        Harrison Hubbell
@@ -149,6 +152,6 @@ class SmartkegSocketServer(ChildProcess):
             if update:
                 self.update_id += 1
                 self.set_response(self.update_id, update)
- 
-            self.respond()                
+
+            self.respond()
             time.sleep(0.1)

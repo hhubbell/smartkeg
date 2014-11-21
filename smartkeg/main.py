@@ -18,9 +18,10 @@ from query import Query
 import RPi.GPIO as GPIO
 import time
 import json
+import os
 
 class Smartkeg(ParentProcess):
-    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
     TSR_PERIODS = 7
     DOT_RADIUS = 3
@@ -328,7 +329,7 @@ class Smartkeg(ParentProcess):
         host = cfg.get(HEADER, 'host')
         port = cfg.getint(HEADER, 'port')
 
-        soc = SmartkegSocketServer(conn, host, port)
+        soc = SmartkegSocketServer(conn, host, port, logger=self.logger)
         soc.set_response(soc.update_id, json.dumps(self.kegs))
         soc.main()
 
@@ -388,7 +389,7 @@ if __name__ == '__main__':
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
-            smartkeg.query_insert_temperatures(smartkeg.temperatures) 
+            smartkeg.query_insert_temperatures(smartkeg.temperatures)
             smartkeg.set_datagram('temperature', smartkeg.current_temp)
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
 
