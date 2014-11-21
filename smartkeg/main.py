@@ -329,7 +329,7 @@ class Smartkeg(ParentProcess):
         host = cfg.get(HEADER, 'host')
         port = cfg.getint(HEADER, 'port')
 
-        soc = SmartkegSocketServer(conn, host, port)
+        soc = SmartkegSocketServer(conn, host, port, logger=self.logger)
         soc.set_response(soc.update_id, json.dumps(self.kegs))
         soc.main()
 
