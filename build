@@ -119,20 +119,24 @@ if ! echo $@ | grep -e $nogui > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
+    echo "Moving file to bin path: ${BIN_PATH}"
     sudo cp smartkeg/gui.py $BIN_PATH/smartkeg
+    echo "Making file executable"
     chmod +x $BIN_PATH/smartkeg
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
-echo -e "\tMove files"
+echo -e "\tMovnge files to src path: ${SRC_PATH}"
 sudo cp -r smartkeg/ $SRC_PATH/
 
-echo -e "\tCreate service files"
+echo -e "\tCreating service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
 sudo echo -e "[Unit]\nDescription=Smartkeg Web Server\nRequires=smartkeg.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/http_server.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg-server.service
 
 echo -e "\tReload Service Daemons"
 sudo systemctl daemon-reload
+
+echo -e "${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\tsudo systemctl enable smartkeg"
 
 echo -e "\n${BOLD}Done!${RESET}"
 
