@@ -227,6 +227,7 @@ class Smartkeg(ParentProcess):
         elif message and message.get('type') == 'set':
             if message['data'] == 'tap':
                 params = (
+                    self.fridge,
                     message['params'].get('beer_id'),
                     message['params'].get('volume')
                 )

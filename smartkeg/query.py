@@ -21,6 +21,13 @@ class Query:
         VALUES 
             (%s, (SELECT id FROM Sensor WHERE name = %s AND type = 'Fridge'), %s)
     """
+
+    INSERT_NEW_KEG = """
+        INSERT INTO Keg
+            (fridge_id, beer_id, volume, now_serving)
+        VALUES
+            (%s, %s, %s, 1)
+    """
     
     # --------------------
     # SELECTS
@@ -35,6 +42,31 @@ class Query:
         SELECT id
         FROM Keg
         WHERE now_serving = 1
+    """
+
+    SELECT_BREWERS = """
+        SELECT
+            name,
+            city,
+            state,
+            country
+        FROM Brewers
+    """
+
+    SELECT_BREWER_OFFERING = """
+        SELECT
+            b.name,
+            b.abv,
+            b.ibu,
+            bt.type,
+            bt.subtype
+        FROM Beer AS b
+        LEFT JOIN BeerType AS bt ON b.type_id = bt.id
+        WHERE b.brewer_id = (
+            SELECT id
+            FROM Brewer
+            WHERE name = %s
+        )
     """
     
     SELECT_CURRENT_KEGS = """
