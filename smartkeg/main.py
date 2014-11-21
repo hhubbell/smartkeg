@@ -383,7 +383,7 @@ if __name__ == '__main__':
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
             smartkeg.calculate_model(PROC['MOD'])
-            smartkeg.set_datagram('kegs': smartkeg.kegs)
+            smartkeg.set_datagram('kegs', smartkeg.kegs)
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram) 
             smartkeg.handle_led_display(PROC['LED'])
 
