@@ -205,6 +205,34 @@ class Smartkeg(ParentProcess):
         return res
 
     # --------------------
+    # HTTP SERVER
+    # --------------------
+    def handle_http_server(self, proc_name):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Checks the HTTP Server process for any new messages,
+                        then acts on them.
+        """
+        message = self.proc_poll_recv(proc_name)
+
+        if message and message.get('type') == 'get':
+            if message['data'] == 'brewers':
+                self.dbi.SELECT(Query.SELECT_BREWERS)
+
+            elif message['data'] == 'offering':
+                params = (message['params'].get('brewer'))
+                self.dbi.SELECT(Query.SELECT_BREWER_OFFERING, params=params)
+
+        elif message and message.get('type') == 'set':
+            if message['data'] == 'tap':
+                params = (
+                    message['params'].get('beer_id'),
+                    message['params'].get('volume')
+                )
+                self.dbi.INSERT(Query.INSERT_NEW_KEG, params=params)
+
+    # --------------------
     # LED DISPLAY
     # --------------------
     def handle_led_display(self, proc_name):
@@ -412,5 +440,7 @@ if __name__ == '__main__':
             smartkeg.query_insert_temperatures(smartkeg.temperatures)
             smartkeg.set_datagram('temperature', smartkeg.current_temp)
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
+
+        smartkeg.handle_http_server(PROC['WEB'])
 
         time.sleep(0.1)

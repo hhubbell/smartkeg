@@ -14,9 +14,11 @@ import socket
 import qrcode
 import qrcode.image.svg
 import json
+import urlparse
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     HTTP_OK  = 200
+    HTTP_MALFORMED = 400
     HTTP_FILE_NOT_FOUND = 404
     _INDEX = 'index.html'
 
@@ -78,7 +80,41 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         except IOError:
             self.send_error(self.HTTP_FILE_NOT_FOUND)
 
+    def do_POST(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Overrides built in POST method to handle POST
+                        requests, primarily from form submissions.
+        """
+        form_data = urlparse.parse_qs(urlparse.urlparse(self.path).query)
+        req_type = form_data.pop('action', None)
+
+        if req_type == 'get' or req_type == 'set':
+            self.server.pipe.send({
+                'type': req_type,
+                'data': form_data.pop('data', None),
+                'params': form_data
+            })
+        else:
+            self.send_error(self.HTTP_MALFORMED)
+
+        response = self.server.pipe.recv()
+        self.send_response(self.HTTP_OK)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(response.read())
+
+
 class HTTPServer(BaseHTTPServer.HTTPServer):
+    def set_connection(self, pipe):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Sets process connection
+        """
+        self.pipe = pipe
+
     def set_logger(self, logger):
         """
         @Author:        Harrison Hubbell
@@ -105,6 +141,7 @@ class SmartkegHTTPServer(ChildProcess):
         super(SmartkegHTTPServer, self).__init__(pipe)    
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         self.httpd.set_root_directory(directory)
+        self.httpd.set_connection(pipe)
         self.httpd.set_logger(logger)
         self.create_qrcode()
 

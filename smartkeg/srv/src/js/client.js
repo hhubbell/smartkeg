@@ -33,11 +33,11 @@ SmartkegClient.prototype.handle_brewer_offering = function(list) {
 }
 
 SmartkegClient.prototype.host_get_brewer_list = function() {
-    this.ajax.send('POST', this.handle_brewer_list, 'data=brewers');
+    this.ajax.send('POST', this.handle_brewer_list, 'action=get&data=brewers');
 }
 
 SmartkegClient.prototype.host_get_brewer_offering = function(brewer) {
-    this.ajax.send('POST', this.handle_brewer_offering, 'data=offering&brewer=' + brewer);
+    this.ajax.send('POST', this.handle_brewer_offering, 'action=get&data=offering&brewer=' + brewer);
 }
 
 SmartkegClient.prototype.set_beer_display = function(selector) {

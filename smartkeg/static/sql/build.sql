@@ -90,7 +90,7 @@ CREATE TABLE Keg (
     fridge_id       INTEGER     NOT NULL,
     beer_id         INTEGER     NOT NULL,
     volume          FLOAT(5,2)  NOT NULL,
-    date_started    DATE        NOT NULL,
+    date_started    TIMESTAMP   NOT NULL,
     cost            FLOAT(5,2),
     deposit         FLOAT(5,2),
     now_serving     TINYINT(1)  DEFAULT 0,
