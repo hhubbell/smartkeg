@@ -9,9 +9,10 @@
 
 from multiprocessing import Process, Pipe
 from logger import SmartkegLogger
+import os
 
 class ParentProcess(object):
-    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
 
     def __init__(self):
@@ -76,7 +77,7 @@ class ParentProcess(object):
 
 
 class ChildProcess(object):
-    _BASE_DIR = '/usr/local/src/smartkeg/'
+    _BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
     _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
 
     def __init__(self, pipe):
