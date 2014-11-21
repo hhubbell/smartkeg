@@ -42,27 +42,31 @@ SmartkegClient.prototype.host_get_brewer_offering = function(brewer) {
 
 SmartkegClient.prototype.set_beer_display = function(selector) {
     this.kegs.forEach(function(keg) {
-        keg.set_beer_display(selector)
-    }
+        keg.set_beer_display(selector);
+    });
 }
 
 SmartkegClient.prototype.set_consumption_display = function(selector) {
     this.kegs.forEach(function(keg) {
-        keg.set_consumption_display(selector)
-    }
+        keg.set_consumption_display(selector);
+    });
 }
 
 SmartkegClient.prototype.set_remaining_display = function(selector) {
     this.kegs.forEach(function(keg) {
         keg.set_remaining_display(selector)
-    }
+    });
+}
+
+SmartkegClient.prototype.set_temperature_display = function(selector) {
+    this.temperature_display = document.querySelector(selector);
 }
 
 SmartkegClient.prototype.render = function() {
-    console.log(this)
     this.kegs[this.render_index].render_beer();
     this.kegs[this.render_index].render_consumption();
     this.kegs[this.render_index].render_remaining();
+    this.temperature_display.innerHTML = this.temperature;
 }
 
 SmartkegClient.prototype.render_brewer_list = function(selector) {

@@ -28,6 +28,8 @@ class Smartkeg(ParentProcess):
 
     def __init__(self):
         super(Smartkeg, self).__init__()
+        self.datagram = {}
+        self.current_temp = None
         self.set_database_connection()
         self.set_fridge()
         self.set_kegs()
@@ -54,6 +56,14 @@ class Smartkeg(ParentProcess):
         adr = cfg.get(HEADER, 'adr')
 
         self.dbi = DatabaseInterface(adr, dbn, usr, pwd, logger=self.logger)
+
+    def set_datagram(self, key, value):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/20/2014
+        @Description:   Sets the 'datagram' - the server response object.
+        """
+        self.datagram[key] = value
 
     def set_fridge(self):
         """
@@ -263,6 +273,7 @@ class Smartkeg(ParentProcess):
 
         if temp_vals:
             self.temperatures = dict(temp_vals)
+            self.current_temp = sum(self.temperatures) / len(self.temperatures)
             res = True
         else:
             res = False
@@ -363,24 +374,22 @@ if __name__ == '__main__':
     smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)
     smartkeg.proc_start_all()
 
-    # XXX Might not need this
-    smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
-    smartkeg.logger.log(smartkeg.kegs)
+    smartkeg.calculate_model(PROC['MOD'])
+    smartkeg.set_datagram('kegs', smartkeg.kegs)
+    smartkeg.set_datagram('temperature', smartkeg.current_temp)
+    smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
 
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
             smartkeg.calculate_model(PROC['MOD'])
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
-            smartkeg.logger.log(smartkeg.kegs)
-            
+            smartkeg.set_datagram('kegs': smartkeg.kegs)
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram) 
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
-            smartkeg.query_insert_temperatures(smartkeg.temperatures)
-            smartkeg.logger.log(smartkeg.kegs)
-            
-            #smartkeg.update_temperature_value()
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.kegs)
+            smartkeg.query_insert_temperatures(smartkeg.temperatures) 
+            smartkeg.set_datagram('temperature', smartkeg.current_temp)
+            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
 
         time.sleep(0.1)

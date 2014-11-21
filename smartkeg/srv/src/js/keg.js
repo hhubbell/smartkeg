@@ -8,7 +8,6 @@
  * ------------------------------------------------------------------------ */
 
 function Keg(keg_obj) {
-    console.log(keg_obj)
     this.beer = keg_obj.beer;
     this.consumption = keg_obj.consumption;
     this.remaining = keg_obj.remaining;
