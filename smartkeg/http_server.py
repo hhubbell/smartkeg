@@ -6,20 +6,18 @@
 # ----------------------------------------------------------------------------
 
 from ConfigParser import ConfigParser
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
+from process import ChildProcess
 from logger import SmartkegLogger
+import BaseHTTPServer
 import socket
 import qrcode
 import qrcode.image.svg
 import json
 
-class RequestHandler(BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     HTTP_OK  = 200
     HTTP_FILE_NOT_FOUND = 404
-    _BASE_DIR = '/usr/local/src/smartkeg/'
-    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    _SERVER_DIR = _BASE_DIR + 'srv/'
     _INDEX = 'index.html'
 
     def get_content_type(self, req):
@@ -44,9 +42,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         @Description:   Locates the requested page.
         """
         if self.path[1:] is '':
-            page = self._SERVER_DIR + self._INDEX
+            page = self.server.root + self._INDEX
         else:
-            page = self._SERVER_DIR + self.path[1:]
+            page = self.server.root + self.path[1:]
 
         return page
 
@@ -57,8 +55,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         @Description:   Overrides standard logging functionality to
                         log server actions to a file.
         """
-        logger = SmartkegLogger(self._CONFIG_PATH)
-        logger.log(('[HTTP Server]',) + args)
+        if self.server.logger: self.server.logger.log(('[HTTP Server]',) + args)
 
     # --------------------
     # HTTP METHODS
@@ -81,17 +78,34 @@ class RequestHandler(BaseHTTPRequestHandler):
         except IOError:
             self.send_error(self.HTTP_FILE_NOT_FOUND)
 
+class HTTPServer(BaseHTTPServer.HTTPServer):
+    def set_logger(self, logger):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Sets logger object of server.
+        """
+        self.logger = logger
+
+    def set_root_directory(self, directory):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Sets the directory to serve files from.
+        """
+        self.root = directory
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle Requests in a Seperate Thread."""
 
 
-class SmartkegHTTPServer:
-    _BASE_DIR = '/usr/local/src/smartkeg/'
-    _SERVER_DIR = _BASE_DIR + 'srv/'
-    
-    def __init__(self, host, port):
+class SmartkegHTTPServer(ChildProcess):
+    def __init__(self, pipe, host, port, directory, logger=None):
+        super(SmartkegHTTPServer, self).__init__(pipe)    
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
+        self.httpd.set_root_directory(directory)
+        self.httpd.set_logger(logger)
         self.create_qrcode()
 
     def create_qrcode(self):
@@ -118,20 +132,7 @@ class SmartkegHTTPServer:
         qr.make()
 
         image = qr.make_image()
-        image.save(self._SERVER_DIR + 'static/img/qrcode.svg')
+        image.save(self.httpd.root + 'static/img/qrcode.svg')
 
     def main(self):
         self.httpd.serve_forever()
-
-if __name__ == '__main__':
-    _BASE_DIR = '/usr/local/src/smartkeg/'
-    _CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-    _HEADER = 'SmartkegHTTPServer'
-
-    cfg = ConfigParser()
-    cfg.read(_CONFIG_PATH)
-    host = cfg.get(_HEADER, 'host')
-    port = cfg.getint(_HEADER, 'port')
-
-    server = SmartkegHTTPServer(host, port)
-    server.main()

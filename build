@@ -131,7 +131,6 @@ sudo cp -r smartkeg/ $SRC_PATH/
 
 echo -e "\tCreating service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
-sudo echo -e "[Unit]\nDescription=Smartkeg Web Server\nRequires=smartkeg.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/http_server.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg-server.service
 
 echo -e "\tReload Service Daemons"
 sudo systemctl daemon-reload

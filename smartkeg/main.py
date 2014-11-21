@@ -10,6 +10,7 @@ from ConfigParser import ConfigParser
 from process import ParentProcess
 from database_interface import DatabaseInterface
 from flow_meter import FlowMeterReader
+from http_server import SmartkegHTTPServer
 from led_display import LEDDisplay
 from temperature_sensor import TemperatureSensorReader
 from socket_server import SmartkegSocketServer
@@ -299,6 +300,23 @@ class Smartkeg(ParentProcess):
         flo = FlowMeterReader(conn, GPIO, pin)
         flo.main()
 
+    def spawn_http_server(self, conn):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/21/2014
+        @Description:   Create the HTTP Server process
+        """
+        HEADER = 'SmartkegHTTPServer'
+
+        cfg = ConfigParser()
+        cfg.read(self._CONFIG_PATH)
+        host = cfg.get(HEADER, 'host')
+        port = cfg.getint(HEADER, 'port')
+        directory = self._BASE_DIR + 'srv/'
+
+        server = SmartkegHTTPServer(conn, host, port, directory, logger=self.logger)
+        server.main()
+
     def spawn_led_display(self, conn):
         """
         @Author:        Harrison Hubbell
@@ -364,7 +382,8 @@ if __name__ == '__main__':
         'LED': 'led_display',
         'MOD': 'model',
         'SOC': 'socket_server',
-        'TMP': 'temperature_sensor'
+        'TMP': 'temperature_sensor',
+        'WEB': 'http_server'
     }
 
     smartkeg = Smartkeg()
@@ -373,6 +392,7 @@ if __name__ == '__main__':
     smartkeg.proc_add(PROC['MOD'], target=smartkeg.spawn_model, pipe=True)
     smartkeg.proc_add(PROC['SOC'], target=smartkeg.spawn_socket_server, pipe=True)
     smartkeg.proc_add(PROC['TMP'], target=smartkeg.spawn_temp_sensor, pipe=True)
+    smartkeg.proc_add(PROC['WEB'], target=smartkeg.spawn_http_server, pipe=True)
     smartkeg.proc_start_all()
 
     smartkeg.calculate_model(PROC['MOD'])
