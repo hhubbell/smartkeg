@@ -34,7 +34,7 @@ Keg.prototype.render_beer = function() {
         data_content.classList.add('serving-attribute-content');
         data_content.innerHTML = this.beer[node.id] || '';
         
-        if (node.lastChild == data_content) {
+        if (node.lastChild.classList.contains('serving-attribute-content')) {
             node.removeChild(node.lastChild);
         }
         node.appendChild(data_content);                

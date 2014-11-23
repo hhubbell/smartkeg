@@ -49,17 +49,20 @@ function main() {
 
         if (id > client.last_update_id) {
             var payload = JSON.parse(e.data);
+
+            console.log(payload);
             
             client.temperature = payload.temperature;
             client.last_update_id = id;
             client.kegs = []
             
             for (k in payload.kegs) {
-                keg = new Keg(payload.kegs[k])
+                keg = new Keg(payload.kegs[k]);
                 keg.set_beer_display('#serving');
                 keg.set_consumption_display('#consumption-graph');
                 keg.set_remaining_display('#remaining-graph');
 
+                console.log(keg);
                 client.kegs.push(keg);
             }
             

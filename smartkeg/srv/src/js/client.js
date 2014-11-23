@@ -23,13 +23,21 @@ SmartkegClient.prototype.set_temperature_display = function(selector) {
     this.temperature_display = document.querySelector(selector);
 }
 
+SmartkegClient.prototype.clear = function(element) {
+    while (element.lastChild) {
+        element.removeChild(element.lastChild);
+    }
+
+}
+
 SmartkegClient.prototype.host_get_brewers = function() {
     var self = this;
-    console.log(this);
 
     console.log('click sent');
     this.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
-        self.brewers = response;
+        self.brewers = JSON.parse(response);
+        self.render_brewers('#tap-form-brewer');
+
     });
 }
 
@@ -44,7 +52,7 @@ SmartkegClient.prototype.render = function() {
     this.temperature_display.innerHTML = this.temperature;
 }
 
-SmartkegClient.prototype.render_brewer_list = function(selector) {
+SmartkegClient.prototype.render_brewers = function(selector) {
     var element = document.querySelector(selector);
     
     for (var i = 0; i < this.brewers.length; i++) {
@@ -52,7 +60,7 @@ SmartkegClient.prototype.render_brewer_list = function(selector) {
         
         list_item.innerHTML = this.brewers[i];
         list_item.addEventListener('click', function() {
-            this.host_get_brewer_offering(this.brewers[i]);
+            this.host_get_brewer_offering(this.brewers[i].name);
             //XXX Add Animation
         });
 
@@ -81,6 +89,8 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
     var self = this;
     var element = document.querySelector(selector);
 
+    this.clear(element);
+
     for (var i = 0; i < this.kegs.length; i ++) {
         var radio = document.createElement('input');
         var label = document.createElement('label');
@@ -92,8 +102,10 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
         label.htmlFor = this.kegs[i].id;
         label.innerHTML = this.kegs[i].beer.name + ' ' + (this.kegs[i].remaining.value * 100).toFixed(2) + '%';
         
-        radio.addEventListener('click', function() {self.host_get_brewers()});
-        //label.addEventListener('click', function() {self.host_get_brewers()});
+        radio.addEventListener('click', function() {
+            self.host_get_brewers()
+            this.parentElement.style.display = 'none';
+        });
         
         element.appendChild(radio);
         element.appendChild(label);

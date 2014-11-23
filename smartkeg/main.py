@@ -91,6 +91,8 @@ class Smartkeg(ParentProcess):
         self.kegs = []
         res = self.query_select_current_kegs()
 
+        self.logger.log(res)
+
         for keg in res:
             self.kegs.append({
                 'id': keg['keg_id'],
@@ -219,7 +221,8 @@ class Smartkeg(ParentProcess):
 
         if message and message.get('type') == 'get':
             if message['data'] == 'brewers':
-                self.dbi.SELECT(Query.SELECT_BREWERS)
+                brewers = list(self.dbi.SELECT(Query.SELECT_BREWERS))
+                self.proc_send(proc_name, json.dumps(brewers))
 
             elif message['data'] == 'offering':
                 params = (message['params'].get('brewer'))
@@ -433,6 +436,7 @@ if __name__ == '__main__':
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
+            smartkeg.set_kegs()            
             smartkeg.calculate_model(PROC['MOD'])
             smartkeg.set_datagram('kegs', smartkeg.kegs)
             smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram) 

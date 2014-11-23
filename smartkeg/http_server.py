@@ -87,23 +87,25 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         @Description:   Overrides built in POST method to handle POST
                         requests, primarily from form submissions.
         """
-        form_data = urlparse.parse_qs(urlparse.urlparse(self.path).query)
-        req_type = form_data.pop('action', None)
+        length = int(self.headers.getheader('Content-Length'))
+        form_data = urlparse.parse_qs(self.rfile.read(length))
+        req_type = form_data.pop('action', None)[0]
 
         if req_type == 'get' or req_type == 'set':
             self.server.pipe.send({
                 'type': req_type,
-                'data': form_data.pop('data', None),
+                'data': form_data.pop('data', None)[0],
                 'params': form_data
             })
+
+            response = self.server.pipe.recv()
+            self.send_response(self.HTTP_OK)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(response)
+            
         else:
             self.send_error(self.HTTP_MALFORMED)
-
-        response = self.server.pipe.recv()
-        self.send_response(self.HTTP_OK)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(response.read())
 
 
 class HTTPServer(BaseHTTPServer.HTTPServer):

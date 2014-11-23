@@ -18,7 +18,6 @@ Ajax.prototype.send = function(method, payload) {
         self.xmlhttp.open(method, self.host, true);
         self.xmlhttp.onload = function() {
             if (self.xmlhttp.status == 200) {
-                console.log(self.xmlhttp.response);
                 resolve(self.xmlhttp.response);
             } else {
                 reject(Error(self.xmlhttp.statusText));

@@ -50,7 +50,7 @@ class Query:
             city,
             state,
             country
-        FROM Brewers
+        FROM Brewer
     """
 
     SELECT_BREWER_OFFERING = """
