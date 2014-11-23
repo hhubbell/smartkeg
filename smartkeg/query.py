@@ -46,6 +46,7 @@ class Query:
 
     SELECT_BREWERS = """
         SELECT
+            id,
             name,
             city,
             state,
@@ -55,6 +56,7 @@ class Query:
 
     SELECT_BREWER_OFFERING = """
         SELECT
+            b.id,
             b.name,
             b.abv,
             b.ibu,
@@ -62,11 +64,7 @@ class Query:
             bt.subtype
         FROM Beer AS b
         LEFT JOIN BeerType AS bt ON b.type_id = bt.id
-        WHERE b.brewer_id = (
-            SELECT id
-            FROM Brewer
-            WHERE name = %s
-        )
+        WHERE b.brewer_id = %s
     """
     
     SELECT_CURRENT_KEGS = """

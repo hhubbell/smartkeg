@@ -60,9 +60,21 @@ img {
     width:                  75%;
 }
 
+input[type='radio'] {
+    display:                none;
+}
+
+label {
+    display:                block;
+    cursor:                 pointer;    
+}
+
+label:hover {
+    color:                  #ECF0F1;
+}
+
 label[for='beer-menu-action'] {
     text-rendering:         geometricPrecision; /* Prevent's blurryness on some devices */
-    cursor:                 pointer;
     float:                  right;
 }
 

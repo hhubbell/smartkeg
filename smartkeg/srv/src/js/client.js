@@ -27,22 +27,6 @@ SmartkegClient.prototype.clear = function(element) {
     while (element.lastChild) {
         element.removeChild(element.lastChild);
     }
-
-}
-
-SmartkegClient.prototype.host_get_brewers = function() {
-    var self = this;
-
-    console.log('click sent');
-    this.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
-        self.brewers = JSON.parse(response);
-        self.render_brewers('#tap-form-brewer');
-
-    });
-}
-
-SmartkegClient.prototype.host_get_brewer_offering = function(brewer) {
-    this.ajax.send('POST', this.handle_brewer_offering, 'action=get&data=offering&brewer=' + brewer);
 }
 
 SmartkegClient.prototype.render = function() {
@@ -53,57 +37,104 @@ SmartkegClient.prototype.render = function() {
 }
 
 SmartkegClient.prototype.render_brewers = function(selector) {
+    var NAME = 'brewer';
+    var self = this;
     var element = document.querySelector(selector);
-    
+
+    this.clear(element);    
+ 
     for (var i = 0; i < this.brewers.length; i++) {
-        var list_item = document.createElement('li');
-        
-        list_item.innerHTML = this.brewers[i];
-        list_item.addEventListener('click', function() {
-            this.host_get_brewer_offering(this.brewers[i].name);
-            //XXX Add Animation
+        var current = this.brewers[i];
+        var radio = document.createElement('input');
+        var label = document.createElement('label');
+        radio.type = 'radio';
+        radio.name = NAME;
+        radio.value = current.id;
+        radio.id = NAME + '-' + current.name;
+
+        label.htmlFor = NAME + '-' + current.name;
+        label.innerHTML = current.name;
+
+        console.log(current.id);
+
+        radio.addEventListener('click', function() {
+            self.ajax.send('POST', 'action=get&data=offering&brewer=' + this.value).then(function(response) {
+                self.brewer_offering = JSON.parse(response);
+                console.log(self.brewer_offering);
+                self.render_brewer_offering('#tap-form-beer');
+            });
+
+            this.parentElement.style.display = 'none';            
         });
 
-        element.appendChild(list_item);
+        element.appendChild(radio);
+        element.appendChild(label);
     }
+
+    element.style.display = 'inline-block';
 }
 
 SmartkegClient.prototype.render_brewer_offering = function(selector) {
-    var element = document.querySelector(selector)
+    var NAME = 'beer';
+    var self = this;
+    var element = document.querySelector(selector);
+
+    console.log(this);
+
+    this.clear(element);
 
     for (var i = 0; i < this.brewer_offering.length; i++) {
-        var list_item = document.createElement('li');
+        var current = this.brewer_offering[i];
+        var radio = document.createElement('input');
+        var label = document.createElement('label');
+        radio.type = 'radio';
+        radio.name = NAME;
+        radio.value = current.id;
+        radio.id = NAME + '-' + current.id;
 
-        list_item.innerHTML = this.brewer_offering[i];
-        list_item.addEventListener('click', function() {
+        label.htmlFor = NAME + '-' + current.id;
+        label.innerHTML = current.name;
+
+        console.log(current.id);
+
+        radio.addEventListener('click', function() {
+            console.log('click');
             //XXX Do something here
             //XXX Add animation
         });
 
-        element.appendChild(list_item);
+        element.appendChild(radio);
+        element.appendChild(label);
     }
+
+    element.style.display = 'inline-block';    
 }
 
 SmartkegClient.prototype.render_tap_menu = function(selector) {
-    var NAME = 'kegs';
+    var NAME = 'keg';
     var self = this;
     var element = document.querySelector(selector);
 
     this.clear(element);
 
     for (var i = 0; i < this.kegs.length; i ++) {
+        var current = this.kegs[i];
         var radio = document.createElement('input');
         var label = document.createElement('label');
         radio.type = 'radio';
         radio.name = NAME;
-        radio.value = this.kegs[i].id;
-        radio.id = this.kegs[i].id;
+        radio.value = current.id;
+        radio.id = NAME + '-' + current.id;
 
-        label.htmlFor = this.kegs[i].id;
-        label.innerHTML = this.kegs[i].beer.name + ' ' + (this.kegs[i].remaining.value * 100).toFixed(2) + '%';
+        label.htmlFor = NAME + '-' + current.id;
+        label.innerHTML = current.beer.name + ' ' + (current.remaining.value * 100).toFixed(2) + '%';
         
         radio.addEventListener('click', function() {
-            self.host_get_brewers()
+            self.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
+                self.brewers = JSON.parse(response);
+                self.render_brewers('#tap-form-brewer');
+            });
+            
             this.parentElement.style.display = 'none';
         });
         

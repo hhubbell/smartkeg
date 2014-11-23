@@ -221,12 +221,13 @@ class Smartkeg(ParentProcess):
 
         if message and message.get('type') == 'get':
             if message['data'] == 'brewers':
-                brewers = list(self.dbi.SELECT(Query.SELECT_BREWERS))
-                self.proc_send(proc_name, json.dumps(brewers))
+                output = list(self.dbi.SELECT(Query.SELECT_BREWERS))
 
             elif message['data'] == 'offering':
                 params = (message['params'].get('brewer'))
-                self.dbi.SELECT(Query.SELECT_BREWER_OFFERING, params=params)
+                output = list(self.dbi.SELECT(Query.SELECT_BREWER_OFFERING, params=params))
+                
+            self.proc_send(proc_name, json.dumps(output))
 
         elif message and message.get('type') == 'set':
             if message['data'] == 'tap':
