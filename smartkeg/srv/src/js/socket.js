@@ -15,6 +15,10 @@ function Socket(host, port) {
     this.port = port;
 }
 
+Socket.prototype.get_url = function() {
+    return '//' + this.host + '/';
+}
+
 Socket.prototype.toString = function() {
     return '//' + this.host + ((this.port) ? ':' + this.port : '');
 }

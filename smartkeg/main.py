@@ -93,6 +93,7 @@ class Smartkeg(ParentProcess):
 
         for keg in res:
             self.kegs.append({
+                'id': keg['keg_id'],
                 'consumption': {
                     'days': [],
                     'radius': self.DOT_RADIUS,

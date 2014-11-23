@@ -155,3 +155,5 @@ class SmartkegSocketServer(ChildProcess):
 
             self.respond()
             time.sleep(0.1)
+
+        self.tcpd.shutdown()

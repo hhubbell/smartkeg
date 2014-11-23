@@ -6,17 +6,29 @@
  * Requires:    socket.js
  * ------------------------------------------------------------------------ */
 
-function Ajax(socket) {
+function Ajax(host) {
     this.xmlhttp = new XMLHttpRequest();
-    this.socket = socket;    
+    this.host = host;
 }
 
-Ajax.prototype.send = function(method, callback, payload) {
-    this.xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200 && callback) {
-            callback(this.responseText);
+Ajax.prototype.send = function(method, payload) {
+    var self = this;
+    
+    return new Promise(function(resolve, reject) {
+        self.xmlhttp.open(method, self.host, true);
+        self.xmlhttp.onload = function() {
+            if (self.xmlhttp.status == 200) {
+                console.log(self.xmlhttp.response);
+                resolve(self.xmlhttp.response);
+            } else {
+                reject(Error(self.xmlhttp.statusText));
+            }
+        };
+
+        self.xmlhttp.onerror = function() {
+            reject(Error('Network Error'));
         }
-    }
-    this.xmlhttp.open(method, this.socket.toString(), true);
-    this.xmlhttp.send(payload);
+
+        self.xmlhttp.send(payload);
+    });
 }

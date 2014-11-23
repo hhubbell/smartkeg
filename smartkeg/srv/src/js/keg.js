@@ -8,6 +8,7 @@
  * ------------------------------------------------------------------------ */
 
 function Keg(keg_obj) {
+    this.id = keg_obj.id;
     this.beer = keg_obj.beer;
     this.consumption = keg_obj.consumption;
     this.remaining = keg_obj.remaining;
@@ -30,8 +31,13 @@ Keg.prototype.render_beer = function() {
         var node = this.beer_display.children[i]
         var data_content = document.createElement('span');
 
+        data_content.classList.add('serving-attribute-content');
         data_content.innerHTML = this.beer[node.id] || '';
-        node.appendChild(data_content);
+        
+        if (node.lastChild == data_content) {
+            node.removeChild(node.lastChild);
+        }
+        node.appendChild(data_content);                
     }
 }
 

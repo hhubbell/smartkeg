@@ -5,7 +5,7 @@
  * Description: The main method
  * ------------------------------------------------------------------------ */
 
-function setup_beer_menu() {
+function setup_menu() {
     var menu = document.getElementById('beer-options');
     var tap_item = document.getElementById('beer-option-tap');
     var rate_item = document.getElementById('beer-option-rate');
@@ -42,6 +42,8 @@ function main() {
     
     var client = new SmartkegClient(new Socket(host, port));
     
+    client.set_temperature_display('#current-temperature');
+    
     client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
 
@@ -49,23 +51,24 @@ function main() {
             var payload = JSON.parse(e.data);
             
             client.temperature = payload.temperature;
-            
             client.last_update_id = id;
             client.kegs = []
-            for (keg in payload.kegs) {
-                keg_obj = new Keg(payload.kegs[keg])
-                client.kegs.push(keg_obj);
+            
+            for (k in payload.kegs) {
+                keg = new Keg(payload.kegs[k])
+                keg.set_beer_display('#serving');
+                keg.set_consumption_display('#consumption-graph');
+                keg.set_remaining_display('#remaining-graph');
+
+                client.kegs.push(keg);
             }
-            client.set_beer_display('#serving');
-            client.set_consumption_display('#consumption-graph');
-            client.set_remaining_display('#remaining-graph');
-            client.set_temperature_display('#current-temperature');
+            
             client.render();
-            client.render_taps('#tap-form-taps');
+            client.render_tap_menu('#tap-form-taps');
         }
     }
     
-    setup_beer_menu();    
+    setup_menu();    
     //client.host_get_brewer_list();
 }
 

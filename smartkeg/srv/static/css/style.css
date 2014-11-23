@@ -12,6 +12,7 @@ body {
 
 fieldset {
     border:                 none;
+    display:                inline-block;
 }
 
 footer {
@@ -19,6 +20,10 @@ footer {
     /*margin-top:             1em;
     padding:                .25em;
     text-align:             center;*/
+}
+
+form {
+    padding:                .5em;
 }
 
 header {
@@ -80,7 +85,9 @@ textarea {
 }
 
 .beer-menu-form {
+    background-color:       #34495E;    
     display:                none;
+    box-shadow:             1px 1px 7px 0px #2F2F2F;    
 }
 
 .beer-menu-list {
@@ -113,9 +120,10 @@ textarea {
 }
 
 .close-form {
+    vertical-align:         top;
+    color:                  #C0392B;
     cursor:                 pointer;
-    padding:                .5em;
-    margin-left:            .5em;
+    margin-left:            3px;
 }
 
 .content-area {
