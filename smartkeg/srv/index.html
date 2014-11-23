@@ -38,6 +38,22 @@
                             <fieldset id='tap-form-beer'>
                                 <legend>Beer</legend>
                             </fieldset>
+                            <fieldset id='tap-form-confirm'>
+                                <legend>Confirm</legend>
+                                <label for='confirm-name'>Name</label>
+                                <input type='text' name='confirm-name' id='confirm-name'>
+                                <label for='confirm-abv'>ABV</label>
+                                <input type='text' name='confirm-abv' id='confirm-abv'>
+                                <label for='confirm-ibu'>IBU</label>
+                                <input type='text' name='confirm-ibu' id='confirm-ibu'>
+                                <label for='confirm-volume'>Volume</label>
+                                <select id='confirm-volume'>
+                                    <option value='41'>1/6 Barrel</option>
+                                    <option value='64'>1/4 Barrel</option>
+                                    <option value='124'>1/2 Barrel</option>
+                                </select>
+                                <input type='submit' value='Submit'>
+                            </fieldset>
                         </form>
                         <form id='rate-form' class='beer-menu-form' method='post' oninput='ratingoutput.value = ratingslider.value'>
                             <span class='close-form'>&#x2715;</span>

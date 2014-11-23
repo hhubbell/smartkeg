@@ -79,8 +79,6 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
     var self = this;
     var element = document.querySelector(selector);
 
-    console.log(this);
-
     this.clear(element);
 
     for (var i = 0; i < this.brewer_offering.length; i++) {
@@ -99,7 +97,8 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
 
         radio.addEventListener('click', function() {
             console.log('click');
-            //XXX Do something here
+            self.render_confirm('#tap-form-confirm', current);
+            this.parentElement.style.display = 'none';
             //XXX Add animation
         });
 
@@ -108,6 +107,17 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
     }
 
     element.style.display = 'inline-block';    
+}
+
+SmartkegClient.prototype.render_confirm = function(selector, beer) {
+    var self = this;
+    var element = document.querySelector(selector);
+ 
+    document.getElementById('confirm-name').value = beer.name;
+    document.getElementById('confirm-abv').value = beer.abv;
+    document.getElementById('confirm-ibu').value = beer.ibu;
+
+    element.style.display = 'inline-block';
 }
 
 SmartkegClient.prototype.render_tap_menu = function(selector) {

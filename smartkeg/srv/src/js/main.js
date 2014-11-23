@@ -23,6 +23,13 @@ function setup_menu() {
     tap_item.addEventListener('click', function() {
         menu.style.display = 'none';
         tap_form.style.display = 'block';
+        
+        var fieldsets = tap_form.getElementsByTagName('fieldset');
+        
+        for (var i = 0; i < fieldsets.length; i++) {
+            fieldsets[i].style.display = 'none';
+        }
+        fieldsets[0].style.display = 'inline-block';
     });
 
     rate_item.addEventListener('click', function() {
