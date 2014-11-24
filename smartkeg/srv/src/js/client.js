@@ -67,8 +67,34 @@ SmartkegClient.prototype.set_menu = function() {
         for (var i = 0; i < fieldsets.length; i++) {
             fieldsets[i].style.display = 'none';
         }
+        
         fieldsets[0].style.display = 'inline-block';
     });
+
+    this.menu.tap.form.onsubmit = function() {
+        FOO = this;
+        
+        var beer_id = this.id.value;
+        var beer_name = this.confirm_name.value;
+        var beer_abv = this.confirm_abv.value;
+        var beer_ibu = this.confirm_ibu.value;
+        var keg_volume = this.confirm_volume.value;
+        var passphrase = this.passphrase;
+
+        var query_string = 'action=set&data=tap' +
+            '&replace=' + self.menu.tap.replace +
+            '&beer=' + beer_id +
+            '&volume=' + keg_volume +
+            '&passphrase=' + passphrase;
+
+        console.log(query_string);
+        
+
+        self.ajax.send('POST', query_string);
+        this.style.display = 'none';
+        self.menu.element.style.display = 'block';
+        return false;                               // Prevents page reload;
+    }
 
     this.menu.rate.option_element.addEventListener('click', function() {
         self.menu.element.style.display = 'none';
@@ -165,6 +191,12 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
 SmartkegClient.prototype.render_confirm = function(selector, beer) {
     var self = this;
     var element = document.querySelector(selector);
+    var beer_id = document.querySelector('input[name=id]') || document.createElement('input');
+
+    beer_id.type = 'hidden';
+    beer_id.name = 'id';
+    beer_id.value = beer.id;
+    element.appendChild(beer_id);
  
     document.getElementById('confirm-name').value = beer.name;
     document.getElementById('confirm-abv').value = beer.abv;
@@ -196,6 +228,8 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
             self.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
+
+                self.menu.tap.replace = radio.value;
             });
             
             this.parentElement.style.display = 'none';

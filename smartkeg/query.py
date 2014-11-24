@@ -28,6 +28,16 @@ class Query:
         VALUES
             (%s, %s, %s, 1)
     """
+
+    # --------------------
+    # UPDATES
+    # --------------------
+    UPDATE_STOP_KEG = """
+        UPDATE Keg
+        SET now_serving = 0
+        WHERE id IN (%s)
+            
+    """
     
     # --------------------
     # SELECTS

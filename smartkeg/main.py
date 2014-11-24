@@ -233,10 +233,21 @@ class Smartkeg(ParentProcess):
             if message['data'] == 'tap':
                 params = (
                     self.fridge,
-                    message['params'].get('beer_id'),
-                    message['params'].get('volume')
+                    message['params'].get('beer')[0],
+                    message['params'].get('volume')[0]
                 )
-                self.dbi.INSERT(Query.INSERT_NEW_KEG, params=params)
+
+                stop = message['params'].get('replace')
+                if stop:
+                    self.dbi.UPDATE(Query.UPDATE_STOP_KEG, params=[stop])
+    
+                self.dbi.INSERT(Query.INSERT_NEW_KEG, params=[params])
+
+                self.set_kegs()
+                smartkeg.calculate_model(PROC['MOD'])            
+                smartkeg.set_datagram('kegs', smartkeg.kegs)
+                smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
+
 
     # --------------------
     # LED DISPLAY

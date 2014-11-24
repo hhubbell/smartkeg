@@ -4,8 +4,8 @@
 # Date:         09/01/2014
 # Description:  Manages connection with MariaDB database. The current scope
 #               of the project does not allow users to delete records via this
-#               interface. In fact, the database user should not only have
-#               INSERT and SELECT permissions.
+#               interface. In fact, the database user should only have
+#               INSERT, UPDATE, and SELECT permissions.
 # ----------------------------------------------------------------------------
 
 import MySQLdb
@@ -80,3 +80,18 @@ class DatabaseInterface(object):
 
 
         return res
+
+    def UPDATE(self, query, params=None):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/24/2014
+        @Description:   Makes an UPDATE transaction on the database
+        """
+        self.prepare()
+        try:
+            self.cur.execute(query, params)
+            self.conn.commit()
+            self.log_message(('[Database Interface]', 'Successful UPDATE transaction with the following data:', '\nQuery:\n', query, '\nParams:\n', params))
+        except Exception as e:
+            self.conn.rollback()
+            self.log_message(('[Database Interface]', 'Failed UPDATE transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
