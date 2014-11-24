@@ -41,17 +41,17 @@ SmartkegClient.prototype.set_menu = function() {
     for (var i = 0; i < this.menu.close_forms.length; i++) {
         // POLYFILL element.closest();
         this.menu.close_forms[i].polyclosest = function(selector) {
-    		var node = this;
-		    while (node) {
-			    if (node.matches(selector)) {
+            var node = this;
+            while (node) {
+                if (node.matches(selector)) {
                     return node;
-    			} else {
+                } else {
                     node = node.parentElement;
-	    	    }
+                }
             }
-    		return null;
-	    }
-        
+            return null;
+        }
+
         this.menu.close_forms[i].addEventListener('click', function() {
             this.polyclosest('form').style.display = 'none';
             self.menu.element.style.display = 'block';
