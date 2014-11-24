@@ -5,6 +5,7 @@
  * Description: The main method
  * ------------------------------------------------------------------------ */
 
+// XXX Depreciated
 function setup_menu() {
     var menu = document.getElementById('beer-options');
     var tap_item = document.getElementById('beer-option-tap');
@@ -50,6 +51,7 @@ function main() {
     var client = new SmartkegClient(new Socket(host, port));
     
     client.set_temperature_display('#current-temperature');
+    client.set_menu();    
     
     client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
@@ -78,7 +80,6 @@ function main() {
         }
     }
     
-    setup_menu();    
     //client.host_get_brewer_list();
 }
 

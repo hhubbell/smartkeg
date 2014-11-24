@@ -16,11 +16,64 @@ function SmartkegClient(socket) {
     this.render_index = 0;
     this.brewers = null;
     this.brewer_offering = null;
-    this.kegs = []    
+    this.kegs = [];  
+    this.menu = {};
 }
 
 SmartkegClient.prototype.set_temperature_display = function(selector) {
     this.temperature_display = document.querySelector(selector);
+}
+
+SmartkegClient.prototype.set_menu = function() {
+    var self = this;
+    this.menu.element = document.getElementById('beer-options');
+    this.menu.tap = {};
+    this.menu.rate = {};
+    
+    this.menu.tap.option_element = document.getElementById('beer-option-tap');
+    this.menu.tap.form = document.getElementById('tap-form');
+    
+    this.menu.rate.option_element = document.getElementById('beer-option-rate');
+    this.menu.rate.form = document.getElementById('rate-form');
+
+    this.menu.close_forms = document.getElementsByClassName('close-form');
+
+    for (var i = 0; i < this.menu.close_forms.length; i++) {
+        // POLYFILL element.closest();
+        this.menu.close_forms[i].polyclosest = function(selector) {
+    		var node = this;
+		    while (node) {
+			    if (node.matches(selector)) {
+                    return node;
+    			} else {
+                    node = node.parentElement;
+	    	    }
+            }
+    		return null;
+	    }
+        
+        this.menu.close_forms[i].addEventListener('click', function() {
+            this.polyclosest('form').style.display = 'none';
+            self.menu.element.style.display = 'block';
+        });
+    }
+
+    this.menu.tap.option_element.addEventListener('click', function() {
+        self.menu.element.style.display = 'none';
+        self.menu.tap.form.style.display = 'block';
+        
+        var fieldsets = self.menu.tap.form.getElementsByTagName('fieldset');
+        
+        for (var i = 0; i < fieldsets.length; i++) {
+            fieldsets[i].style.display = 'none';
+        }
+        fieldsets[0].style.display = 'inline-block';
+    });
+
+    this.menu.rate.option_element.addEventListener('click', function() {
+        self.menu.element.style.display = 'none';
+        self.menu.rate.form.style.display = 'block';
+    });
 }
 
 SmartkegClient.prototype.clear = function(element) {
