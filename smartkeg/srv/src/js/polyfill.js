@@ -4,6 +4,7 @@
  * Date:        11/24/2014
  * Description: Polyfills for needed  functionality
  * ------------------------------------------------------------------------ */
+
 Element.prototype.polyclosest = function(selector) {
     var node = this;
     while (node) {
@@ -21,4 +22,3 @@ Element.prototype.polyempty = function() {
         this.removeChild(this.lastChild);
     }
 }
-

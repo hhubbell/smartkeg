@@ -13,6 +13,7 @@
 function SmartkegClient(socket) {
     this.source = new EventSource(socket.toString());
     this.ajax = new Ajax(socket.get_url());
+    this.socket = socket;
     this.last_update_id = 0;
     this.render_index = 0;
     this.beer_display = null;

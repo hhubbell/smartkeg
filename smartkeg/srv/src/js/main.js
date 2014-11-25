@@ -5,11 +5,32 @@
  * Description: The main method
  * ------------------------------------------------------------------------ */
 
-function main() {
+(function () {
     var PROTOCOL = new RegExp('^(http(s)?:\/\/)');
     var TRAILING = new RegExp('\/$');
     var HOST = document.URL.replace(PROTOCOL, '').replace(TRAILING, '');
     var PORT = 8000;
+
+    /**
+     * @Author:         Harrison Hubbell
+     * @Created:        11/25/2014
+     * @Description:    Verifies the payload from the event source
+     *                  meets the requirements needed. Requirements:
+     *                  
+     *                  1. temperature
+     *                  2. kegs
+     *                      a. beer
+     *                      b. consumption
+     *                      c. remaining
+     */
+    function verify_payload(p) {
+        return !!(
+            p.temperature &&
+            p.kegs.beer &&
+            p.kegs.consumption &&
+            p.kegs.remaining
+        );
+    }
     
     var client = new SmartkegClient(new Socket(HOST, PORT));
     
@@ -17,29 +38,24 @@ function main() {
     client.set_beer_display('#serving');
     client.set_consumption_display('#consumption-graph');
     client.set_remaining_display('#remaining-graph');
-    //client.set_menu('#beer-menu');    
     
     client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
+        var src = e.origin;
 
-        if (id > client.last_update_id) {
+        if (id > client.last_update_id && src == client.socket.toString()) {
             var payload = JSON.parse(e.data);
 
-            console.log(payload);
-
-            client.kegs.length = 0;
-            client.temperature = payload.temperature;
-            client.last_update_id = id;
- 
-            for (var i = 0; i < payload.kegs.length; i++) {
-                client.kegs.push(new Keg(payload.kegs[i]));
+            if (verify_payload(payload)) {
+                client.last_update_id = id;
+                client.temperature = payload.temperature;
+                client.kegs = payload.kegs
+                client.render();
+                
+                // Merge these two into one?? Do it better??
+                //client.set_menu('#beer-menu');                    
+                client.render_tap_menu('#tap-form-taps');
             }
-            
-            client.render();
-            client.render_tap_menu('#tap-form-taps');
         }
     }
-}
-
-
-main();
+})();
