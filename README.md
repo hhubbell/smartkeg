@@ -38,7 +38,7 @@ The build script will also configure the MySQL database user and create the requ
 The build script will make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
 
 #### Post Install
-The build script creates systemd service files for the Smartkeg system, and the Smartkeg Server. To run the Smartkeg system and the Smartkeg Server at startup on Arch Linux, run the following, respectively:
+The build script creates a systemd service file for the Smartkeg system. To run the Smartkeg system at startup on Arch Linux, run the following:
 ```Shell
 # systemctl enable smartkeg
 ```
