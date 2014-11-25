@@ -7,6 +7,7 @@
  *              renders graphs based on data it may receive.
  * Requires:    ajax.js
  *              keg.js
+ *              graph.js
  * ------------------------------------------------------------------------ */
 
 function SmartkegClient(socket) {
@@ -14,19 +15,38 @@ function SmartkegClient(socket) {
     this.ajax = new Ajax(socket.get_url());
     this.last_update_id = 0;
     this.render_index = 0;
+    this.beer_display = null;
+    this.consumption_display = null;
+    this.remaining_display = null;
+
     this.brewers = null;
     this.brewer_offering = null;
     this.kegs = [];  
     this.menu = {};
 }
 
+SmartkegClient.prototype.set_beer_display = function(selector) {
+    this.beer_display = document.querySelector(selector);
+}
+
+SmartkegClient.prototype.set_consumption_display = function(selector) {
+    this.consumption_display = new ScatterPlot(selector);
+}
+
+SmartkegClient.prototype.set_remaining_display = function(selector) {
+    this.remaining_display = new BarGraph(selector);
+}
+
 SmartkegClient.prototype.set_temperature_display = function(selector) {
     this.temperature_display = document.querySelector(selector);
 }
 
-SmartkegClient.prototype.set_menu = function() {
+
+// FIXME
+SmartkegClient.prototype.set_menu = function(selector) {
     var self = this;
     this.menu.element = document.getElementById('beer-options');
+    this.menu.options = this.menu.element.querySelectorAll('ul');
     this.menu.tap = {};
     this.menu.rate = {};
     
@@ -38,20 +58,7 @@ SmartkegClient.prototype.set_menu = function() {
 
     this.menu.close_forms = document.getElementsByClassName('close-form');
 
-    for (var i = 0; i < this.menu.close_forms.length; i++) {
-        // POLYFILL element.closest();
-        this.menu.close_forms[i].polyclosest = function(selector) {
-            var node = this;
-            while (node) {
-                if (node.matches(selector)) {
-                    return node;
-                } else {
-                    node = node.parentElement;
-                }
-            }
-            return null;
-        }
-
+    for (var i = 0; i < this.menu.close_forms.length; i++) {        
         this.menu.close_forms[i].addEventListener('click', function() {
             this.polyclosest('form').style.display = 'none';
             self.menu.element.style.display = 'block';
@@ -102,25 +109,54 @@ SmartkegClient.prototype.set_menu = function() {
     });
 }
 
-SmartkegClient.prototype.clear = function(element) {
-    while (element.lastChild) {
-        element.removeChild(element.lastChild);
+SmartkegClient.prototype.render = function() {
+    this.render_beer();
+    this.render_consumption();
+    this.render_remaining();
+    this.temperature_display.innerHTML = this.temperature;
+}
+
+SmartkegClient.prototype.render_beer = function() {
+    var keg = this.kegs[this.render_index];
+
+    for (var i = 0; i < this.beer_display.children.length; i++) {
+        var node = this.beer_display.children[i]
+        var content = node.getElementsByClassName('serving-content')[0];
+
+        content.innerHTML = keg.beer[node.id] || '';
     }
 }
 
-SmartkegClient.prototype.render = function() {
-    this.kegs[this.render_index].render_beer();
-    this.kegs[this.render_index].render_consumption();
-    this.kegs[this.render_index].render_remaining();
-    this.temperature_display.innerHTML = this.temperature;
+SmartkegClient.prototype.render_consumption = function() {
+    var keg = this.kegs[this.render_index];
+
+    this.consumption_display.popall();
+    this.consumption_display.clear();
+    this.consumption_display.push(keg.consumption.days);
+    this.consumption_display.set_radius(keg.consumption.radius);
+    this.consumption_display.set_style(keg.consumption.style);
+    this.consumption_display.render(true, true);
 }
+
+SmartkegClient.prototype.render_remaining = function() {
+    var keg = this.kegs[this.render_index];
+    
+    this.remaining_display.popall();
+    this.remaining_display.clear();   
+    this.remaining_display.push(keg.remaining.value);
+    this.remaining_display.render();
+}
+
+
+
+// THIS NEEDS REFACTORING BELOW
 
 SmartkegClient.prototype.render_brewers = function(selector) {
     var NAME = 'brewer';
     var self = this;
     var element = document.querySelector(selector);
 
-    this.clear(element);    
+    element.polyempty();    
  
     for (var i = 0; i < this.brewers.length; i++) {
         var current = this.brewers[i];
@@ -158,7 +194,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
     var self = this;
     var element = document.querySelector(selector);
 
-    this.clear(element);
+    element.polyempty();
 
     for (var i = 0; i < this.brewer_offering.length; i++) {
         var current = this.brewer_offering[i];
@@ -210,7 +246,7 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
     var self = this;
     var element = document.querySelector(selector);
 
-    this.clear(element);
+    element.polyempty()
 
     for (var i = 0; i < this.kegs.length; i ++) {
         var current = this.kegs[i];

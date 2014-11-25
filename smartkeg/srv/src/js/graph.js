@@ -27,10 +27,7 @@ ScatterPlot.prototype.popall = function() {
 }
 
 ScatterPlot.prototype.clear = function() {
-    while (this.element.lastChild) {
-        this.element.removeChild(this.element.lastChild);
-    }
-
+    this.element.polyempty();
     this.set_defs();
 }
 
@@ -164,10 +161,7 @@ BarGraph.prototype.popall = function() {
 }
 
 BarGraph.prototype.clear = function() {
-    while (this.element.lastChild) {
-        this.element.removeChild(this.element.lastChild);
-    }
-
+    this.element.polyempty();
     this.set_defs();
 }
 

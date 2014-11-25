@@ -102,13 +102,13 @@ textarea {
     box-shadow:             1px 1px 7px 0px #2F2F2F;    
 }
 
-.beer-menu-list {
+.menu-options {
     list-style:             none;
     margin:                 0;
     padding:                0;
 }
 
-.beer-menu-list li {
+.menu-options li {
     background-color:       #34495E;
     color:                  #F1C40F;
     cursor:                 pointer;
@@ -118,7 +118,7 @@ textarea {
     box-shadow:             1px 1px 7px 0px #2F2F2F;
 }
 
-.beer-menu-list li:last-child {
+.menu-options li:last-child {
     margin-bottom:          0px;
 }
 
