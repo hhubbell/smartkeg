@@ -42,9 +42,6 @@ The build script creates systemd service files for the Smartkeg system, and the 
 ```Shell
 # systemctl enable smartkeg
 ```
-```Shell
-# systemctl enable smartkeg-server
-```
 
 ## History
 Originally, the Smartkeg system scope was to gather information using distinct processes and let a web server handle displaying the information to the user; this had some very distinct drawbacks.  First, and most important, was interprocess communication.  By creating a main process that is responsible for spawning, managing, and maintaining communication with other child processes, the system becomes much more robust; the main process is now able to see into all the seperate elements of the system and asynchronously create new data models, update server responses, and read/write to the database.
