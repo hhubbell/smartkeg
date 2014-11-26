@@ -12,8 +12,10 @@
     <header>
         <img src='static/img/logo.png' class='circle-badge header-logo'>
         <h1>Smartkeg</h1>
-        <span id='current-temperature'></span>
-        <img src='static/img/qrcode.svg' class='header-logo' id='qrcode'>
+        <div class='header-right'>
+            <span id='current-temperature'></span>
+            <img src='static/img/qrcode.svg' class='header-logo' id='qrcode'>
+        </div>
     </header>
     <main>
         <section id='hud' class='wrapper'>
@@ -30,7 +32,7 @@
                         <form id='tap-form' class='beer-menu-form' method='post' hidden>
                             <legend>
                                 <span class='close-form'>&#x2715;</span>
-                                <span class='field-header'></span>
+                                <h6>Tap a new Keg</h6>
                             </legend>
                             
                             <fieldset id='tap-form-taps'></fieldset>
@@ -56,12 +58,16 @@
                             </fieldset>
                         </form>
                         <form id='rate-form' class='beer-menu-form' method='post' hidden>
-                            <span class='close-form'>&#x2715;</span>
+                            <legend>
+                                <span class='close-form'>&#x2715;</span>
+                                <h6>Rate this Beer</h6>
+                            </legend>
                             <fieldset>
-                                <legend>Rate</legend>
                                 <input class='rating-slider' name='ratingslider' type='range' min='1' max='5' step='1'>
                                 <output class='rating-slider' name='ratingoutput' for='rating-slider'>3</output>
-                                <textarea rows="7"></textarea>
+                                <textarea rows="7" name='ratingdescription'></textarea>
+                                <input type='submit' value='Submit'>
+                                <input type='reset' value='Reset'>
                             </fieldset>
                         </form>
                     </aside>

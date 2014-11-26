@@ -56,6 +56,11 @@ h5 {
     margin:                 0;
 }
 
+h6 {
+    display:                inline;
+    margin:                 0;
+}
+
 img {
     width:                  75%;
 }
@@ -131,7 +136,6 @@ textarea {
 }
 
 .close-form {
-    vertical-align:         top;
     color:                  #C0392B;
     cursor:                 pointer;
     margin-left:            3px;
@@ -161,6 +165,11 @@ textarea {
     padding:                .1em;
 }
 
+.header-right {
+    float:                  right;
+    display:                inline;
+}
+
 .rating-slider {
     width:                  48%;
     display:                inline-block;
@@ -184,6 +193,10 @@ textarea {
     display:                block;
 }
 
+#current-temperature {
+    padding-right:          3em;
+    font-size:              18pt;
+}
 
 #chart {
     -webkit-flex-grow:      2;    
@@ -215,10 +228,6 @@ textarea {
 #remaining-graph {
     vertical-align:         bottom;
     /*height:                 400px;*/
-}
-
-#qrcode {
-    float:                  right;
 }
 
 /* -------------------- *

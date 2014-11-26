@@ -97,7 +97,13 @@ function setup_beer_menu(client) {
     }
     
     form_rate.onsubmit = function() {
-        client.ajax.send('POST', 'gobbledegook');
+        var query_string = "action=set" + 
+            "&data=rating" +
+            "&rating=" + this.ratingslider.value +
+            "&text=" + this.ratingdescription.value;
+
+        console.log(query_string);
+        client.ajax.send('POST', query_string);
         return false;
     }
 }
