@@ -27,16 +27,16 @@
                             <li id='beer-option-tap'>Tap a new keg</li>
                             <li id='beer-option-rate'>Rate this beer</li>
                         </ul>
-                        <form id='tap-form' class='beer-menu-form' method='post'>
+                        <form id='tap-form' class='beer-menu-form' method='post' hidden>
                             <legend>
                                 <span class='close-form'>&#x2715;</span>
                                 <span class='field-header'></span>
                             </legend>
                             
                             <fieldset id='tap-form-taps'></fieldset>
-                            <fieldset id='tap-form-brewer'></fieldset>
-                            <fieldset id='tap-form-beer'></fieldset>
-                            <fieldset id='tap-form-confirm'>
+                            <fieldset id='tap-form-brewer' hidden></fieldset>
+                            <fieldset id='tap-form-beer' hidden></fieldset>
+                            <fieldset id='tap-form-confirm' hidden>
                                 <label for='confirm-name'>Name</label>
                                 <input type='text' name='confirm_name' id='confirm-name'>
 
@@ -55,7 +55,7 @@
                                 <input type='submit' value='Submit'>
                             </fieldset>
                         </form>
-                        <form id='rate-form' class='beer-menu-form' method='post' oninput='ratingoutput.value = ratingslider.value'>
+                        <form id='rate-form' class='beer-menu-form' method='post' hidden>
                             <span class='close-form'>&#x2715;</span>
                             <fieldset>
                                 <legend>Rate</legend>
