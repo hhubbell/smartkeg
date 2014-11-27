@@ -191,7 +191,7 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
         radio.id = NAME + '-' + current.id;
 
         label.htmlFor = NAME + '-' + current.id;
-        label.innerHTML = current.beer.name + ' ' + (current.remaining.value * 100).toFixed(2) + '%';
+        label.innerHTML = "Tap 1: " + current.beer.name + ' (' + (current.remaining.value * 100).toFixed(2) + '% remaining)';
         
         radio.addEventListener('click', function() {
             self.ajax.send('POST', 'action=get&data=brewers').then(function(response) {

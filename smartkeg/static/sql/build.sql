@@ -156,9 +156,9 @@ CREATE TABLE Pour (
 -- BEER RATING TABLE
 -- --------------------
 CREATE TABLE BeerRating (
-    id          INTEGER     NOT NULL,
-    person_id   INTEGER     NOT NULL,
-    beer_id     INTEGER     NOT NULL,
+    id          INTEGER     NOT NULL AUTO_INCREMENT,
+    beer_id     INTEGER     NOT NULL,    
+    person_id   INTEGER,
     rating      TINYINT(1),
     comments    TEXT,
     FOREIGN KEY(person_id) REFERENCES Person(id),
@@ -170,7 +170,7 @@ CREATE TABLE BeerRating (
 -- PURCHASE CONTRIBUTION TABLE
 -- --------------------
 CREATE TABLE PurchaseContribution (
-    id          INTEGER     NOT NULL,
+    id          INTEGER     NOT NULL AUTO_INCREMENT,
     person_id   INTEGER     NOT NULL,
     keg_id      INTEGER     NOT NULL,
     amount      FLOAT(5,2)  NOT NULL,

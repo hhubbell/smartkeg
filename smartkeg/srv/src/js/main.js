@@ -5,109 +5,6 @@
  * Description: The main method
  * ------------------------------------------------------------------------ */
 
-function setup_beer_menu(client) {
-    var menu = document.getElementById('beer-menu');
-    var options = menu.querySelector('ul');
-    var close_forms = menu.getElementsByClassName('close-form');
-
-    var item_tap = document.getElementById('beer-option-tap');
-    var item_rate = document.getElementById('beer-option-rate');
-
-    var form_tap = document.getElementById('tap-form');
-    var form_rate = document.getElementById('rate-form');
-
-    // Close action
-    Array.prototype.slice.call(close_forms, 0).forEach(function(i) { 
-        i.addEventListener('click', function() {
-            form = this.polyclosest('form');
-            form.hidden = true;            
-            fieldsets = Array.prototype.slice.call(form.getElementsByTagName('fieldset'), 0);
-            fieldsets.slice(1).forEach(function(f) {
-                f.hidden = true;
-            });
-            fieldsets[0].hidden = false;
-            options.hidden = false;
-        })
-    });
-    
-    // Tap actions
-    item_tap.addEventListener('click', function() {
-        options.hidden = true;
-        form_tap.hidden = false;
-    });
-
-    /*    
-    this.menu.element = document.getElementById('beer-options');
-    this.menu.tap = {};
-    this.menu.rate = {};
-    
-    this.menu.tap.option_element = document.getElementById('beer-option-tap');
-    this.menu.tap.form = document.getElementById('tap-form');
-    
-    this.menu.rate.option_element = document.getElementById('beer-option-rate');
-    this.menu.rate.form = document.getElementById('rate-form');
-
-    this.menu.tap.option_element.addEventListener('click', function() {
-        self.menu.element.style.display = 'none';
-        self.menu.tap.form.style.display = 'block';
-        
-        var fieldsets = self.menu.tap.form.getElementsByTagName('fieldset');
-        
-        for (var i = 0; i < fieldsets.length; i++) {
-            fieldsets[i].style.display = 'none';
-        }
-        
-        fieldsets[0].style.display = 'inline-block';
-    });
-
-    this.menu.tap.form.onsubmit = function() {
-        FOO = this;
-        
-        var beer_id = this.id.value;
-        var beer_name = this.confirm_name.value;
-        var beer_abv = this.confirm_abv.value;
-        var beer_ibu = this.confirm_ibu.value;
-        var keg_volume = this.confirm_volume.value;
-        var passphrase = this.passphrase;
-
-        var query_string = 'action=set&data=tap' +
-            '&replace=' + self.menu.tap.replace +
-            '&beer=' + beer_id +
-            '&volume=' + keg_volume +
-            '&passphrase=' + passphrase;
-
-        console.log(query_string);
-        
-
-        self.ajax.send('POST', query_string);
-        this.style.display = 'none';
-        self.menu.element.style.display = 'block';
-        return false;                               // Prevents page reload;
-    }
-    */
-
-    // Rate actions
-    item_rate.addEventListener('click', function() {
-        options.hidden = true;
-        form_rate.hidden = false;
-    });
-
-    form_rate.oninput = function() {
-        this.ratingoutput.value = this.ratingslider.value
-    }
-    
-    form_rate.onsubmit = function() {
-        var query_string = "action=set" + 
-            "&data=rating" +
-            "&rating=" + this.ratingslider.value +
-            "&text=" + this.ratingdescription.value;
-
-        console.log(query_string);
-        client.ajax.send('POST', query_string);
-        return false;
-    }
-}
-
 (function () {
     var PROTOCOL = new RegExp('^(http(s)?:\/\/)');
     var TRAILING = new RegExp('\/$');
@@ -116,13 +13,95 @@ function setup_beer_menu(client) {
     
     var client = new SmartkegClient(new Socket(HOST, PORT));
 
-    setup_beer_menu(client);
-    
     client.set_temperature_display('#current-temperature');
     client.set_beer_display('#serving');
     client.set_consumption_display('#consumption-graph');
     client.set_remaining_display('#remaining-graph');
 
+    // -------------------
+    // Setup Beer Menu Items
+    // -------------------
+    client.menu = document.getElementById('beer-menu');
+    client.options = client.menu.querySelector('ul');
+    client.close_forms = client.menu.getElementsByClassName('close-form');
+    
+    client.item_tap = document.getElementById('beer-option-tap');
+    client.item_rate = document.getElementById('beer-option-rate');
+
+    client.form_tap = document.getElementById('tap-form');
+    client.form_rate = document.getElementById('rate-form');
+
+    // CLOSE ACTION
+    Array.prototype.slice.call(client.close_forms, 0).forEach(function(i) { 
+        i.addEventListener('click', function() {
+            form = this.polyclosest('form');
+            form.hidden = true;            
+            fieldsets = Array.prototype.slice.call(form.getElementsByTagName('fieldset'), 0);
+            fieldsets.slice(1).forEach(function(f) {
+                f.hidden = true;
+            });
+            fieldsets[0].hidden = false;
+            client.options.hidden = false;
+        })
+    });
+
+    // TAP ACTIONS
+    client.item_tap.addEventListener('click', function() {
+        client.options.hidden = true;
+        client.form_tap.hidden = false;
+    });
+
+    client.form_tap.onsubmit = function() { 
+        //var beer_abv = this.confirm_abv.value;
+        //var beer_ibu = this.confirm_ibu.value;
+        
+        var query_string = encodeURI(
+            'action=set&data=tap' +
+            '&replace=' + client.replace +
+            '&beer=' + this.id.value +
+            '&volume=' + this.confirm_volume.value +
+            '&passphrase=' + this.passphrase
+        );
+
+        console.log(query_string);
+        
+        client.ajax.send('POST', query_string);
+        return false;
+    }
+
+    // RATE ACTIONS
+    client.item_rate.addEventListener('click', function() {
+        client.options.hidden = true;
+        client.form_rate.hidden = false;
+    });
+
+    client.form_rate.oninput = function() {
+        this.ratingoutput.value = this.ratingslider.value
+    }
+    
+    client.form_rate.onsubmit = function() {
+        var self = this;
+        var query_string = encodeURI(
+            "action=set" + 
+            "&data=rate" +
+            "&beer=" + client.kegs[client.render_index].beer.id +
+            "&rating=" + this.ratingslider.value +
+            "&comments=" + this.ratingdescription.value
+        );
+
+        console.log(query_string);
+        client.ajax.send('POST', query_string).then(function(response) {
+            self.ratingslider.value = 3;
+            self.ratingdescription.value = '';
+            self.hidden = true;
+            client.options.hidden = false;
+        });
+        return false;
+    }
+
+    // -------------------
+    // EventSource Handling
+    // -------------------
     client.source.onmessage = function(e) {
         var id = parseInt(e.lastEventId);
         var src = e.origin; 
@@ -130,10 +109,13 @@ function setup_beer_menu(client) {
         if (id > client.last_update_id) {
             var payload = JSON.parse(e.data);
             
+            console.log(payload);
+
             client.last_update_id = id;
             client.temperature = payload.temperature || '-- °F';
             client.kegs = payload.kegs
             client.render();
+            //client.setup_beer_menu();
                 
             // Merge these two into one?? Do it better??
             //client.set_menu('#beer-menu');                    
