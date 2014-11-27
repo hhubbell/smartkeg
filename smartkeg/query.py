@@ -29,6 +29,13 @@ class Query:
             (%s, %s, %s, 1)
     """
 
+    INSERT_BEER_RATING = """
+        INSERT INTO BeerRating
+            (beer_id, rating, comments)
+        VALUES
+            (%s, %s, %s)
+    """
+
     # --------------------
     # UPDATES
     # --------------------
@@ -78,23 +85,29 @@ class Query:
     """
     
     SELECT_CURRENT_KEGS = """
-        SELECT
+        SELECT 
+            bs.*,
             k.id        AS keg_id,
             k.volume    AS volume,
-            (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining,
-            b.name      AS name,
-            b.abv       AS abv,
-            b.ibu       AS ibu,
-            br.name     AS brewer,
-            bt.type     AS type,
-            bt.subtype  AS subtype,
-            bra.rating  AS rating
-        FROM Keg AS k
-        JOIN Beer AS b ON k.beer_id = b.id
-        JOIN BeerType AS bt ON b.type_id = bt.id
-        JOIN Brewer AS br ON b.brewer_id = br.id
-        LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id        
-        LEFT JOIN Pour AS p ON k.id = p.keg_id
+            (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining          
+        FROM (
+            SELECT
+                b.id        AS beer_id,
+                b.name      AS name,
+                b.abv       AS abv,
+                b.ibu       AS ibu,
+                br.name     AS brewer,
+                bt.type     AS type,
+                bt.subtype  AS subtype,
+                AVG(bra.rating) AS rating
+            FROM Beer AS b
+            JOIN Brewer AS br ON b.brewer_id = br.id
+            JOIN BeerType AS bt ON b.type_id = bt.id
+            LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id
+            GROUP BY b.id
+        ) AS bs
+        JOIN Keg AS k ON bs.beer_id = k.beer_id
+        LEFT JOIN Pour AS p on k.id = p.keg_id
         WHERE k.now_serving = 1
         GROUP BY k.id
     """

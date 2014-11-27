@@ -105,16 +105,32 @@ class Smartkeg(ParentProcess):
                     'value': keg['remaining']
                 },
                 'beer': {
+                    'id': keg['beer_id'],
                     'brand': keg['brewer'],
                     'name': keg['name'],
                     'type': keg['type'],
                     'subtype': keg['subtype'],
                     'abv': keg['abv'],
                     'ibu': keg['ibu'],
-                    'rating': keg['rating']
+                    'rating': float(keg['rating']) if keg['rating'] else None
                 }
             })
 
+    # --------------------
+    # UPDATE
+    # --------------------
+    def update(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/27/2014
+        @Description:   Update routine.  This sequence is used
+                        in a few spots so this method makes it
+                        easy to do without missing a step.
+        """
+        self.set_kegs()
+        self.calculate_model(PROC['MOD'])
+        self.set_datagram('kegs', self.kegs)
+        self.socket_server_set_response(PROC['SOC'], self.datagram)
 
     # --------------------
     # QUERY METHODS
@@ -243,11 +259,17 @@ class Smartkeg(ParentProcess):
     
                 self.dbi.INSERT(Query.INSERT_NEW_KEG, params=[params])
 
-                self.set_kegs()
-                smartkeg.calculate_model(PROC['MOD'])            
-                smartkeg.set_datagram('kegs', smartkeg.kegs)
-                smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
+            elif message['data'] == 'rate':
+                params = (
+                    message['params'].get('beer')[0],
+                    message['params'].get('rating')[0],
+                    message['params'].get('comments')[0],
+                )
 
+                self.dbi.INSERT(Query.INSERT_BEER_RATING, params=[params])
+
+            self.update()
+            self.proc_send(proc_name, "POST SUCCESSFUL")            
 
     # --------------------
     # LED DISPLAY
@@ -448,10 +470,7 @@ if __name__ == '__main__':
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):
             smartkeg.query_insert_pour(smartkeg.last_pour)
-            smartkeg.set_kegs()            
-            smartkeg.calculate_model(PROC['MOD'])
-            smartkeg.set_datagram('kegs', smartkeg.kegs)
-            smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram) 
+            smartkeg.update() 
             smartkeg.handle_led_display(PROC['LED'])
 
         if smartkeg.temperature_sensor_read(PROC['TMP']):
