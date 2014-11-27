@@ -1,0 +1,58 @@
+# !/bin/bash
+
+# Harry Hubbell
+# 1/18/14
+# Login script that displays system information
+
+RED="\e[1;31m"
+GREEN="\e[0;32m"
+YELLOW="\e[1;33m"
+BLUE="\e[1;34m"
+DARK_BLUE="\e[0;34m"
+CYAN="\e[1;36m"
+RESET="\e[0m"
+
+# USED RAM
+FREE_M=`free -m | grep Mem`
+total_mem=`echo ${FREE_M} | cut -f2 -d' '`
+used_mem=`echo ${FREE_M} | cut -f3 -d' '`
+
+# USED DISK SPACE
+FREE_D=`df -h | grep /dev/root`
+total_d=`echo ${FREE_D} | cut -f2 -d' ' | tr -d '[:alpha:]'`
+used_d=`echo ${FREE_D} | cut -f3 -d' ' | tr -d '[:alpha:]'`
+
+# COMPUTER UPTIME
+UPTIME=`awk '{printf("%d:%02d:%02d:%02d",($1/60/60/24),($1/60/60%24),($1/60%60),($1%60))}' /proc/uptime`
+#UPTIME=`uptime | cut -f5 -d' ' | tr -d ','`
+#uptime_num=`echo ${UPTIME_STR:3} | tr -d '[:alpha:] '`
+#uptime_alpha=`echo ${UPTIME_STR:3} | tr -d '[:digit:]'`
+
+# CHIP TEMP
+TEMP="$(($(cat /sys/class/thermal/thermal_zone0/temp) / 1000 * (9/5) + 32))"
+
+# SESSION TYPE
+if [[ -n "$SSH_CLIENT" ]] || [[ -n "$SSH_TTY" ]]; then
+    S_TYPE="remotely"
+else 
+    S_TYPE="locally"
+fi
+
+# SMARTKEG STATUS
+SMARTKEG=`systemctl status smartkeg | grep "Active: " | awk '{ print $2 }'`
+if [[ $SMARTKEG == active ]]; then
+    s_color=${GREEN}
+elif [[ $SMARTKEG == failed ]]; then
+    s_color=${RED}
+else
+    s_color=${RESET}
+fi
+
+# PRINT OUTPUT
+echo -e "Welcome to ${CYAN}Arch Linux${RESET} on ${YELLOW}`hostname`${RESET}!
+You are logged in as ${RED}`whoami`${RESET} ${S_TYPE}
+├ ${BLUE}Uptime:    ${DARK_BLUE}${UPTIME}${RESET}
+├ ${BLUE}Temp:      ${RESET}`if (( $TEMP > 80 )); then echo "${RED}"; fi`${TEMP}${RESET}°F
+├ ${BLUE}Memory:    ${GREEN}${used_mem}${RESET}/${total_mem} MB
+├ ${BLUE}Disk:      ${GREEN}${used_d}${RESET}/${total_d} GB
+└ ${BLUE}Smartkeg:  ${s_color}${SMARTKEG}${RESET}"
