@@ -112,14 +112,14 @@ SmartkegClient.prototype.render_brewers = function(selector) {
                 self.render_brewer_offering('#tap-form-beer');
             });
 
-            this.parentElement.style.display = 'none';            
+            this.parentElement.hidden = true;
         });
 
         element.appendChild(radio);
         element.appendChild(label);
     }
 
-    element.style.display = 'inline-block';
+    element.hidden = false;
 }
 
 SmartkegClient.prototype.render_brewer_offering = function(selector) {
@@ -146,7 +146,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
         radio.addEventListener('click', function() {
             console.log('click');
             self.render_confirm('#tap-form-confirm', current);
-            this.parentElement.style.display = 'none';
+            this.parentElement.hidden = true;
             //XXX Add animation
         });
 
@@ -154,7 +154,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
         element.appendChild(label);
     }
 
-    element.style.display = 'inline-block';    
+    element.hidden = false;
 }
 
 SmartkegClient.prototype.render_confirm = function(selector, beer) {
@@ -171,7 +171,7 @@ SmartkegClient.prototype.render_confirm = function(selector, beer) {
     document.getElementById('confirm-abv').value = beer.abv;
     document.getElementById('confirm-ibu').value = beer.ibu;
 
-    element.style.display = 'inline-block';
+    element.hidden = false;
 }
 
 SmartkegClient.prototype.render_tap_menu = function(selector) {
@@ -179,9 +179,9 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
     var self = this;
     var element = document.querySelector(selector);
 
-    element.polyempty()
+    element.polyempty();
 
-    for (var i = 0; i < this.kegs.length; i ++) {
+    for (var i = 0; i < this.kegs.length; i++) {
         var current = this.kegs[i];
         var radio = document.createElement('input');
         var label = document.createElement('label');
@@ -191,17 +191,16 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
         radio.id = NAME + '-' + current.id;
 
         label.htmlFor = NAME + '-' + current.id;
-        label.innerHTML = "Tap 1: " + current.beer.name + ' (' + (current.remaining.value * 100).toFixed(2) + '% remaining)';
+        label.innerHTML = "Tap " + (i + 1) + ": " + current.beer.name + ' (' + (current.remaining.value * 100).toFixed(2) + '% remaining)';
         
         radio.addEventListener('click', function() {
+            self.replace = this.value;
             self.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
-
-                self.menu.tap.replace = radio.value;
             });
             
-            this.parentElement.style.display = 'none';
+            this.parentElement.hidden = true;
         });
         
         element.appendChild(radio);

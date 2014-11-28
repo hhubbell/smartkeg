@@ -12,7 +12,7 @@ body {
 
 fieldset {
     border:                 none;
-    display:                inline-block;
+    /*display:                inline-block;*/
 }
 
 footer {
@@ -212,6 +212,7 @@ textarea {
     padding:                .5em;
 }
 
+/*
 #tap-form-beer {
     display:                none;
 }
@@ -219,6 +220,7 @@ textarea {
 #tap-form-brewer {
     display:                none;
 }
+*/
 
 #rate-form textarea {
     margin-top:             1em;

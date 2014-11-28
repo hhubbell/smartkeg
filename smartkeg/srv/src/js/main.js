@@ -51,10 +51,9 @@
         client.form_tap.hidden = false;
     });
 
-    client.form_tap.onsubmit = function() { 
-        //var beer_abv = this.confirm_abv.value;
-        //var beer_ibu = this.confirm_ibu.value;
-        
+    client.form_tap.onsubmit = function() {
+        var self = this;
+
         var query_string = encodeURI(
             'action=set&data=tap' +
             '&replace=' + client.replace +
@@ -65,7 +64,16 @@
 
         console.log(query_string);
         
-        client.ajax.send('POST', query_string);
+        client.ajax.send('POST', query_string).then(function(response) {
+            self.reset();
+            self.hidden = true;
+            fieldsets = Array.prototype.slice.call(self.getElementsByTagName('fieldset'), 0);
+            fieldsets.slice(1).forEach(function(f) {
+                f.hidden = true;
+            });
+            fieldsets[0].hidden = false;
+            client.options.hidden = false;
+        });
         return false;
     }
 
@@ -91,9 +99,8 @@
 
         console.log(query_string);
         client.ajax.send('POST', query_string).then(function(response) {
-            self.ratingslider.value = 3;
-            self.ratingdescription.value = '';
-            self.hidden = true;
+            self.reset();
+            self.hidden = true;            
             client.options.hidden = false;
         });
         return false;
@@ -114,11 +121,7 @@
             client.last_update_id = id;
             client.temperature = payload.temperature || '-- °F';
             client.kegs = payload.kegs
-            client.render();
-            //client.setup_beer_menu();
-                
-            // Merge these two into one?? Do it better??
-            //client.set_menu('#beer-menu');                    
+            client.render();                 
             client.render_tap_menu('#tap-form-taps');
         }
     }
