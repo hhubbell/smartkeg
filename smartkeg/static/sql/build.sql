@@ -39,9 +39,9 @@ CREATE TABLE BeerType (
 -- --------------------
 CREATE TABLE Brewer (
     id              INTEGER     NOT NULL AUTO_INCREMENT,
-    name            VARCHAR(64),
+    name            VARCHAR(128),
     city            VARCHAR(64),
-    state           VARCHAR(64),
+    state           CHAR(2),
     country         VARCHAR(64),
     PRIMARY KEY(id)
 );
