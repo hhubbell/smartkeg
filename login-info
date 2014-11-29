@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 # Harry Hubbell
 # 1/18/14
@@ -51,8 +51,8 @@ fi
 # PRINT OUTPUT
 echo -e "Welcome to ${CYAN}Arch Linux${RESET} on ${YELLOW}`hostname`${RESET}!
 You are logged in as ${RED}`whoami`${RESET} ${S_TYPE}
-├ ${BLUE}Uptime:    ${DARK_BLUE}${UPTIME}${RESET}
-├ ${BLUE}Temp:      ${RESET}`if (( $TEMP > 80 )); then echo "${RED}"; fi`${TEMP}${RESET}°F
-├ ${BLUE}Memory:    ${GREEN}${used_mem}${RESET}/${total_mem} MB
-├ ${BLUE}Disk:      ${GREEN}${used_d}${RESET}/${total_d} GB
-└ ${BLUE}Smartkeg:  ${s_color}${SMARTKEG}${RESET}"
+├ ${BLUE}Uptime${RESET}:    ${DARK_BLUE}${UPTIME}${RESET}
+├ ${BLUE}Temp${RESET}:      `if (( $TEMP > 80 )); then echo "${RED}"; fi`${TEMP}${RESET}°F
+├ ${BLUE}Memory${RESET}:    ${GREEN}${used_mem}${RESET}/${total_mem} MB
+├ ${BLUE}Disk${RESET}:      ${GREEN}${used_d}${RESET}/${total_d} GB
+└ ${BLUE}Smartkeg${RESET}:  ${s_color}${SMARTKEG}${RESET}"
