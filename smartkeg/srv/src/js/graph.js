@@ -142,6 +142,8 @@ ScatterPlot.prototype.render = function(points, trend) {
 
 function BarGraph(selector) {
     this.SVG_NS = 'http://www.w3.org/2000/svg';
+    this.REM_MED = .45;
+    this.REM_LOW = .20;
     this.set_canvas(selector);
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
@@ -182,16 +184,34 @@ BarGraph.prototype.set_defs = function() {
 BarGraph.prototype.render = function() {
     var bar_width = (100 / this.categories.length || 1) + "%";
     var bar_x = this.width / this.categories.length;
+    var TEXT_WIDTH = 124;
 
     for (var i = 0; i < this.categories.length; i++) {
         var rect = document.createElementNS(this.SVG_NS, 'rect');
+        var text = document.createElementNS(this.SVG_NS, 'text');
         var bar_top = (1 - this.categories[i]) * this.height
 
-        rect.classList.add('remaining-bar');
+        // ASSIGN COLOR BASED ON AMOUNT REMAINING
+        if (this.categories[i] < this.REM_MED) {
+            rect.classList.add('medium');
+        } else if (this.categories[i] < this.REM_LOW) {
+            rect.classList.add('low');            
+        } else {
+            rect.classList.add('ok');
+        }
+        
         rect.setAttributeNS(null, 'x', bar_x * i);
         rect.setAttributeNS(null, 'y', bar_top);
         rect.setAttributeNS(null, 'width', bar_width);
         rect.setAttributeNS(null, 'height', this.height - bar_top);
+
+        
+        text.classList.add('remaining-text');
+        text.setAttributeNS(null, 'x', this.width / 2 - TEXT_WIDTH / 2);
+        text.setAttributeNS(null, 'y', this.height / 2);
+        text.textContent = this.categories[i] * 100 + '%';
+
         this.element.appendChild(rect);
+        this.element.appendChild(text);
     }
 }

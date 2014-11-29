@@ -103,12 +103,9 @@ SmartkegClient.prototype.render_brewers = function(selector) {
         label.htmlFor = NAME + '-' + current.name;
         label.innerHTML = current.name;
 
-        console.log(current.id);
-
         radio.addEventListener('click', function() {
             self.ajax.send('POST', 'action=get&data=offering&brewer=' + this.value).then(function(response) {
                 self.brewer_offering = JSON.parse(response);
-                console.log(self.brewer_offering);
                 self.render_brewer_offering('#tap-form-beer');
             });
 
@@ -144,7 +141,6 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
         console.log(current.id);
 
         radio.addEventListener('click', function() {
-            console.log('click');
             self.render_confirm('#tap-form-confirm', current);
             this.parentElement.hidden = true;
             //XXX Add animation

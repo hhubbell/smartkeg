@@ -193,6 +193,10 @@ textarea {
     display:                block;
 }
 
+#consumption-graph {
+    height:                 300px;
+}
+
 #current-temperature {
     padding-right:          3em;
     font-size:              18pt;
@@ -268,8 +272,26 @@ svg {
     stop-color:             #034159;
 }
 
+.ok {
+    fill:                   #16A085;
+}
+
+.medium {
+    fill:                   #F1C40F;
+}
+
+.low {
+    fill:                   #C0392B;
+}
+
 .remaining-bar {
-    fill:                   #16A085
+    fill:                   #16A085;
+}
+
+.remaining-text {
+    font-size:              36pt;
+    font-family:            helvetica;
+    fill:                   #ECF0F1;
 }
 
 /* -------------------- *
@@ -283,6 +305,10 @@ svg {
 
     #chart {
         order:              1
+    }
+
+    #consumption-graph {
+        height:             initial;
     }
 
     #hud {
