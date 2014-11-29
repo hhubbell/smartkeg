@@ -135,6 +135,9 @@ ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
 }
 
 ScatterPlot.prototype.render = function(points, trend) {
+    this.height = this.element.clientHeight;
+    this.width = this.element.clientWidth;
+
     if (trend) this.render_seasonal_trendline();
     if (points) this.render_points();
 }

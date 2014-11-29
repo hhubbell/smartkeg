@@ -125,4 +125,12 @@
             client.render_tap_menu('#tap-form-taps');
         }
     }
+
+    // -------------------
+    // Window Resize Handling
+    // -------------------
+    window.onresize = function() {
+        client.render_consumption();
+    }
+
 })();
