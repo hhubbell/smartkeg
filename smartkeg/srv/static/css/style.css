@@ -180,6 +180,11 @@ textarea {
     font-weight:            400;
 }
 
+.wrap-button {
+    text-align:             center;
+    margin-top:             1em;
+}
+
 #beer-menu {
     margin-top:             .5em;
     display:                none;

@@ -54,7 +54,9 @@
                                     <option value='64'>1/4 Barrel</option>
                                     <option value='124'>1/2 Barrel</option>
                                 </select>
-                                <input type='submit' value='Submit'>
+                                <div class='wrap-button'>
+                                    <input type='submit' value='Submit'>
+                                </div>
                             </fieldset>
                         </form>
                         <form id='rate-form' class='beer-menu-form' method='post' hidden>
@@ -65,9 +67,11 @@
                             <fieldset>
                                 <input class='rating-slider' name='ratingslider' type='range' min='1' max='5' step='1'>
                                 <output class='rating-slider' name='ratingoutput' for='rating-slider'>3</output>
-                                <textarea rows="7" name='ratingdescription'></textarea>
-                                <input type='submit' value='Submit'>
-                                <input type='reset' value='Reset'>
+                                <textarea rows="7" name='ratingdescription' required></textarea>
+                                <div class='wrap-button'>
+                                    <input type='submit' value='Submit'>
+                                    <input type='reset' value='Reset'>
+                                </div>
                             </fieldset>
                         </form>
                     </aside>

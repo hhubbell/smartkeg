@@ -192,10 +192,10 @@ BarGraph.prototype.render = function() {
         var bar_top = (1 - this.categories[i]) * this.height
 
         // ASSIGN COLOR BASED ON AMOUNT REMAINING
-        if (this.categories[i] < this.REM_MED) {
+        if (this.categories[i] < this.REM_LOW) {
+            rect.classList.add('low');
+        } else if (this.categories[i] < this.REM_MED) {
             rect.classList.add('medium');
-        } else if (this.categories[i] < this.REM_LOW) {
-            rect.classList.add('low');            
         } else {
             rect.classList.add('ok');
         }
