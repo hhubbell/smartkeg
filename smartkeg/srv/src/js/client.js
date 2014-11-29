@@ -126,8 +126,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
 
     element.polyempty();
 
-    for (var i = 0; i < this.brewer_offering.length; i++) {
-        var current = this.brewer_offering[i];
+    this.brewer_offering.forEach(function(current) {
         var radio = document.createElement('input');
         var label = document.createElement('label');
         radio.type = 'radio';
@@ -138,8 +137,6 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
         label.htmlFor = NAME + '-' + current.id;
         label.innerHTML = current.name;
 
-        console.log(current.id);
-
         radio.addEventListener('click', function() {
             self.render_confirm('#tap-form-confirm', current);
             this.parentElement.hidden = true;
@@ -148,7 +145,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
 
         element.appendChild(radio);
         element.appendChild(label);
-    }
+    });
 
     element.hidden = false;
 }
