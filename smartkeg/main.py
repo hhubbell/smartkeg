@@ -246,11 +246,14 @@ class Smartkeg(ParentProcess):
             self.proc_send(proc_name, json.dumps(output))
 
         elif message and message.get('type') == 'set':
-            if message['data'] == 'tap':
+            dat = message['data']
+            par = message['params']
+
+            if dat == 'tap':
                 params = (
                     self.fridge,
-                    message['params'].get('beer')[0],
-                    message['params'].get('volume')[0]
+                    par.get('beer')[0] if par.get('beer') else None,
+                    par.get('volume')[0] if par.get('volume') else None
                 )
 
                 stop = message['params'].get('replace')
@@ -259,11 +262,11 @@ class Smartkeg(ParentProcess):
     
                 self.dbi.INSERT(Query.INSERT_NEW_KEG, params=[params])
 
-            elif message['data'] == 'rate':
+            elif dat == 'rate':
                 params = (
-                    message['params'].get('beer')[0],
-                    message['params'].get('rating')[0],
-                    message['params'].get('comments')[0],
+                    par.get('beer')[0] if par.get('beer') else None,
+                    par.get('rating')[0] if par.get('rating') else None,
+                    par.get('comments')[0] if par.get('comments') else None,
                 )
 
                 self.dbi.INSERT(Query.INSERT_BEER_RATING, params=[params])

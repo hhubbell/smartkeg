@@ -69,6 +69,7 @@ class Query:
             state,
             country
         FROM Brewer
+        ORDER BY name
     """
 
     SELECT_BREWER_OFFERING = """
@@ -82,6 +83,7 @@ class Query:
         FROM Beer AS b
         LEFT JOIN BeerType AS bt ON b.type_id = bt.id
         WHERE b.brewer_id = %s
+        ORDER BY b.name
     """
     
     SELECT_CURRENT_KEGS = """
