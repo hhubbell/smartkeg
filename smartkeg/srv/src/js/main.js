@@ -131,6 +131,7 @@
     // -------------------
     window.onresize = function() {
         client.render_consumption();
+        client.render_remaining();
     }
 
 })();

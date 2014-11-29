@@ -185,6 +185,9 @@ BarGraph.prototype.set_defs = function() {
 }
 
 BarGraph.prototype.render = function() {
+    this.height = this.element.clientHeight;
+    this.width = this.element.clientWidth;
+
     var bar_width = (100 / this.categories.length || 1) + "%";
     var bar_x = this.width / this.categories.length;
     var TEXT_WIDTH = 124;
