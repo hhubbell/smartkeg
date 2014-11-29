@@ -61,7 +61,7 @@ then
         echo -e "    ${BOLD}NOTICE:${RESET} RPi.GPIO must be installed using pip or built from source.  You must complete this step yourself."
     fi
 
-    # RPi.GPIO
+    # qrcode
     # This also requires pip, unless the user builds from source.
     echo -ne "\tqrcode          "
     if pip2 list | grep qrcode > /dev/null;

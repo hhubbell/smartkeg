@@ -27,7 +27,8 @@ Smartkeg has the following dependencies, and the build script will check first t
 * pip
 * MySQL-python
 * RPi.GPIO
-* wxPython
+* qrcode
+* pywebkitgtk
 
 ##### Database
 **Note:** This step can be skipped by including the following argument: `--no-db`
