@@ -46,7 +46,7 @@ SmartkegClient.prototype.render = function() {
     this.render_beer();
     this.render_consumption();
     this.render_remaining();
-    this.temperature_display.innerHTML = this.temperature;
+    this.temperature_display.innerHTML = this.temperature.toFixed(2) + ' °F';
 }
 
 SmartkegClient.prototype.render_beer = function() {

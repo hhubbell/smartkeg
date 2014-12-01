@@ -215,7 +215,7 @@ BarGraph.prototype.render = function() {
         text.classList.add('remaining-text');
         text.setAttributeNS(null, 'x', this.width / 2 - TEXT_WIDTH / 2);
         text.setAttributeNS(null, 'y', this.height / 2);
-        text.textContent = this.categories[i] * 100 + '%';
+        text.textContent = (this.categories[i] * 100).toFixed(2) + '%';
 
         this.element.appendChild(rect);
         this.element.appendChild(text);

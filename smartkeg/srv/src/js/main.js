@@ -35,6 +35,7 @@
     Array.prototype.slice.call(client.close_forms, 0).forEach(function(i) { 
         i.addEventListener('click', function() {
             form = this.polyclosest('form');
+            window.alert(form);
             form.hidden = true;            
             fieldsets = Array.prototype.slice.call(form.getElementsByTagName('fieldset'), 0);
             fieldsets.slice(1).forEach(function(f) {
@@ -119,7 +120,7 @@
             console.log(payload);
 
             client.last_update_id = id;
-            client.temperature = payload.temperature || '-- °F';
+            client.temperature = payload.temperature || '--';
             client.kegs = payload.kegs
             client.render();                 
             client.render_tap_menu('#tap-form-taps');

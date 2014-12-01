@@ -1,5 +1,7 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300);
+
 * {
-    font-family:            helvetica;
+    font-family:            helvetica, 'Open Sans', sans-serif;
     font-size:              12pt;
 }
 
@@ -199,10 +201,11 @@ textarea {
 }
 
 #consumption-graph {
-    height:                 300px;
+    height:                 275px;
 }
 
 #current-temperature {
+    color:                  #2C3E50;
     padding-right:          3em;
     font-size:              18pt;
 }
@@ -238,7 +241,7 @@ textarea {
 
 #remaining-graph {
     vertical-align:         bottom;
-    /*height:                 400px;*/
+    height:                 150px;
 }
 
 /* -------------------- *
@@ -295,7 +298,7 @@ svg {
 
 .remaining-text {
     font-size:              36pt;
-    font-family:            helvetica;
+    font-family:            helvetica, "Open Sans", sans-serif;
     fill:                   #ECF0F1;
 }
 
@@ -332,6 +335,10 @@ svg {
     #hud {
         -webkit-flex-direction: column;
         flex-direction:     column;
+    }
+
+    #current-temperature {
+        padding-right:      0;
     }
 
     #qrcode {
