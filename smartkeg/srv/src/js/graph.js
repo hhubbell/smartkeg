@@ -53,17 +53,27 @@ ScatterPlot.prototype.set_style = function(style) {
     this.style = style;
 }
 
-ScatterPlot.prototype.render_points = function() {
+ScatterPlot.prototype.render_points = function(bottom) {
     var self = this;
 
     this.sets.forEach(function(set) {
         var radius = self.radius;
         var style = self.style;
-        var length = set.length;
+        var length = set[set.length - 1].x;
+ 
+        for (var i = 0; i < set.length; i++) {
+            var y_prog = set[i].y;
+            var j = i - 1;
+            
+            while (set[j]) {
+                y_prog += set[j].y;
+                j -= 1;
+            }
 
-        for (x in set) {
-            var y_val = self.height - set[x];
-            var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
+            var y_val = y_prog / bottom * self.height;
+
+            //var y_val = self.height - (set[i].y - (set[i-1] ? self.height - set[i-1].y : 0));
+            var x_val = ((set[i].x / length) * self.width) //+ ((self.width / length) / 2);
             var point = document.createElementNS(self.SVG_NS, style);
 
             point.classList.add('chart-day-mean');
@@ -85,61 +95,55 @@ ScatterPlot.prototype.render_points = function() {
 
 }
 
-ScatterPlot.prototype.render_seasonal_trendline = function(gradient) {
-    var self = this;
+ScatterPlot.prototype.render_seasonal_trendline = function(bottom, vertical_fix, start_percent, width_percent, set, type) {
+    this.height = this.element.clientHeight;
+    this.width = this.element.clientWidth;
+    
     var line = document.createElementNS(this.SVG_NS, 'polyline');
-    var line_string = '';
-
-    for (var i = 0; i < this.sets.length; i++) {
-        var set = this.sets[i];
-        var length = set.length
-
-        for (x in set) {
-            var y_val = this.height - set[x];
-            var x_val = ((x / length) * self.width) + ((self.width / length) / 2);
-            line_string += x_val + ',' + y_val + ' ';
-        }
-
-        line.classList.add('chart-trendline');
-
-        if (gradient) {
-            var gradient = document.createElementNS(this.SVG_NS, 'linearGradient');
-            var start = document.createElementNS(this.SVG_NS, 'stop');
-            var stop = document.createElementNS(this.SVG_NS, 'stop');
-
-            start.classList.add('chart-fillunder-start');
-            start.setAttributeNS(null, 'offset', '0%');
-
-            stop.classList.add('chart-fillunder-stop');
-            stop.setAttributeNS(null, 'offset', '100%');
-
-            gradient.setAttributeNS(null, 'id', 'chart-fillunder');
-            gradient.setAttributeNS(null, 'x1', '0%');
-            gradient.setAttributeNS(null, 'y1', '0%');
-            gradient.setAttributeNS(null, 'x2', '100%');
-            gradient.setAttributeNS(null, 'y2', '100%');
-            gradient.appendChild(start);
-            gradient.appendChild(stop);
-
-            this.defs.appendChild(gradient);
-
-            line.classList.add('chart-trendline-fill');
-            line.setAttributeNS(null, 'fill', 'url(#chart-fillunder)');
-        } else {
-            line.classList.add('chart-trendline-nofill');
-        }
-
-        line.setAttributeNS(null, 'points', line_string);
-        this.element.appendChild(line);
+    if (type == 'values') {
+        var line_string = '0,0 ';
+    } else {
+        var line_string = '';
     }
+    var start = start_percent * this.width;
+    var length = set[set.length - 1].x || 1;
+
+    for (var i = 0; i < set.length; i++) {
+
+        console.log(bottom, start_percent, width_percent, set)
+    
+        var y_prog = set[i].y;
+        var j = i - 1;
+            
+        while (set[j]) {
+            y_prog += set[j].y;
+            j -= 1;
+        }
+
+        var y_val = vertical_fix + (y_prog / bottom * this.height);
+        var x_val = start + (set[i].x / length) * (width_percent * this.width);
+        line_string += x_val + ',' + y_val + ' ';
+    }
+
+    if (type == 'values') {
+        line.classList.add('chart-trendline');
+    } else if (type == 'prediction') {
+        line.classList.add('chart-prediction');
+    }
+    
+    line.setAttributeNS(null, 'points', line_string);
+        
+    this.element.appendChild(line);
+
+    return y_val
 }
 
-ScatterPlot.prototype.render = function(points, trend) {
+ScatterPlot.prototype.render = function(max, points, trend) {
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
 
-    if (trend) this.render_seasonal_trendline();
-    if (points) this.render_points();
+    if (trend) this.render_seasonal_trendline(max);
+    if (points) this.render_points(max);
 }
 
 

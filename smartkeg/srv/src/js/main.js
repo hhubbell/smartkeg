@@ -35,7 +35,6 @@
     Array.prototype.slice.call(client.close_forms, 0).forEach(function(i) { 
         i.addEventListener('click', function() {
             form = this.polyclosest('form');
-            window.alert(form);
             form.hidden = true;            
             fieldsets = Array.prototype.slice.call(form.getElementsByTagName('fieldset'), 0);
             fieldsets.slice(1).forEach(function(f) {

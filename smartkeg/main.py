@@ -113,7 +113,9 @@ class Smartkeg(ParentProcess):
                     'abv': keg['abv'],
                     'ibu': keg['ibu'],
                     'rating': float(keg['rating']) if keg['rating'] else None
-                }
+                },
+                'falling': None,
+                'volume': keg['volume']
             })
 
     # --------------------
@@ -305,17 +307,22 @@ class Smartkeg(ParentProcess):
         """
         @Author:        Harrison Hubbell
         @Created:
-        @Description:   For now, it is just example data.
-
+        @Description:   Calculate the TSR Model based on current data.
         """
         self.daily_consumption = [x['amount'] for x in self.query_select_daily_consumption()]
         self.proc_send(proc_name, self.daily_consumption)
         prediction = self.proc_recv(proc_name)
 
         for keg in self.kegs:
-            keg['consumption']['days'] = prediction
+            keg['consumption']['days'] = [{'y': y, 'x': x} for x, y in enumerate(prediction)]
 
-        print self.kegs
+
+        # XXX This is filler to get the consumption over time
+        res = self.dbi.SELECT(Query.SELECT_CONSUMPTION_FROM_START) or [{'day': 0, 'amount': 0}]
+        falling_rate = [{'x': x['day'], 'y': x['amount']} for x in res]
+
+        for keg in self.kegs:
+            keg['falling'] = falling_rate
 
     # --------------------
     # SOCKET SERVER
@@ -345,7 +352,7 @@ class Smartkeg(ParentProcess):
 
         if temp_vals:
             self.temperatures = dict(temp_vals)
-            self.current_temp = sum(self.temperatures) / len(self.temperatures)
+            self.current_temp = sum(self.temperatures.values()) / len(self.temperatures.values())
             res = True
         else:
             res = False
@@ -469,6 +476,8 @@ if __name__ == '__main__':
     smartkeg.set_datagram('kegs', smartkeg.kegs)
     smartkeg.set_datagram('temperature', smartkeg.current_temp)
     smartkeg.socket_server_set_response(PROC['SOC'], smartkeg.datagram)
+
+    smartkeg.handle_led_display(PROC['LED'])
 
     while True:
         if smartkeg.flow_meter_get_pour(PROC['FLO']):

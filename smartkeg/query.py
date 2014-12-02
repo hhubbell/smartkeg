@@ -146,3 +146,15 @@ class Query:
         WHERE k.now_serving = 1
         GROUP BY k.id        
     """
+
+    SELECT_CONSUMPTION_FROM_START = """
+        SELECT
+            DATEDIFF(DATE(p.pour_time), DATE(k.date_started)) AS day,
+            SUM(p.volume) AS amount,
+            k.volume AS keg_volume
+        FROM Pour AS p
+        JOIN Keg AS k ON p.keg_id = k.id
+        WHERE k.now_serving = 1
+        GROUP BY DATE(p.pour_time)
+        ORDER BY day ASC
+    """

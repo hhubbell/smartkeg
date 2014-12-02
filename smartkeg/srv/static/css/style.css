@@ -262,14 +262,17 @@ svg {
 .chart-trendline {
     stroke:                 #16A085;
     stroke-width:           6px;
+    fill:                   none;    
+}
+
+.chart-prediction {
+    stroke:                 #D35400;
+    stroke-width:           6px;
+    fill:                   none;
 }
 
 .chart-trendline-fill {
     stroke:                 none;
-}
-
-.chart-trendline-nofill {
-    fill:                   none;
 }
 
 .chart-fillunder-start {
