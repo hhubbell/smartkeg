@@ -119,7 +119,7 @@
             console.log(payload);
 
             client.last_update_id = id;
-            client.temperature = payload.temperature || '--';
+            client.temperature = (payload.temperature) ? payload.temperature.toFixed(2) : '--';
             client.kegs = payload.kegs
             client.render();                 
             client.render_tap_menu('#tap-form-taps');

@@ -46,7 +46,7 @@ SmartkegClient.prototype.render = function() {
     this.render_beer();
     this.render_consumption();
     this.render_remaining();
-    this.temperature_display.innerHTML = this.temperature.toFixed(2) + ' °F';
+    this.temperature_display.innerHTML = this.temperature + ' °F';
 }
 
 SmartkegClient.prototype.render_beer = function() {
@@ -62,19 +62,10 @@ SmartkegClient.prototype.render_beer = function() {
 
 SmartkegClient.prototype.render_consumption = function() {
     var keg = this.kegs[this.render_index];
-
-    /*this.consumption_display.popall();
-    this.consumption_display.clear();
-    this.consumption_display.push(keg.consumption.days);
-    this.consumption_display.set_radius(keg.consumption.radius);
-    this.consumption_display.set_style(keg.consumption.style);
-    this.consumption_display.render(keg.volume, true, true);
-*/
-
+    
     this.consumption_display.clear();
     bottom = this.consumption_display.render_seasonal_trendline(keg.volume, 0, 0, (1 - keg.remaining.value), keg.falling, 'values');
 
-    console.log(bottom);
     this.consumption_display.render_seasonal_trendline(keg.volume, bottom, (1 - keg.remaining.value), keg.remaining.value, keg.consumption.days, 'prediction');
 
 }
@@ -186,6 +177,7 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
         var current = this.kegs[i];
         var radio = document.createElement('input');
         var label = document.createElement('label');
+ 
         radio.type = 'radio';
         radio.name = NAME;
         radio.value = current.id;

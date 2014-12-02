@@ -71,9 +71,7 @@ ScatterPlot.prototype.render_points = function(bottom) {
             }
 
             var y_val = y_prog / bottom * self.height;
-
-            //var y_val = self.height - (set[i].y - (set[i-1] ? self.height - set[i-1].y : 0));
-            var x_val = ((set[i].x / length) * self.width) //+ ((self.width / length) / 2);
+            var x_val = ((set[i].x / length) * self.width);
             var point = document.createElementNS(self.SVG_NS, style);
 
             point.classList.add('chart-day-mean');
@@ -108,10 +106,7 @@ ScatterPlot.prototype.render_seasonal_trendline = function(bottom, vertical_fix,
     var start = start_percent * this.width;
     var length = set[set.length - 1].x || 1;
 
-    for (var i = 0; i < set.length; i++) {
-
-        console.log(bottom, start_percent, width_percent, set)
-    
+    for (var i = 0; i < set.length; i++) { 
         var y_prog = set[i].y;
         var j = i - 1;
             
