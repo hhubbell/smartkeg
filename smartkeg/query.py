@@ -6,6 +6,103 @@
 # ----------------------------------------------------------------------------
 
 class Query:
+    def format_where(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format query params for a WHERE clause
+        """
+        fmt = 'AND'.join([" {} = %s ".format(x) for x in params.keys()]))
+        if fmt: fmt = 'WHERE' + fmt
+
+        return fmt
+
+    def format_values(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format query params for an INSERT VALUES clause
+        """
+        return '(' + ', '.join(params.keys()) + ') ' + \
+                'VALUES (' + ', '.join(['%s' for x in params.values()]) + ')'
+
+    def get_beers(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format a query to get beers based on params
+        """        
+        query = """
+            SELECT
+                b.id,
+                b.name,
+                b.abv,
+                b.ibu,
+                bt.type,
+                bt.subtype
+            FROM Beer AS b
+            LEFT JOIN BeerType AS bt ON b.type_id = bt.id
+            {}
+            ORDER BY b.name
+        """.format(obj.format_where(params))
+        
+        return query, params.values()
+
+    def get_brewers(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format a query to get brewers based on params
+        """
+        query = """
+            SELECT
+                id,
+                name,
+                city,
+                state,
+                country
+            FROM Brewer
+            ORDER BY name
+        """.format(obj.format_where(params))
+
+        return query, params.values()
+
+    def set_keg(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format a query to set a new keg based on params
+        """
+        query = """
+            INSERT INTO Keg {}        
+        """.format(obj.format_values(params))
+
+        return query, params.values()
+
+    def set_rating(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format a query to set a new rating based on params
+        """
+        query = """
+            INSERT INTO Keg {}        
+        """.format(obj.format_values(params))
+
+        return query, params.values()
+
+    def rem_keg(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       02/18/2015
+        @Description:   Format a query to stop a keg based on params
+        """
+        query = """
+            UPDATE Keg
+            SET now_serving = 0
+            WHERE id IN (%s)
+        """
+        return query, params.values()
     # --------------------
     # INSERTS
     # --------------------
