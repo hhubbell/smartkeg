@@ -55,8 +55,7 @@
         var self = this;
 
         var query_string = encodeURI(
-            'action=set&data=tap' +
-            '&replace=' + client.replace +
+            'api/set/keg?replace=' + client.replace +
             '&beer=' + this.id.value +
             '&volume=' + this.confirm_volume.value +
             '&passphrase=' + this.passphrase
@@ -90,9 +89,8 @@
     client.form_rate.onsubmit = function() {
         var self = this;
         var query_string = encodeURI(
-            "action=set" + 
-            "&data=rate" +
-            "&beer=" + client.kegs[client.render_index].beer.id +
+            "api/set/rate" + 
+            "?beer=" + client.kegs[client.render_index].beer.id +
             "&rating=" + this.ratingslider.value +
             "&comments=" + this.ratingdescription.value
         );

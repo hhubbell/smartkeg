@@ -103,7 +103,7 @@ SmartkegClient.prototype.render_brewers = function (selector) {
         label.innerHTML = current.name;
 
         radio.addEventListener('click', function () {
-            self.ajax.send('POST', 'action=get&data=offering&brewer=' + this.value).then(function (response) {
+            self.ajax.send('POST', 'api/get/beer?brewer_id=' + this.value).then(function (response) {
                 self.brewer_offering = JSON.parse(response);
                 self.render_brewer_offering('#tap-form-beer');
             });
@@ -188,7 +188,7 @@ SmartkegClient.prototype.render_tap_menu = function (selector) {
         
         radio.addEventListener('click', function () {
             self.replace = this.value;
-            self.ajax.send('POST', 'action=get&data=brewers').then(function (response) {
+            self.ajax.send('POST', 'api/get/brewer').then(function (response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
             });
