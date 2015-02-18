@@ -11,21 +11,21 @@ function Ajax(host) {
     this.host = host;
 }
 
-Ajax.prototype.send = function(method, payload) {
+Ajax.prototype.send = function (method, payload) {
     var self = this;
-    
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
         self.xmlhttp.open(method, self.host, true);
-        self.xmlhttp.onload = function() {
-            if (self.xmlhttp.status == 200) {
+        self.xmlhttp.onload = function () {
+            if (self.xmlhttp.status === 200) {
                 resolve(self.xmlhttp.response);
             } else {
-                reject(Error(self.xmlhttp.statusText));
+                reject(new Error(self.xmlhttp.statusText));
             }
         };
 
-        self.xmlhttp.onerror = function() {
-            reject(Error('Network Error'));
+        self.xmlhttp.onerror = function () {
+            reject(new Error('Network Error'));
         }
 
         self.xmlhttp.send(payload);

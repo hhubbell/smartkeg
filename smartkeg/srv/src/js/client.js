@@ -26,30 +26,30 @@ function SmartkegClient(socket) {
     this.menu = {};
 }
 
-SmartkegClient.prototype.set_beer_display = function(selector) {
+SmartkegClient.prototype.set_beer_display = function (selector) {
     this.beer_display = document.querySelector(selector);
 }
 
-SmartkegClient.prototype.set_consumption_display = function(selector) {
+SmartkegClient.prototype.set_consumption_display = function (selector) {
     this.consumption_display = new ScatterPlot(selector);
 }
 
-SmartkegClient.prototype.set_remaining_display = function(selector) {
+SmartkegClient.prototype.set_remaining_display = function (selector) {
     this.remaining_display = new BarGraph(selector);
 }
 
-SmartkegClient.prototype.set_temperature_display = function(selector) {
+SmartkegClient.prototype.set_temperature_display = function (selector) {
     this.temperature_display = document.querySelector(selector);
 }
 
-SmartkegClient.prototype.render = function() {
+SmartkegClient.prototype.render = function () {
     this.render_beer();
     this.render_consumption();
     this.render_remaining();
     this.temperature_display.innerHTML = this.temperature + ' °F';
 }
 
-SmartkegClient.prototype.render_beer = function() {
+SmartkegClient.prototype.render_beer = function () {
     var keg = this.kegs[this.render_index];
 
     for (var i = 0; i < this.beer_display.children.length; i++) {
@@ -60,7 +60,7 @@ SmartkegClient.prototype.render_beer = function() {
     }
 }
 
-SmartkegClient.prototype.render_consumption = function() {
+SmartkegClient.prototype.render_consumption = function () {
     var keg = this.kegs[this.render_index];
     
     this.consumption_display.clear();
@@ -70,7 +70,7 @@ SmartkegClient.prototype.render_consumption = function() {
 
 }
 
-SmartkegClient.prototype.render_remaining = function() {
+SmartkegClient.prototype.render_remaining = function () {
     var keg = this.kegs[this.render_index];
     
     this.remaining_display.popall();
@@ -83,7 +83,7 @@ SmartkegClient.prototype.render_remaining = function() {
 
 // THIS NEEDS REFACTORING BELOW
 
-SmartkegClient.prototype.render_brewers = function(selector) {
+SmartkegClient.prototype.render_brewers = function (selector) {
     var NAME = 'brewer';
     var self = this;
     var element = document.querySelector(selector);
@@ -102,8 +102,8 @@ SmartkegClient.prototype.render_brewers = function(selector) {
         label.htmlFor = NAME + '-' + current.name;
         label.innerHTML = current.name;
 
-        radio.addEventListener('click', function() {
-            self.ajax.send('POST', 'action=get&data=offering&brewer=' + this.value).then(function(response) {
+        radio.addEventListener('click', function () {
+            self.ajax.send('POST', 'action=get&data=offering&brewer=' + this.value).then(function (response) {
                 self.brewer_offering = JSON.parse(response);
                 self.render_brewer_offering('#tap-form-beer');
             });
@@ -118,14 +118,14 @@ SmartkegClient.prototype.render_brewers = function(selector) {
     element.hidden = false;
 }
 
-SmartkegClient.prototype.render_brewer_offering = function(selector) {
+SmartkegClient.prototype.render_brewer_offering = function (selector) {
     var NAME = 'beer';
     var self = this;
     var element = document.querySelector(selector);
 
     element.polyempty();
 
-    this.brewer_offering.forEach(function(current) {
+    this.brewer_offering.forEach(function (current) {
         var radio = document.createElement('input');
         var label = document.createElement('label');
         radio.type = 'radio';
@@ -136,7 +136,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
         label.htmlFor = NAME + '-' + current.id;
         label.innerHTML = current.name;
 
-        radio.addEventListener('click', function() {
+        radio.addEventListener('click', function () {
             self.render_confirm('#tap-form-confirm', current);
             this.parentElement.hidden = true;
             //XXX Add animation
@@ -149,7 +149,7 @@ SmartkegClient.prototype.render_brewer_offering = function(selector) {
     element.hidden = false;
 }
 
-SmartkegClient.prototype.render_confirm = function(selector, beer) {
+SmartkegClient.prototype.render_confirm = function (selector, beer) {
     var self = this;
     var element = document.querySelector(selector);
     var beer_id = document.querySelector('input[name=id]') || document.createElement('input');
@@ -166,7 +166,7 @@ SmartkegClient.prototype.render_confirm = function(selector, beer) {
     element.hidden = false;
 }
 
-SmartkegClient.prototype.render_tap_menu = function(selector) {
+SmartkegClient.prototype.render_tap_menu = function (selector) {
     var NAME = 'keg';
     var self = this;
     var element = document.querySelector(selector);
@@ -186,9 +186,9 @@ SmartkegClient.prototype.render_tap_menu = function(selector) {
         label.htmlFor = NAME + '-' + current.id;
         label.innerHTML = "Tap " + (i + 1) + ": " + current.beer.name + ' (' + (current.remaining.value * 100).toFixed(2) + '% remaining)';
         
-        radio.addEventListener('click', function() {
+        radio.addEventListener('click', function () {
             self.replace = this.value;
-            self.ajax.send('POST', 'action=get&data=brewers').then(function(response) {
+            self.ajax.send('POST', 'action=get&data=brewers').then(function (response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
             });
