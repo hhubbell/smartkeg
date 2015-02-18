@@ -56,9 +56,8 @@
 
         var query_string = encodeURI(
             'api/set/keg?replace=' + client.replace +
-            '&beer=' + this.id.value +
-            '&volume=' + this.confirm_volume.value +
-            '&passphrase=' + this.passphrase
+            '&beer_id=' + this.id.value +
+            '&volume=' + this.confirm_volume.value
         );
 
         console.log(query_string);
@@ -89,8 +88,8 @@
     client.form_rate.onsubmit = function() {
         var self = this;
         var query_string = encodeURI(
-            "api/set/rate" + 
-            "?beer=" + client.kegs[client.render_index].beer.id +
+            "api/set/rating" + 
+            "?beer_id=" + client.kegs[client.render_index].beer.id +
             "&rating=" + this.ratingslider.value +
             "&comments=" + this.ratingdescription.value
         );

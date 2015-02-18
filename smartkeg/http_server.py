@@ -106,7 +106,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     res = self.server.conn.SELECT(Query().get_brewers(params))
             elif path[0] == 'set':
                 if path[1] == 'keg':
-                    self.server.conn.UPDATE(Query().rem_keg(params))
+                    self.server.conn.UPDATE(Query().rem_keg(params.pop('replace', None)))
                     res = self.server.conn.INSERT(Query().set_keg(params))
                 elif path[1] == 'rating':
                     res = self.server.conn.INSERT(Query().set_rating(params))

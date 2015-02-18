@@ -102,7 +102,7 @@ class Query:
             SET now_serving = 0
             WHERE id IN (%s)
         """
-        return query, params.values()
+        return query, params
     # --------------------
     # INSERTS
     # --------------------
