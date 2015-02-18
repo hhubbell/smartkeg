@@ -9,6 +9,7 @@ from ConfigParser import ConfigParser
 from SocketServer import ThreadingMixIn
 from process import ChildProcess
 from logger import SmartkegLogger
+from query import Query
 import BaseHTTPServer
 import socket
 import qrcode
@@ -17,10 +18,13 @@ import json
 import urlparse
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    HTTP_OK  = 200
-    HTTP_MALFORMED = 400
-    HTTP_FILE_NOT_FOUND = 404
-    _INDEX = 'index.html'
+    _INDEX = 'index.html'    
+    HTTP = {
+        'OK':                   200,
+        'MALFORMED':            400,
+        'FILE_NOT_FOUND':       404,
+        'SERVICE_UNAVAILABLE':  503
+    }
 
     def get_content_type(self, req):
         """ 
@@ -37,18 +41,34 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if req.endswith('.png'):    return 'image/png'
         if req.endswith('.svg'):    return 'image/svg+xml'
 
-    def get_page(self):
+    def get_resource(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
-        @Description:   Locates the requested page.
+        @Description:   Locates the requested resource.
         """
-        if self.path[1:] is '':
-            page = self.server.root + self._INDEX
-        else:
-            page = self.server.root + self.path[1:]
+        page_buffer = None
+        content_type = None
 
-        return page
+        if self.path[1:4] == 'api':
+            if self.server.conn:
+                page_buffer = self.database_transaction(self.path[5:])
+                content_type = 'text/plain'
+            else:
+                self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
+
+        else:
+            page = self.server.root + self.INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
+            content_type = self.get_content_type(page)
+
+            try:
+                with open(page) as f:
+                    page_buffer = f.read()
+ 
+            except IOError:
+                self.send_error(self.HTTP['FILE_NOT_FOUND'])
+
+        return page_buffer, content_type
 
     def log_message(self, format, *args):
         """
@@ -59,6 +79,44 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         if self.server.logger: self.server.logger.log(('[HTTP Server]',) + args)
 
+    def database_transaction(self, message):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       12/14/2014
+        @Description:   Handle user requests that require database
+                        interaction.
+        """
+        res = None
+        parsed = urlparse.urlparse(message)
+        path = parsed.path.split('/')
+
+        if self.command == 'GET':
+            params = urlparse.parse_qs(parsed.query)
+        elif self.command == 'POST':
+            length = int(self.headers.getheader('Content-Length'))            
+            params = urlparse.parse_qs(self.rfile.read(length))
+
+        print path, params
+
+        if len(path) >= 2:
+            if path[0] == 'get':
+                if path[1] == 'beer': 
+                    res = self.server.conn.SELECT(Query().get_beers(params))
+                elif path[1] == 'brewer':
+                    res = self.server.conn.SELECT(Query().get_brewers(params))
+            elif path[0] == 'set':
+                if path[1] == 'keg':
+                    self.server.conn.UPDATE(Query().rem_keg(params))
+                    res = self.server.conn.INSERT(Query().set_keg(params))
+                elif path[1] == 'rating':
+                    res = self.server.conn.INSERT(Query().set_rating(params))
+            else:
+                self.send_error(self.HTTP['MALFORMED'])
+        else:
+            self.send_error(self.HTTP['MALFORMED'])
+        
+        return res
+
     # --------------------
     # HTTP METHODS
     # --------------------
@@ -68,83 +126,41 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         @Created:       09/01/2014
         @Description:   Overrides built in GET method to handle GET requests
         """
-        page = self.get_page()
-        content_type = self.get_content_type(page)
+        data, content_type = self.get_resource()
 
-        try:
-            with open(page) as p:
-                self.send_response(self.HTTP_OK)
-                self.send_header('Content-type', content_type)
-                self.end_headers()
-                self.wfile.write(p.read())
-        except IOError:
-            self.send_error(self.HTTP_FILE_NOT_FOUND)
+        if data and content_type:
+            self.send_response(self.HTTP['OK'])
+            self.send_header("Content-type", content_type)
+            self.end_headers()
+            self.wfile.write(data)
 
     def do_POST(self):
         """
         @Author:        Harrison Hubbell
         @Created:       11/21/2014
-        @Description:   Overrides built in POST method to handle POST
-                        requests, primarily from form submissions.
+        @Description:   Overrides built in POST method to handle POST requests
         """
-        length = int(self.headers.getheader('Content-Length'))
-        form_data = urlparse.parse_qs(self.rfile.read(length))
-        req_type = form_data.pop('action', None)[0]
+        data, content_type = self.get_resource()
 
-        if req_type == 'get' or req_type == 'set':
-            self.server.pipe.send({
-                'type': req_type,
-                'data': form_data.pop('data', None)[0],
-                'params': form_data
-            })
-
-            response = self.server.pipe.recv()
-            self.send_response(self.HTTP_OK)
-            self.send_header('Content-type', 'text/plain')
+        if data and content_type:
+            self.send_response(self.HTTP['OK'])
+            self.send_header("Content-type", content_type)
             self.end_headers()
-            self.wfile.write(response)
-            
-        else:
-            self.send_error(self.HTTP_MALFORMED)
+            self.wfile.write(data)
 
 
-class HTTPServer(BaseHTTPServer.HTTPServer):
-    def set_connection(self, pipe):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/21/2014
-        @Description:   Sets process connection
-        """
-        self.pipe = pipe
-
-    def set_logger(self, logger):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/21/2014
-        @Description:   Sets logger object of server.
-        """
-        self.logger = logger
-
-    def set_root_directory(self, directory):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/21/2014
-        @Description:   Sets the directory to serve files from.
-        """
-        self.root = directory
-
-
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """Handle Requests in a Seperate Thread."""
 
 
 class SmartkegHTTPServer(ChildProcess):
-    def __init__(self, pipe, host, port, directory, logger=None):
+    def __init__(self, pipe, host, port, directory, logger=None, conn=None):
         super(SmartkegHTTPServer, self).__init__(pipe)    
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
-        self.httpd.set_root_directory(directory)
-        self.httpd.set_connection(pipe)
-        self.httpd.set_logger(logger)
+        self.httpd.root = directory
+        self.httpd.pipe = pipe
+        self.httpd.logger = logger
+        self.httpd.conn = conn
         self.create_qrcode()
 
     def create_qrcode(self):
@@ -173,5 +189,5 @@ class SmartkegHTTPServer(ChildProcess):
         image = qr.make_image()
         image.save(self.httpd.root + 'static/img/qrcode.svg')
 
-    def main(self):
+    def serve_forever(self):
         self.httpd.serve_forever()
