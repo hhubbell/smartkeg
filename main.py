@@ -14,19 +14,12 @@ import time
 import json
 import os
 
-_BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
-_CONFIG_PATH = _BASE_DIR + 'etc/config.cfg'
-LOGGER = SmartkegLogger(_CONFIG_PATH)
-CFG = ConfigParser()
-TSR_PERIODS = 7
-
 def config(path):
     """
     @Author:        Harrison Hubbell
     @Created:       03/18/2015
     @Description:   Gathers config info and returns a serialized JSON object.
     """
-
     with open(PATH, 'r') as f:
         return json.load(f)
 
@@ -39,7 +32,7 @@ def db_connect(cfg):
     """
     LOGGER.log('Initializing Database Connection.')
 
-    return DatabaseInterface(
+    return smartkeg.DatabaseInterface(
         cfg['address'],
         cfg['schema'],
         cfg['user'],
@@ -70,38 +63,38 @@ def proc_poll_recv(node):
     """
     if node.poll(): return node.recv()
     
-def spawn_flow_meter(pipe, cfg, dbi=None):
+def spawn_flow_meter(pipe, cfg, logger=None, dbi=None):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
     @Description:   Creates the Flow Meter process.
     """
-    flo = FlowMeterController(cfg['pin'], pipe=pipe, dbi=dbi, logger=LOGGER)
+    flo = smartkeg.FlowMeterController(cfg['pin'], pipe=pipe, dbi=dbi, logger=logger)
     flo.run()
 
-def spawn_http_server(pipe, cfg, path, dbi=None):
+def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
     @Description:   Creates the HTTP Server process.
     """
-    srv = HTTPServer(cfg['host'], cfg['port'], path, pipe=pipe, logger=LOGGER)
+    srv = smartkeg.HTTPServer(cfg['host'], cfg['port'], path, pipe=pipe, logger=logger)
     srv.serve_forever()
 
-def spawn_temp_sensor(pipe, cfg, dbi=None):
+def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
         @Description:   Creates the Temperature Sensor process.
         """
-        tmp = TemperatureSensorReader(
+        tmp = smartkeg.TemperatureSensorReader(
             cfg['interval'],
             cfg['directory'],
             cfg['file'],
             cfg['sensors'],
             pipe=pipe,
             dbi=dbi,
-            logger=LOGGER
+            logger=logger
         )
 
         tmp.run()
@@ -112,12 +105,15 @@ if __name__ == '__main__':
 
     CFG_PATH = os.path.dirname(os.path.realpath(__file__)) + '/etc/config.cfg'    
     SRV_PATH = os.path.dirname(os.path.realpath(__file__)) + '/srv/'
+    TSR_PERIODS = 7
 
-    cfg = config(CFG_PATH)    
+    cfg = config(CFG_PATH)  
+    log = smartkeg.Logger(cfg['logger'])
+    
     procs = {
-        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'],)),
+        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log)),
         'MOD': 'model',
         'SOC': 'socket_server',
-        'TMP': proc_add(spawn_temperature_sensor, args=(cfg['temp_sensor'],)),
-        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH))
+        'TMP': proc_add(spawn_temperature_sensor, args=(cfg['temp_sensor'], log)),
+        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))
     }
