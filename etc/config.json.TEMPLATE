@@ -9,7 +9,7 @@
         "schema": "Kegerator"
     },
     "logger": {
-        "directory": "etc/log/",
+        "directory": "/var/log/smartkeg/",
         "file": "smartkeg"        
     },
     "server": {

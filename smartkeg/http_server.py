@@ -151,7 +151,7 @@ class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 
 class HTTPServer(object):
-    def __init__(self, host, port, path, pipe=None, dbi=None, logger=None,):
+    def __init__(self, host, port, path, pipe=None, dbi=None, logger=None):
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         self.httpd.root = path
         self.httpd.pipe = pipe
