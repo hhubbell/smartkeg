@@ -8,21 +8,22 @@
 #               be made to handle multiple FlowMeters in form of child procs.
 # ----------------------------------------------------------------------------
 
-from process import ChildProcess
+from multiprocessing import Process, Queue
+from smartkeg import Query
 import RPi.GPIO as GPIO
 import time
 
-class FlowMeter(ChildProcess):
+class FlowMeter(object):
     _PINTS_PER_LITER = 2.11338
     _PULSES_PER_LITER = 450.00
     _TIMEOUT = 2.00
 
-    def __init__(self, pipe, gpio, pin):
-        super(FlowMeter, self).__init__(pipe)
-        self.GPIO = gpio
+    def __init__(self, pin, conn):
         self.pin = pin
+        self.conn = conn
         self.units = 'Pints'
         self.ticks = 0
+        self.setup_data_pin()
 
     def convert_ticks_to_pints(self):
         """
@@ -51,8 +52,8 @@ class FlowMeter(ChildProcess):
         @Created:       10/04/2014
         @Description:   Prepares the data pin for incoming voltage
         """
-        self.GPIO.setup(self.pin, self.GPIO.IN)
-        self.GPIO.add_event_detect(self.pin, self.GPIO.RISING)
+        GPIO.setup(self.pin, GPIO.IN)
+        GPIO.add_event_detect(self.pin, GPIO.RISING)
 
     def monitor_flow(self):
         """
@@ -64,27 +65,50 @@ class FlowMeter(ChildProcess):
         while True:
             if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
                 self.convert_ticks_to_pints()
-                self.logger.log(('[Flow Meter]', 'flow detected', self.pints, self.units))                
-                self.proc_send(self.pints)
+                self.conn.put(self.pints)
                 self.reset_ticks()
 
-            if self.GPIO.event_detected(self.pin):
+            if GPIO.event_detected(self.pin):
                 self.ticks += 1
                 self.last_tick = time.time()
             else:
                 time.sleep(0.1)
 
-class FlowMeterReader(ChildProcess):
-    def __init__(self, pipe, gpio, pin):
-        super(FlowMeterReader, self).__init__(pipe)
-        self.flow_meter = FlowMeter(pipe, gpio, pin)
+class FlowMeterController(object):
+    def __init__(self, pins, pipe=None, dbi=None, logger=None):
+        self.dbi = dbi        
+        self.fmq = Queue()
+        self.fms = register_meters(pins)        
+        self.logger = logger        
+        self.pipe = pipe
 
-    def main(self):
+    def register_meters(self, pins):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/05/2015
+        @Description:   Create a FlowMeter thread for each pin which allows
+                        the controller to accept flow input from multiple 
+                        taps.
+        """
+        fms = []
+        for pin in pins:
+            fm = FlowMeter(pin, self.fmq)
+            p = Process(target=fm.monitor_flow())
+            p.start()
+            
+            fms.append(fm)
+
+        return fms
+
+    def run(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
         @Description:   Starts monitor the FlowMeter for pouring
         """
-        self.flow_meter.setup_data_pin()
-        self.flow_meter.monitor_flow()
+        while True:
+            while not fmq.empty():
+                data = fmq.get()
+                self.logger.log(('[Flow Meter]', 'flow detected', data))
+                self.pipe.send(data)
 

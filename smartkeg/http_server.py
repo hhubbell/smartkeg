@@ -5,11 +5,8 @@
 # Description:  Is responsible for serving data over HTTP
 # ----------------------------------------------------------------------------
 
-from ConfigParser import ConfigParser
 from SocketServer import ThreadingMixIn
-from process import ChildProcess
-from logger import SmartkegLogger
-from query import Query
+from smartkeg import Query
 import BaseHTTPServer
 import socket
 import qrcode
@@ -153,11 +150,10 @@ class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """Handle Requests in a Seperate Thread."""
 
 
-class SmartkegHTTPServer(ChildProcess):
-    def __init__(self, pipe, host, port, directory, logger=None, conn=None):
-        super(SmartkegHTTPServer, self).__init__(pipe)    
+class HTTPServer(object):
+    def __init__(self, host, port, path, pipe=None, dbi=None, logger=None,):
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
-        self.httpd.root = directory
+        self.httpd.root = path
         self.httpd.pipe = pipe
         self.httpd.logger = logger
         self.httpd.conn = conn

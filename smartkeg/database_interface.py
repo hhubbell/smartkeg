@@ -28,7 +28,6 @@ class DatabaseInterface(object):
         """
         try:
             self.conn = MySQLdb.connect(addr, user, pwd, dbn, cursorclass=MySQLdb.cursors.DictCursor)
-            self.log_message(('[Database Interface]', 'Successfully connected to', dbn, 'as user', user))
         except MySQLdb.OperationalError as e:
             self.log_message(('[Database Interface]', 'Could not connect to the database for the following reason:', e))
 
@@ -58,7 +57,6 @@ class DatabaseInterface(object):
         try:
             self.cur.executemany(query, params)
             self.conn.commit()
-            self.log_message(('[Database Interface]', 'Successful INSERT transaction with the following data:', '\nQuery:\n', query, '\nParams:\n', params))
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed INSERT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
@@ -73,7 +71,6 @@ class DatabaseInterface(object):
         try:
             self.cur.execute(query, params)
             res = self.cur.fetchall()
-            self.log_message(('[Database Interface]', 'Successful SELECT transaction with the following data:', '\nQuery:\n', query, '\nParams:\n', params))
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed SELECT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
@@ -91,7 +88,6 @@ class DatabaseInterface(object):
         try:
             self.cur.execute(query, params)
             self.conn.commit()
-            self.log_message(('[Database Interface]', 'Successful UPDATE transaction with the following data:', '\nQuery:\n', query, '\nParams:\n', params))
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed UPDATE transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))

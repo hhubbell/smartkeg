@@ -79,6 +79,18 @@ class Query:
 
         return query, params.values()
 
+    def set_pour(obj, params):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/05/2015
+        @Description:   Format a query to insert a new pour
+        """
+        query = """
+            INSERT INTO Pour {}
+        """.format(obj.format_values(params))
+
+        return query params.values()
+
     def set_rating(obj, params):
         """
         @Author:        Harrison Hubbell

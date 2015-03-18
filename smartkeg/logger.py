@@ -11,7 +11,7 @@ from ConfigParser import ConfigParser
 import logging
 import time
 
-class SmartkegLogger(object):
+class Logger(object):
     _BASE_DIR = '/usr/local/src/smartkeg/'
 
     def __init__(self, config_path):

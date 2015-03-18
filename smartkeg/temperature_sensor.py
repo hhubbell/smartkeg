@@ -7,11 +7,10 @@
 #               sensor to generate temperature values.
 # ----------------------------------------------------------------------------
 
-from process import ChildProcess
 import time
 import re
 
-class TemperatureSensor:
+class TemperatureSensor(object):
     TEMP_SCALE = 1000.00
 
     def __init__(self, sensor_path, name, logger):
@@ -54,11 +53,16 @@ class TemperatureSensor:
 
 
 
-class TemperatureSensorReader(ChildProcess):
-    def __init__(self, pipe, interval):
-        super(TemperatureSensorReader, self).__init__(pipe)
+class TemperatureSensorReader(object):
+    def __init__(self,  sensors, path, fname, interval, pipe=None, dbi=None, logger=None):
+        self.dbi = dbi
         self.interval = interval
+        self.logger = logger
+        self.pipe = pipe
         self.sensors = {}
+
+        for sensor in sensors:
+            self.sensor_add(sensor, path, fname)
 
     def sensor_add(self, sensor, therm_dir, filename):
         """
@@ -103,7 +107,7 @@ class TemperatureSensorReader(ChildProcess):
         """
         return celcius * 1.8 + 32
 
-    def main(self):
+    def run(self):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
@@ -120,6 +124,6 @@ class TemperatureSensorReader(ChildProcess):
                 self.logger.log(('[Temperature Sensor]', sensor, fahrenheit_temps[sensor], 'F'))
 
             if fahrenheit_temps: 
-                self.proc_send(fahrenheit_temps)
+                self.pipe.send(fahrenheit_temps)
 
             time.sleep(self.interval)
