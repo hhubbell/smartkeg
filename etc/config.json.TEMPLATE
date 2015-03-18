@@ -1,0 +1,28 @@
+{
+    "fridge": {
+        "name": "smartkeg"
+    },
+    "database": {
+        "user": "smartkeg",
+        "password": "password",
+        "address": "localhost",
+        "schema": "Kegerator"
+    },
+    "logger": {
+        "directory": "etc/log/",
+        "file": "smartkeg"        
+    },
+    "server": {
+        "host": "",
+        "port": 80
+    },
+    "flow_meter": {
+        "pin": 12
+    },
+    "temp_sensor": {
+        "interval": 300,
+        "sensors": ["28-000005748f01", "28-00000574d4ae"],
+        "directory": "/sys/bus/w1/devices/",
+        "file": "w1_slave"
+    }
+}

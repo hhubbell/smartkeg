@@ -1,0 +1,30 @@
+[Fridge]
+name = smartkeg
+
+[MariaDB]
+usr = smartkeg  # This can be whatever you want to call your db reporter
+pwd = password  # Make it strong
+adr = localhost
+dbn = Kegerator
+
+[SmartkegLogger]
+dir = etc/log/  # Local path, change it if you want
+file = smartkeg # Seems pretty standard to call it this, a date will 
+                # also be appended before the file extension.
+
+[SmartkegHTTPServer]
+host =          # AKA localhost
+port = 80       # Or, whatever port you want to serve over
+
+[SmartkegSocketServer]
+host =          # AKA localhost
+port = 8000     # Or, whatever port you want to serve over
+
+[SmartkegFlowMeter]
+data_pin = 12   # Hardware specific
+
+[SmartkegTemperatureSensor]
+interval = 18000
+sensors = 28-000005748f01,28-00000574d4ae   # Hardware specific
+dir = /sys/bus/w1/devices/
+file = w1_slave
