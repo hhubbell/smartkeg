@@ -119,18 +119,21 @@ if ! echo $@ | grep -e $nogui > /dev/null;
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
-    echo -e "\tMoving file to bin path: ${BIN_PATH}"
-    sudo cp smartkeg/gui.py $BIN_PATH/smartkeg
-    echo -e "\tMaking file executable"
-    chmod +x $BIN_PATH/smartkeg
+    echo -e "\tMoving GUI file to bin path: ${BIN_PATH}"
+    sudo cp smartkeg/gui.py $BIN_PATH/smartkeg-gui
+    chmod +x $BIN_PATH/smartkeg-gui
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
 echo -e "\tMoving files to src path: ${SRC_PATH}"
 sudo cp -r smartkeg/ $SRC_PATH/
 
+echo -e "\tMoving executable to bin path: ${BIN_PATH}"
+sudo cp main.py $BIN_PATH/smartkeg
+chmod +x $BIN_PATH/smartkeg
+
 echo -e "\tCreating service files"
-sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/src/smartkeg/main.py\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
+sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
 
 echo -e "\tReload Service Daemons"
 sudo systemctl daemon-reload
