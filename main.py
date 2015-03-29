@@ -20,7 +20,7 @@ def config(path):
     @Created:       03/18/2015
     @Description:   Gathers config info and returns a serialized JSON object.
     """
-    with open(PATH, 'r') as f:
+    with open(path, 'r') as f:
         return json.load(f)
 
 def db_connect(cfg):
@@ -69,7 +69,12 @@ def spawn_flow_meter(pipe, cfg, logger=None, dbi=None):
     @Created:       08/31/2014
     @Description:   Creates the Flow Meter process.
     """
-    flo = smartkeg.FlowMeterController(cfg['pin'], pipe=pipe, dbi=dbi, logger=logger)
+    flo = smartkeg.FlowMeterController(
+        cfg['pin'],
+        pipe=pipe,
+        dbi=dbi,
+        logger=logger
+    )
     flo.run()
 
 def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
@@ -78,7 +83,14 @@ def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
     @Created:       08/31/2014
     @Description:   Creates the HTTP Server process.
     """
-    srv = smartkeg.HTTPServer(cfg['host'], cfg['port'], path, pipe=pipe, logger=logger)
+    srv = smartkeg.HTTPServer(
+        cfg['host'],
+        cfg['port'],
+        path,
+        pipe=pipe,
+        dbi=dbi,
+        logger=logger
+    )
     srv.serve_forever()
 
 def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
@@ -103,8 +115,8 @@ def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BOARD)
 
-    CFG_PATH = os.path.dirname(os.path.realpath(__file__)) + '/etc/config.cfg'    
-    SRV_PATH = os.path.dirname(os.path.realpath(__file__)) + '/srv/'
+    CFG_PATH = '/etc/smartkeg/config.json'    
+    SRV_PATH = '/srv/smartkeg/'
     TSR_PERIODS = 7
 
     cfg = config(CFG_PATH)  
