@@ -4,6 +4,7 @@ PKG_PATH="/usr/lib/python2.7/site-packages"
 BIN_PATH="/usr/local/bin"
 SRV_PATH="/srv/smartkeg"
 CFG_PATH="/etc/smartkeg"
+LOG_PATH="/var/log/smartkeg"
 
 PKG_MGR="pacman"
 PKG_INSTALL="-S"
@@ -142,13 +143,16 @@ echo -e "\tMoving server files to server path: ${SRV_PATH}"
 sudo mkdir -p $SRV_PATH
 sudo cp -r srv/* $SRV_PATH
 
+echo -e "\tCreating log file directory: ${LOG_PATH}"
+sudo mkdir -p $LOG_PATH
+
 echo -e "\tCreating service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
 
 echo -e "\tReload Service Daemons"
 sudo systemctl daemon-reload
 
-echo -e "\t${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\t\tsudo systemctl enable smartkeg"
+echo -e "\n\t${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\t\tsudo systemctl enable smartkeg"
 
 echo -e "\n${BOLD}Done!${RESET}"
 
