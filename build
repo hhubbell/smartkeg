@@ -1,7 +1,9 @@
 #!/bin/bash
 
-SRC_PATH="/usr/local/src"
+PKG_PATH="/usr/lib/python2.7/site-packages"
 BIN_PATH="/usr/local/bin"
+SRV_PATH="/srv/smartkeg"
+CFG_PATH="/etc/smartkeg"
 
 PKG_MGR="pacman"
 PKG_INSTALL="-S"
@@ -108,7 +110,7 @@ then
     read user
 
     echo -ne "\t"
-    mysql -u $user -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source smartkeg/static/sql/build.sql; source smartkeg/static/sql/data.sql;"
+    mysql -u $user -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source static/sql/build.sql; source static/sql/data.sql;"
 
     echo -e "\tCreated user 'smartkeg'"
     echo -e "\tCreated tables"
@@ -125,12 +127,20 @@ then
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
-echo -e "\tMoving files to src path: ${SRC_PATH}"
-sudo cp -r smartkeg/ $SRC_PATH/
+echo -e "\tInstalling smartkeg package"
+sudo cp -r smartkeg/ $PKG_PATH/
 
 echo -e "\tMoving executable to bin path: ${BIN_PATH}"
 sudo cp main.py $BIN_PATH/smartkeg
 chmod +x $BIN_PATH/smartkeg
+
+echo -e "\tMoving configuration files to config path: ${CFG_PATH}"
+sudo mkdir -p $CFG_PATH
+sudo cp -r etc/ $CFG_PATH
+
+echo -e "\tMoving server files to server path: ${SRV_PATH}"
+sudo mkdir -p $SRV_PATH
+sudo cp -r srv/ $SRV_PATH
 
 echo -e "\tCreating service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
