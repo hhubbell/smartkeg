@@ -142,6 +142,6 @@ if __name__ == '__main__':
         'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log)),
         'MOD': proc_add(spawn_model, args=(log,)),
         'SOC': 'socket_server',
-        'TMP': proc_add(spawn_temperature_sensor, args=(cfg['temp_sensor'], log)),
+        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log)),
         'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))
     }
