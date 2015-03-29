@@ -41,6 +41,15 @@ def db_connect(cfg):
         logger=LOGGER
     )
 
+def start_all(procs):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       10/05/2014
+    @Description:   Starts all processes in the procs list.
+    """
+    for proc in procs:
+        proc.start()
+
 def proc_add(target, args=None, name=None):
     """
     @Author:        Harrison Hubbell
@@ -137,11 +146,22 @@ if __name__ == '__main__':
 
     cfg = config(CFG_PATH)
     log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
-    
     procs = {
-        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log)),
-        'MOD': proc_add(spawn_model, args=(log,)),
-        'SOC': 'socket_server',
-        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log)),
-        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))
+        'FLO': {'proc': None, 'pipe': None},
+        'MOD': {'proc': None, 'pipe': None},
+        'SOC': {'proc': None, 'pipe': None},
+        'TMP': {'proc': None, 'pipe': None},
+        'WEB': {'proc': None, 'pipe': None}
     }
+
+    procs['FLO']['proc'], procs['FLO']['pipe'] = proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log))
+    procs['MOD']['proc'], procs['MOD']['pipe'] = proc_add(spawn_model, args=(log,))
+    procs['SOC']['proc'], procs['SOC']['pipe'] = 'socket_server', 'shmocket_server'
+    procs['TMP']['proc'], procs['TMP']['pipe'] = proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log))
+    procs['WEB']['proc'], procs['WEB']['pipe'] = proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))
+
+    start_all([procs[x]['proc'] for x in procs])
+
+    while True:
+        
+        time.sleep(0.1)
