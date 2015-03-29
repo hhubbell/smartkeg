@@ -9,8 +9,6 @@
 #               allow connections from any origin.
 # ----------------------------------------------------------------------------
 
-from process import ChildProcess
-from logger import SmartkegLogger
 import SocketServer
 import StringIO
 import time
@@ -67,15 +65,13 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         self.wfile.write(self.response_headers)
         self.wfile.write(self.server.response)
 
-        #self.log_message(('[Socket Server]', 'Request from', self.client_address[0], 'responded with response id', self.server.update_id))
-
     def gzip(self, body):
         """
         @Author:        Harrison Hubbell
         @Created:       11/03/2014
         @Description:   Compresses response body.
 
-        XXX: Currently Not Used
+        XXX: Currently not used nor working.  Responses are malformed.
         """
         output = StringIO.StringIO()
         return output.write(zlib.compressobj(body))
@@ -90,56 +86,33 @@ class TCPServer(SocketServer.TCPServer):
         """
         if self.logger: self.logger.log(message)
 
-    def set_logger(self, logger):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/21/2014
-        @Description:   Sets logger object of server.
-        """
-        self.logger = logger
-
-    def set_response(self, identifier, data):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/07/2014
-        @Description:   Allows other Python objects to set the default
-                        response date of the handler.
-        """
-        self.update_id = identifier
-        self.response = 'id: ' + str(identifier) + '\n' \
-                        'data: ' + data + '\n\n'
-
-        self.log_message(('[Socket Server]', 'New response ID:', self.update_id))
-
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, TCPServer):
     """Handle Requests in a Seperate Thread."""
 
 
-class SmartkegSocketServer(ChildProcess):
-    def __init__(self, pipe, host, port, logger=None):
-        super(SmartkegSocketServer, self).__init__(pipe)
+class SocketServer(object):
+    def __init__(self, host, port, pipe=None, logger=None):
         self.tcpd = ThreadedTCPServer((host, port), TCPHandler)
-        self.tcpd.set_logger(logger)
+        self.tcpd.logger = logger
         self.update_id = 0
 
     def set_response(self, identifier, data):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
-        @Description:   Abstracts the TCPServer set_response out a bit
-                        further to add the ability for any object using
-                        SmartkegSocketServer to set the response.
+        @Description:   Manages setting the TCPServer reponse.
         """
-        self.tcpd.set_response(identifier, data)
-
+        self.tcpd.update_id = identifier
+        self.tcpd.response = 'id: {}\ndata: {}\n\n'.format(identifier, data)
+        
     def respond(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/07/2014
         @Description:   Handle a single request.
         """
-        self.tcpd.handle_request()
+        self.tcpd.handle()
 
     def main(self):
         """
