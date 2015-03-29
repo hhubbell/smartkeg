@@ -53,7 +53,7 @@ class TemperatureSensor(object):
 
 
 
-class TemperatureSensorReader(object):
+class TemperatureSensorController(object):
     def __init__(self,  sensors, path, fname, interval, pipe=None, dbi=None, logger=None):
         self.dbi = dbi
         self.interval = interval

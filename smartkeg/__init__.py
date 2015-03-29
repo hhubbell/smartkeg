@@ -1,9 +1,8 @@
 from database_interface import DatabaseInterface
-from temperature_sensor import TemperatureSensorReader
+from temperature_sensor import TemperatureSensorController
 from socket_server import SocketServer
 from http_server import HTTPServer
-from led_display import LEDDisplay
-from flow_meter import FlowMeterReader
+from flow_meter import FlowMeterController
 from logger import Logger
 from model import ModelMaker, TimeSeriesRegression
 from query import Query

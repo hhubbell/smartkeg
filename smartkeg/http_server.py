@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 from SocketServer import ThreadingMixIn
-from smartkeg import Query
+from query import Query
 import BaseHTTPServer
 import socket
 import qrcode

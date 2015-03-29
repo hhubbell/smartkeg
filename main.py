@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # ----------------------------------------------------------------------------
 # Filename:     main.py
 # Author:       Harrison Hubbell
@@ -47,7 +48,7 @@ def proc_add(target, args=None, name=None):
     @Description:   Adds a process and manages creating the pipes
                     between both nodes.
     """
-    if args is None: args = (,)
+    if args is None: args = ()
     
     pipe_to, pipe_from = Pipe()
     args = (pipe_from,) + args

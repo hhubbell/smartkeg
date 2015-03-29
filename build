@@ -123,7 +123,7 @@ then
 
     echo -e "\tMoving GUI file to bin path: ${BIN_PATH}"
     sudo cp smartkeg/gui.py $BIN_PATH/smartkeg-gui
-    chmod +x $BIN_PATH/smartkeg-gui
+    sudo chmod +x $BIN_PATH/smartkeg-gui
 fi
 
 echo -e "\n${BLUE}=>${RESET} Configuring System\n"
@@ -132,14 +132,12 @@ sudo cp -r smartkeg/ $PKG_PATH/
 
 echo -e "\tMoving executable to bin path: ${BIN_PATH}"
 sudo cp main.py $BIN_PATH/smartkeg
-chmod +x $BIN_PATH/smartkeg
+sudo chmod +x $BIN_PATH/smartkeg
 
 echo -e "\tMoving configuration files to config path: ${CFG_PATH}"
-sudo mkdir -p $CFG_PATH
 sudo cp -r etc/ $CFG_PATH
 
 echo -e "\tMoving server files to server path: ${SRV_PATH}"
-sudo mkdir -p $SRV_PATH
 sudo cp -r srv/ $SRV_PATH
 
 echo -e "\tCreating service files"

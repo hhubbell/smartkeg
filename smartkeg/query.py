@@ -12,7 +12,7 @@ class Query:
         @Created:       02/18/2015
         @Description:   Format query params for a WHERE clause
         """
-        fmt = 'AND'.join([" {} = %s ".format(x) for x in params.keys()]))
+        fmt = 'AND'.join([" {} = %s ".format(x) for x in params.keys()])
         if fmt: fmt = 'WHERE' + fmt
 
         return fmt
@@ -89,7 +89,7 @@ class Query:
             INSERT INTO Pour {}
         """.format(obj.format_values(params))
 
-        return query params.values()
+        return query, params.values()
 
     def set_rating(obj, params):
         """

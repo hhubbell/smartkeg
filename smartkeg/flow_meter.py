@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Process, Queue
-from smartkeg import Query
+from query import Query
 import RPi.GPIO as GPIO
 import time
 
