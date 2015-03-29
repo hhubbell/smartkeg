@@ -6,7 +6,7 @@ Accurate demand forecasting is critical to successful long term business strateg
 The system is currently designed to be run on a Raspberry Pi board with Arch Linux ARM Operating System.  The Smartkeg system logs refrigerator temperature and beer temperature using a 3-pin temperature sensor, and consumption rates are logged using a 3-pin flow meter.  These peripherals are connected to the Raspberry Pi's GPIO pins.  The machine uses historic consumption data to build future predictions, allowing users to be notified when a refill will be necessary - and gives alerts via a web interface, which is served up through the Raspberry Pi on a simple Python stack.
 
 ## Status
-This project is currently under construction.
+This project is under active development.
 
 ## Getting Started
 To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board running Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
