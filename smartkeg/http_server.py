@@ -55,7 +55,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
 
         else:
-            page = self.server.root + self.INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
+            page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
             content_type = self.get_content_type(page)
 
             try:
@@ -156,7 +156,7 @@ class HTTPServer(object):
         self.httpd.root = path
         self.httpd.pipe = pipe
         self.httpd.logger = logger
-        self.httpd.conn = conn
+        self.httpd.conn = dbi
         self.create_qrcode()
 
     def create_qrcode(self):

@@ -125,11 +125,11 @@ def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
         @Created:       08/31/2014
         @Description:   Creates the Temperature Sensor process.
         """
-        tmp = smartkeg.TemperatureSensorReader(
-            cfg['interval'],
+        tmp = smartkeg.TemperatureSensorController(
+            cfg['sensors'],            
             cfg['directory'],
             cfg['file'],
-            cfg['sensors'],
+            cfg['interval'],            
             pipe=pipe,
             dbi=dbi,
             logger=logger
