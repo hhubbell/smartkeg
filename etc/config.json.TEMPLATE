@@ -17,7 +17,7 @@
         "port": 80
     },
     "flow_meter": {
-        "pin": 12
+        "pins": [12]
     },
     "temp_sensor": {
         "interval": 300,

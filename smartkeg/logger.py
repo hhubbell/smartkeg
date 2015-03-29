@@ -11,17 +11,17 @@ import logging
 import time
 
 class Logger(object):
-    def __init__(self, config):
-        self.set_logger(config, logging.INFO)
+    def __init__(self, directory, filename):
+        self.set_logger(directory, filename, logging.INFO)
 
-    def set_logger(self, config, level):
+    def set_logger(self, directory, filename, level):
         """
         @Author:        Harrison Hubbell
         @Created:       10/21/2014
         @Description:   Sets up the logger based on config files.
         """
         date = time.strftime("%Y%m%d")
-        self.log_path = cfg['directory'] + cfg['file'] + date + '.log'
+        self.log_path = directory + filename + date + '.log'
 
         logging.basicConfig(
             filename=self.log_path,

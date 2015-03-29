@@ -135,10 +135,12 @@ sudo cp main.py $BIN_PATH/smartkeg
 sudo chmod +x $BIN_PATH/smartkeg
 
 echo -e "\tMoving configuration files to config path: ${CFG_PATH}"
-sudo cp -r etc/ $CFG_PATH
+sudo mkdir -p $CFG_PATH
+sudo cp etc/config.json $CFG_PATH
 
 echo -e "\tMoving server files to server path: ${SRV_PATH}"
-sudo cp -r srv/ $SRV_PATH
+sudo mkdir -p $SRV_PATH
+sudo cp -r srv/* $SRV_PATH
 
 echo -e "\tCreating service files"
 sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service

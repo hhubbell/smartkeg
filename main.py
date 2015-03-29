@@ -71,7 +71,7 @@ def spawn_flow_meter(pipe, cfg, logger=None, dbi=None):
     @Description:   Creates the Flow Meter process.
     """
     flo = smartkeg.FlowMeterController(
-        cfg['pin'],
+        cfg['pins'],
         pipe=pipe,
         dbi=dbi,
         logger=logger
@@ -93,6 +93,22 @@ def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
         logger=logger
     )
     srv.serve_forever()
+
+def spawn_model(pipe, logger=None):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       10/07/2014
+    @Description:   Creates the Modeling process.
+    """
+    PERIODS = 7
+    
+    mod = smartkeg.ModelMaker(
+        smartkeg.TimeSeriesRegression(PERIODS),
+        pipe,
+        logger=logger
+    )
+    mod.run()
+    
 
 def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
         """
@@ -118,14 +134,13 @@ if __name__ == '__main__':
 
     CFG_PATH = '/etc/smartkeg/config.json'    
     SRV_PATH = '/srv/smartkeg/'
-    TSR_PERIODS = 7
 
-    cfg = config(CFG_PATH)  
-    log = smartkeg.Logger(cfg['logger'])
+    cfg = config(CFG_PATH)
+    log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
     
     procs = {
         'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log)),
-        'MOD': 'model',
+        'MOD': proc_add(spawn_model, args=(log,)),
         'SOC': 'socket_server',
         'TMP': proc_add(spawn_temperature_sensor, args=(cfg['temp_sensor'], log)),
         'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))

@@ -6,15 +6,15 @@
 #               MUST have a forecast() methed.
 # ----------------------------------------------------------------------------
 
-from process import ChildProcess
 import math
 
-class ModelMaker(ChildProcess):
-    def __init__(self, pipe, model):
-        super(SmartkegModelMaker, self).__init__(pipe)
+class ModelMaker(object):
+    def __init__(self, model, pipe, logger=None):
         self.model = model
+        self.pipe = pipe
+        self.logger = logger
 
-    def main(self):
+    def run(self):
         """
         @Author:        Harrison Hubbell
         @Created:       11/05/2014
@@ -22,11 +22,11 @@ class ModelMaker(ChildProcess):
                         receiving data and calculating the forecast model.
         """
         while True:
-            data = self.proc_recv()
+            data = self.pipe.recv()
             forecast = self.model.forecast(data)
-            self.logger.log(('[ModelMaker]','New model:', self.model.to_string()))
+            self.logger.log(('[ModelMaker]','New model:', str(self.model)))
             self.logger.log(('[ModelMaker]','New forecast:', self.model.prediction))
-            self.proc_send(forecast)
+            self.pipe.send(forecast)
 
 
 class TimeSeriesRegression(object):
@@ -177,7 +177,7 @@ class TimeSeriesRegression(object):
 
         return moving_avg
 
-    def to_string(self):
+    def __str__(self):
         """
         @Author:        Harrison Hubbell
         @Created:       11/05/2014
