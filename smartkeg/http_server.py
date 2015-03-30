@@ -98,9 +98,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if len(path) >= 2:
             if path[0] == 'get':
                 if path[1] == 'beer': 
-                    res = self.server.conn.SELECT(*Query().get_beers(params))
+                    res = json.dumps(self.server.conn.SELECT(*Query().get_beers(params)))
                 elif path[1] == 'brewer':
-                    res = self.server.conn.SELECT(*Query().get_brewers(params))
+                    res = json.dumps(self.server.conn.SELECT(*Query().get_brewers(params)))
             elif path[0] == 'set':
                 if path[1] == 'keg':
                     self.server.conn.UPDATE(*Query().rem_keg(params.pop('replace', None)))
@@ -111,6 +111,8 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_error(self.HTTP['MALFORMED'])
         else:
             self.send_error(self.HTTP['MALFORMED'])
+
+        print type(res)
         
         return res
 
