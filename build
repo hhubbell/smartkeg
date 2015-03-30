@@ -126,7 +126,7 @@ then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
     echo -e "\tMoving GUI file to bin path: ${BIN_PATH}"
-    sudo cp smartkeg/gui.py $BIN_PATH/smartkeg-gui
+    sudo cp gui.py $BIN_PATH/smartkeg-gui
     sudo chmod +x $BIN_PATH/smartkeg-gui
 fi
 
