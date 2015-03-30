@@ -9,7 +9,7 @@ The system is currently designed to be run on a Raspberry Pi board with Arch Lin
 This project is under active development.
 
 ## Getting Started
-To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board running Arch Linux ARM.  Modify the config.cfg.TEMPLATE file to your liking, save it as config.cfg, and run the following in the Smartkeg root directory:
+To try the Smartkeg Keg Monitoring system out, pull down a copy of the source onto a Raspberry Pi ARM board running Arch Linux ARM.  Modify the config.json.TEMPLATE file to your liking, save it as config.json, and run the following in the Smartkeg root directory:
 
 ```Shell
 # ./build
@@ -28,15 +28,25 @@ Smartkeg has the following dependencies, and the build script will check first t
 * MySQL-python
 * RPi.GPIO
 * qrcode
-* pywebkitgtk
+* pywebkitgtk (GUI only)
 
 ##### Database
 **Note:** This step can be skipped by including the following argument: `--no-db`
 
 The build script will also configure the MySQL database user and create the required tables; it will require user access with `CREATE/DROP` rights to the MySQL database.  
 
+##### GUI
+**Note:** This step can be skipped by including the following argument: `--no-gui`
+
+The source provides an optional executable that allows the system to be configured with a native graphical user interface.
+
 ##### Installation
-The build script will make a copy of the Smartkeg source code into the systems `/usr/local/src/` directory, and create the service files.
+The build script will make a copy of the Smartkeg source code into the following system directories:
+* `/usr/lib/python2.*/site-packages/`: `smartkeg` Python package source
+* `/usr/local/bin/`: `smartkeg` and `smartkeg-gui` executables
+* `/srv/smartkeg/`: `smartkeg` web server files
+* `/etc/smartkeg/`: `smartkeg` configuration files
+* `/var/log/smartkeg`: `smartkeg` log files
 
 #### Post Install
 The build script creates a systemd service file for the Smartkeg system. To run the Smartkeg system at startup on Arch Linux, run the following:
