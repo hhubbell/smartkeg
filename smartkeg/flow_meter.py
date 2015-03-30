@@ -78,7 +78,7 @@ class FlowMeterController(object):
     def __init__(self, pins, pipe=None, dbi=None, logger=None):
         self.dbi = dbi        
         self.fmq = Queue()
-        self.fms = register_meters(pins)        
+        self.fms = self.register_meters(pins)        
         self.logger = logger        
         self.pipe = pipe
 

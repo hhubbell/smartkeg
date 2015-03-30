@@ -4,7 +4,10 @@
 # Author:       Harrison Hubbell
 # Date:         08/31/2014
 # Description:  Is responsible for spooling and monitoring smartkeg processes,
-#               and handing data interaction between these parts.
+#               and handing data interaction between these parts.  Each
+#               process that requires interaction with the database will get
+#               its own connection.  This should improve performance by
+#               allowing the database to manage ACID transactions.
 # ----------------------------------------------------------------------------
 
 from ConfigParser import ConfigParser
@@ -24,21 +27,21 @@ def config(path):
     with open(path, 'r') as f:
         return json.load(f)
 
-def db_connect(cfg):
+def db_connect(cfg, logger):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
     @Description:   Creates a database interface for inserting and
                     selecting data.
     """
-    LOGGER.log('Initializing Database Connection.')
+    logger.log('Initializing Database Connection.')
 
     return smartkeg.DatabaseInterface(
         cfg['address'],
         cfg['schema'],
         cfg['user'],
         cfg['password'],
-        logger=LOGGER
+        logger=logger
     )
 
 def start_all(procs):
@@ -55,7 +58,8 @@ def proc_add(target, args=None, name=None):
     @Author:        Harrison Hubbell
     @Created:       10/05/2014
     @Description:   Adds a process and manages creating the pipes
-                    between both nodes.
+                    between both nodes.  Returns a tuple of the 
+                    process and pipe to that process.
     """
     if args is None: args = ()
     
@@ -147,20 +151,14 @@ if __name__ == '__main__':
     cfg = config(CFG_PATH)
     log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
     procs = {
-        'FLO': {'proc': None, 'pipe': None},
-        'MOD': {'proc': None, 'pipe': None},
-        'SOC': {'proc': None, 'pipe': None},
-        'TMP': {'proc': None, 'pipe': None},
-        'WEB': {'proc': None, 'pipe': None}
+        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log, db_connect(cfg, log))),
+        'MOD': proc_add(spawn_model, args=(log,)),
+        #'SOC': ('socket_server', 'shmocket_server'),
+        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log, db_connect(cfg, log))),
+        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log, db_connect(cfg, log)))
     }
 
-    procs['FLO']['proc'], procs['FLO']['pipe'] = proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log))
-    procs['MOD']['proc'], procs['MOD']['pipe'] = proc_add(spawn_model, args=(log,))
-    procs['SOC']['proc'], procs['SOC']['pipe'] = 'socket_server', 'shmocket_server'
-    procs['TMP']['proc'], procs['TMP']['pipe'] = proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log))
-    procs['WEB']['proc'], procs['WEB']['pipe'] = proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log))
-
-    start_all([procs[x]['proc'] for x in procs])
+    start_all([procs[x][0] for x in procs])
 
     while True:
         
