@@ -151,11 +151,11 @@ if __name__ == '__main__':
     cfg = config(CFG_PATH)
     log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
     procs = {
-        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log, db_connect(cfg, log))),
+        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log, db_connect(cfg['database'], log))),
         'MOD': proc_add(spawn_model, args=(log,)),
         #'SOC': ('socket_server', 'shmocket_server'),
-        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log, db_connect(cfg, log))),
-        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log, db_connect(cfg, log)))
+        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log, db_connect(cfg['database'], log))),
+        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log, db_connect(cfg['database'], log)))
     }
 
     start_all([procs[x][0] for x in procs])
