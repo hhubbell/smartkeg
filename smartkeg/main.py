@@ -4,6 +4,8 @@
 # Date:         08/31/2014
 # Description:  Is responsible for spooling and monitoring smartkeg processes,
 #               and handing data interaction between these parts.
+#
+# XXX DEPRECIATED: Staged for replacement by ../main.py
 # ----------------------------------------------------------------------------
 
 from ConfigParser import ConfigParser
