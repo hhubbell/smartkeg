@@ -5,8 +5,6 @@
 # Description:  Parent and Child processes which can be inherited by objects
 #               that require multiprocessing functionality as either a parent
 #               or child process.
-#
-# XXX DEPRECIATED: Do not use on future projects. Staged for removal.
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Process, Pipe
