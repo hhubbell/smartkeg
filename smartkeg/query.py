@@ -34,14 +34,16 @@ class Query:
         """        
         query = """
             SELECT
-                b.id,
-                b.name,
-                b.abv,
-                b.ibu,
-                bt.type,
-                bt.subtype
+                b.id        AS id,
+                b.name      AS name,
+                b.abv       AS abv,
+                b.ibu       AS ibu,
+                bt.type     AS type,
+                bt.subtype  AS subtype,
+                br.name     AS brewer
             FROM Beer AS b
             LEFT JOIN BeerType AS bt ON b.type_id = bt.id
+            LEFT JOIN Brewer AS br ON b.brewer_id = br.id
             {}
             ORDER BY b.name
         """.format(obj.format_where(params))
@@ -66,6 +68,92 @@ class Query:
         """.format(obj.format_where(params))
 
         return query, params.values()
+
+    def get_daily(obj):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/30/2015
+        @Description:   Format a query to get daily consumption
+        XXX: Needs work
+        """
+        query = """
+            SELECT
+                DATE(pour_time) AS day,
+                SUM(volume)     AS amount
+            FROM Pour
+            GROUP BY DATE(pour_time)
+            ORDER BY pour_time
+        """
+        
+        return query, []
+
+    def get_now_serving(obj):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/30/2015
+        @Description:   Format a query to get currently served kegs
+        """
+        query = """
+            SELECT 
+                bs.*,
+                k.id        AS keg_id,
+                k.volume    AS volume,
+                (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining
+            FROM (
+                SELECT
+                    b.id        AS beer_id,
+                    b.name      AS name,
+                    b.abv       AS abv,
+                    b.ibu       AS ibu,
+                    br.name     AS brewer,
+                    bt.type     AS type,
+                    bt.subtype  AS subtype,
+                    AVG(bra.rating) AS rating
+                FROM Beer AS b
+                JOIN Brewer AS br ON b.brewer_id = br.id
+                JOIN BeerType AS bt ON b.type_id = bt.id
+                LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id
+                GROUP BY b.id
+            ) AS bs
+            JOIN Keg AS k ON bs.beer_id = k.beer_id
+            LEFT JOIN Pour AS p on k.id = p.keg_id
+            WHERE k.now_serving = 1
+            GROUP BY k.id
+        """
+
+        return query, []
+
+    def get_percent_remaining(obj):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/30/2015
+        @Description:   Format a query to get percent of keg remaining
+        """
+        query = """
+            SELECT (k.volume - SUM(p.volume)) / k.volume
+            FROM Keg AS k
+            JOIN Pour AS p ON k.id = p.keg_id
+            WHERE k.now_serving = 1
+            GROUP BY k.id
+        """
+
+        return query, []
+
+    def get_volume_remaining(obj):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       03/30/2015
+        @Description:   Format a query to get volume of keg remaining
+        """
+        query = """
+            SELECT k.volume - SUM(p.volume)
+            FROM Keg AS k
+            JOIN Pour AS p ON k.id = p.keg_id
+            WHERE k.now_serving = 1
+            GROUP BY k.id
+        """
+
+        return query, []
 
     def set_keg(obj, params):
         """

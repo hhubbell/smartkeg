@@ -81,7 +81,8 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         @Author:        Harrison Hubbell
         @Created:       12/14/2014
         @Description:   Handle user requests that require database
-                        interaction.
+                        interaction.  get's should be method agnostic,
+                        while set's should require a POST.
         """
         res = None
         parsed = urlparse.urlparse(message)
@@ -90,7 +91,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.command == 'GET':
             params = urlparse.parse_qs(parsed.query)
         elif self.command == 'POST':
-            length = int(self.headers.getheader('Content-Length'))            
+            length = int(self.headers.getheader('Content-Length'))
             params = urlparse.parse_qs(self.rfile.read(length))
 
         print path, params
@@ -99,14 +100,38 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if path[0] == 'get':
                 if path[1] == 'beer': 
                     res = json.dumps(self.server.conn.SELECT(*Query().get_beers(params)))
+
                 elif path[1] == 'brewer':
                     res = json.dumps(self.server.conn.SELECT(*Query().get_brewers(params)))
-            elif path[0] == 'set':
+
+                elif path[1] == 'serving':
+                    res = json.dumps(self.server.conn.SELECT(*Query().get_now_serving()))
+
+                elif path[1] == 'daily':
+                    res = json.dumps(self.server.conn.SELECT(*Query().get_daily()))
+
+                elif path[1] == 'remaining':
+                    fmt = params.pop('format', None)
+                    
+                    if fmt[0] == 'percent':
+                        res = json.dumps(self.server.conn.SELECT(*Query().get_percent_remaining()))
+
+                    elif fmt[0] == 'volume':
+                        res = json.dumps(self.server.conn.SELECT(*Query().get_volume_remaining()))
+
+                    else:
+                        self.send_error(self.HTTP['MALFORMED'])
+                        
+            elif path[0] == 'set' and self.command == 'POST':
                 if path[1] == 'keg':
-                    self.server.conn.UPDATE(*Query().rem_keg(params.pop('replace', None)))
+                    if 'replace' in params:
+                        self.server.conn.UPDATE(*Query().rem_keg(params['replace']))
+                        
                     res = self.server.conn.INSERT(*Query().set_keg(params))
                 elif path[1] == 'rating':
                     res = self.server.conn.INSERT(*Query().set_rating(params))
+                else:
+                    self.send_error(self.HTTP['MALFORMED'])
             else:
                 self.send_error(self.HTTP['MALFORMED'])
         else:
