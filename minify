@@ -8,6 +8,10 @@
 # to do so.  Therefore, this script does not intend to be a requirement,
 # so it will not check for dependencies.  It makes my life easier, use it
 # at your discretion.
+#
+# If you want to use it be sure to install Node and do the following:
+#   npm install -g clean-css
+#   npm install -g uglify-js
 
 OUTPUT="-o"
 
