@@ -24,6 +24,7 @@ DEP_NEED=()
 nocheck="--no-check"
 nodb="--no-db"
 nogui="--no-gui"
+minify="--minify"
 
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
@@ -119,6 +120,12 @@ then
     echo -e "\tCreated user 'smartkeg'"
     echo -e "\tCreated tables"
     echo -e "\tInserted defaults"
+fi
+
+if echo $@ | grep -e $minify > /dev/null;
+then
+    echo -e "\n${BLUE}=>${RESET} Minifying CSS and JavaScript\n"
+    ./minify
 fi
 
 if ! echo $@ | grep -e $nogui > /dev/null;
