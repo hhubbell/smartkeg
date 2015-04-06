@@ -12,23 +12,25 @@
 import SocketServer
 import StringIO
 import time
-import zlib
+import gzip
+
+class ResponseHeader(object):
+    def __init__(self, code):
+        self.fields = {}
+        self.code = code
+
+    def __str__(self):
+        rep = self.code + '\r\n'
+        for field in self.fields:
+            rep += field + ': ' + self.fields[field] + '\r\n'
+
+        return rep + '\r\n'
+        
+
+    def add(self, key, value):
+        self.fields[str(key)] = str(value)
 
 class TCPHandler(SocketServer.StreamRequestHandler):
-    def set_headers(self, fields):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/01/2014
-        @Description:   Sets the response headers based on the fields
-                        dictionary paramter
-        """
-        self.response_headers = 'HTTP/1.1 200 OK\r\n'
-
-        for field in fields:
-            self.response_headers += field + ': ' + fields[field] + '\r\n'
-
-        self.response_headers += '\r\n'
-
     def split_headers(self, request):
         """
         @Author:        Harrison Hubbell
@@ -54,27 +56,37 @@ class TCPHandler(SocketServer.StreamRequestHandler):
         @Created:       10/07/2014
         @Description:   Returns JSON to client containing supplied data.
         """
-        request = self.request.recv(1024).strip()
-        request_headers = self.split_headers(request)
-        response_fields = {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': request_headers['Accept'],
-        }
+        ENCODE_AS = 'gzip'
 
-        self.set_headers(response_fields)
-        self.wfile.write(self.response_headers)
-        self.wfile.write(self.server.response)
+        request = self.request.recv(1024).strip()        
+        response = self.server.response
 
-    def gzip(self, body):
+        self.request_header = self.split_headers(request)
+        self.response_header = ResponseHeader('HTTP/1.1 200 OK')        
+
+        self.response_header.add('Access-Control-Allow-Origin', '*')
+        self.response_header.add('Content-Type', self.request_header['Accept'])
+
+        if ENCODE_AS in self.request_header['Accept-Encoding']:
+            response = self.encode(response)
+
+        self.wfile.write(str(self.response_header))
+        self.wfile.write(response)
+
+    def encode(self, body):
         """
         @Author:        Harrison Hubbell
-        @Created:       11/03/2014
+        @Created:       04/06/2015
         @Description:   Compresses response body.
-
-        XXX: Currently not used nor working.  Responses are malformed.
         """
         output = StringIO.StringIO()
-        return output.write(zlib.compressobj(body))
+        
+        self.response_header.add('Content-encoding', 'gzip')
+
+        with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
+            f.write(body)
+
+        return output.getvalue()
 
 
 class TCPServer(SocketServer.TCPServer):
@@ -112,19 +124,19 @@ class SocketServer(object):
         @Created:       10/07/2014
         @Description:   Handle a single request.
         """
-        self.tcpd.handle()
+        self.tcpd.handle_request()
 
-    def main(self):
+    def serve_forever(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/25/2014
         @Description:   Checks for updated response data and responds.
         """
         while True:
-            update = self.proc_poll_recv()
-            if update:
-                self.update_id += 1
-                self.set_response(self.update_id, update)
+            #update = self.proc_poll_recv()
+            #if update:
+            #    self.update_id += 1
+            #    self.set_response(self.update_id, update)
 
             self.respond()
             time.sleep(0.1)
