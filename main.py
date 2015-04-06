@@ -121,7 +121,17 @@ def spawn_model(pipe, logger=None):
         logger=logger
     )
     mod.run()
-    
+
+def spawn_socket_server(pipe, cfg, logger=None, dbi=None):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       10/25/2014
+    @Description:   Creates the Socket Server process
+    """
+    soc = smartkeg.SocketServer(cfg['host'], cfg['port'], pipe=pipe, logger=logger)
+    #soc.set_response(soc.update_id, json.dumps(self.kegs))
+    soc.set_response(1, json.dumps({'test': 123, 'shmest': 456}))
+    soc.serve_forever()
 
 def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
         """
@@ -153,7 +163,7 @@ if __name__ == '__main__':
     procs = {
         'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log, db_connect(cfg['database'], log))),
         'MOD': proc_add(spawn_model, args=(log,)),
-        #'SOC': ('socket_server', 'shmocket_server'),
+        'SOC': proc_add(spawn_socket_server, args=(cfg['socket'], log)),
         'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log, db_connect(cfg['database'], log))),
         'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log, db_connect(cfg['database'], log)))
     }
