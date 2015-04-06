@@ -25,7 +25,6 @@ class ResponseHeader(object):
             rep += field + ': ' + self.fields[field] + '\r\n'
 
         return rep + '\r\n'
-        
 
     def add(self, key, value):
         self.fields[str(key)] = str(value)

@@ -57,14 +57,16 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
 
+        #elif self.path[1:4] == 'sse':
+        #    page_buffer = self.server.sse_response
+        #    content_type = 'text/event-stream'
+
         else:
             page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
             content_type = self.get_content_type(page)
 
             try:
-                with open(page) as f:
-                    page_buffer = f.read()
- 
+                with open(page) as f: page_buffer = f.read()
             except IOError:
                 self.send_error(self.HTTP['FILE_NOT_FOUND'])
 
@@ -164,14 +166,11 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         return res
 
-    # --------------------
-    # HTTP METHODS
-    # --------------------
     def do_GET(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
-        @Description:   Overrides built in GET method to handle GET requests
+        @Description:   Handles GET requests
         """
         data, content_type = self.get_resource()
         data, content_encoding = self.encode(data)        
@@ -188,7 +187,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         @Author:        Harrison Hubbell
         @Created:       11/21/2014
-        @Description:   Overrides built in POST method to handle POST requests
+        @Description:   Handles POST requests
         """
         data, content_type = self.get_resource()
         data, content_encoding = self.encode(data)                
@@ -213,6 +212,8 @@ class HTTPServer(object):
         self.httpd.pipe = pipe
         self.httpd.logger = logger
         self.httpd.conn = dbi
+        self.httpd.cache = {}
+        self.update_id = 0
         self.create_qrcode()
 
     def create_qrcode(self):
@@ -240,6 +241,15 @@ class HTTPServer(object):
 
         image = qr.make_image()
         image.save(self.httpd.root + 'static/img/qrcode.svg')
+
+    def set_sse_response(self, data):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       04/06/2015
+        @Description:   Manages setting the HTTPServer sse reponse.
+        """
+        self.update_id += 1
+        self.httpd.sse_response = 'id: {}\ndata: {}\n\n'.format(self.update_id, data)
 
     def serve_forever(self):
         self.httpd.serve_forever()
