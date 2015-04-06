@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# Harrison Hubbell
+# 04/06/2015
+#
+# A simple Javascript and CSS minifier script. It uses Node modules - this
+# project should not require Node, and it would be a ridiculous premise
+# to do so.  Therefore, this script does not intend to be a requirement,
+# so it will not check for dependencies.  It makes my life easier, use it
+# at your discretion.
+
+OUTPUT="-o"
+
+UGLIFYJS="uglyifyjs"
+CLEANCSS="cleancss"
+
+# Minify all JS into one file
+JS="srv/src/js/polyfill.js srv/src/js/socket.js srv/src/js/ajax.js srv/src/js/graph.js srv/src/js/client.js srv/src/js/main.js"
+OUTJS="srv/src/js/smartkeg.min.js"
+
+# Minify CSS
+CSS="srv/static/css/style.css"
+OUTCSS="srv/static/css/style.min.css"
+
+$UGLIFYJS $JS $OUTPUT $OUTJS
+$CLEANCSS $OUTPUT $OUTCSS $CSS
