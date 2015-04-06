@@ -15,7 +15,7 @@
 
 OUTPUT="-o"
 
-UGLIFYJS="uglyifyjs"
+UGLIFYJS="uglifyjs"
 CLEANCSS="cleancss"
 
 # Minify all JS into one file
