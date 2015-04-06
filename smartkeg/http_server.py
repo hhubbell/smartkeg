@@ -8,17 +8,20 @@
 from SocketServer import ThreadingMixIn
 from query import Query
 import BaseHTTPServer
+import StringIO
 import socket
 import qrcode
 import qrcode.image.svg
 import json
 import urlparse
+import gzip
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
     HTTP = {
         'OK':                   200,
         'MALFORMED':            400,
+        'FORBIDDEN':            403,
         'FILE_NOT_FOUND':       404,
         'SERVICE_UNAVAILABLE':  503
     }
@@ -66,6 +69,26 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_error(self.HTTP['FILE_NOT_FOUND'])
 
         return page_buffer, content_type
+
+    def encode(self, body):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       04/06/2015
+        @Description:   Compresses response body.
+        """
+        ENCODE_AS = 'gzip'
+        output = StringIO.StringIO()
+        encoding = None
+        fbuffer = body
+
+        if ENCODE_AS in self.headers['Accept-Encoding']:
+            with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
+                f.write(body)
+            
+            encoding = ENCODE_AS
+            fbuffer = output.getvalue()              
+
+        return fbuffer, encoding
 
     def log_message(self, format, *args):
         """
@@ -133,7 +156,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 else:
                     self.send_error(self.HTTP['MALFORMED'])
             else:
-                self.send_error(self.HTTP['MALFORMED'])
+                self.send_error(self.HTTP['FORBIDDEN'])
         else:
             self.send_error(self.HTTP['MALFORMED'])
 
@@ -151,10 +174,13 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         @Description:   Overrides built in GET method to handle GET requests
         """
         data, content_type = self.get_resource()
+        data, content_encoding = self.encode(data)        
 
         if data and content_type:
             self.send_response(self.HTTP['OK'])
             self.send_header("Content-type", content_type)
+            if content_encoding:
+                self.send_header("Content-encoding", content_encoding)
             self.end_headers()
             self.wfile.write(data)
 
@@ -165,10 +191,13 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         @Description:   Overrides built in POST method to handle POST requests
         """
         data, content_type = self.get_resource()
+        data, content_encoding = self.encode(data)                
 
         if data and content_type:
             self.send_response(self.HTTP['OK'])
             self.send_header("Content-type", content_type)
+            if content_encoding:
+                self.send_header("Content-encoding", content_encoding)
             self.end_headers()
             self.wfile.write(data)
 
