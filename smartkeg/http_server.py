@@ -6,6 +6,8 @@
 # ----------------------------------------------------------------------------
 
 from SocketServer import ThreadingMixIn
+from multiprocessing import Process, Value
+from ctypes import c_char_p
 from query import Query
 import BaseHTTPServer
 import StringIO
@@ -15,6 +17,7 @@ import qrcode.image.svg
 import json
 import urlparse
 import gzip
+import time
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
@@ -57,9 +60,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
 
-        #elif self.path[1:4] == 'sse':
-        #    page_buffer = self.server.sse_response
-        #    content_type = 'text/event-stream'
+        elif self.path[1:4] == 'sse':
+            page_buffer = self.server.sse_response.value
+            content_type = 'text/event-stream'
 
         else:
             page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
@@ -212,7 +215,7 @@ class HTTPServer(object):
         self.httpd.pipe = pipe
         self.httpd.logger = logger
         self.httpd.conn = dbi
-        self.httpd.cache = {}
+        self.sse = Value(c_char_p, '')
         self.update_id = 0
         self.create_qrcode()
 
@@ -249,7 +252,28 @@ class HTTPServer(object):
         @Description:   Manages setting the HTTPServer sse reponse.
         """
         self.update_id += 1
-        self.httpd.sse_response = 'id: {}\ndata: {}\n\n'.format(self.update_id, data)
+        self.sse.value = 'id: {}\ndata: {}\n\n'.format(self.update_id, data)
+
+    def spawn_server(self, sse):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       04/13/2015
+        @Description:   Spawn the http server instance.
+        """
+        self.httpd.sse_response = self.sse
+        self.httpd.serve_forever()
 
     def serve_forever(self):
-        self.httpd.serve_forever()
+        """
+        @Author:        Harrison Hubbell
+        @Created:       04/13/2015
+        @Description:   Spawn a thread and a shared memory pool for
+                        setting new SSE responses.
+        """
+        Process(target=self.spawn_server, args=(self.sse,)).start()
+
+        while True:
+            if self.pipe.poll():
+                self.set_sse_response(self.pipe.recv())
+
+            time.sleep(0.1)
