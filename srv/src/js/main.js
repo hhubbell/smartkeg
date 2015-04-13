@@ -23,7 +23,7 @@
     // -------------------
     client.menu = document.getElementById('beer-menu');
     client.options = client.menu.querySelector('ul');
-    client.close_forms = client.menu.getElementsByClassName('close-form');
+    //client.close_forms = client.menu.getElementsByClassName('close-form');
     
     client.item_tap = document.getElementById('beer-option-tap');
     client.item_rate = document.getElementById('beer-option-rate');
@@ -31,82 +31,67 @@
     client.form_tap = document.getElementById('tap-form');
     client.form_rate = document.getElementById('rate-form');
 
-    // CLOSE ACTION
-    Array.prototype.slice.call(client.close_forms, 0).forEach(function(i) { 
-        i.addEventListener('click', function() {
-            form = this.polyclosest('form');
-            form.hidden = true;            
-            fieldsets = Array.prototype.slice.call(form.getElementsByTagName('fieldset'), 0);
-            fieldsets.slice(1).forEach(function(f) {
-                f.hidden = true;
-            });
-            fieldsets[0].hidden = false;
-            client.options.hidden = false;
-        })
-    });
+    client.setFormCloseTrigger('.close-form');
 
     // TAP ACTIONS
-    client.item_tap.addEventListener('click', function() {
+    client.item_tap.addEventListener('click', function () {
         client.options.hidden = true;
         client.form_tap.hidden = false;
     });
 
-    client.form_tap.onsubmit = function() {
+    client.form_tap.onsubmit = function () {
         var self = this;
 
-        var query_string = encodeURI(
+        var query = encodeURI(
             'api/set/keg?replace=' + client.replace +
             '&beer_id=' + this.id.value +
             '&volume=' + this.confirm_volume.value
         );
 
-        console.log(query_string);
+        console.log(query);
         
-        client.ajax.send('POST', query_string).then(function(response) {
-            self.reset();
-            self.hidden = true;
-            fieldsets = Array.prototype.slice.call(self.getElementsByTagName('fieldset'), 0);
-            fieldsets.slice(1).forEach(function(f) {
-                f.hidden = true;
-            });
-            fieldsets[0].hidden = false;
+        polyfetch(query, {method: 'POST'}).then(function (response) {
+            self.reset()
+            client.closeForm(self);
             client.options.hidden = false;
         });
+        
         return false;
     }
 
     // RATE ACTIONS
-    client.item_rate.addEventListener('click', function() {
+    client.item_rate.addEventListener('click', function () {
         client.options.hidden = true;
         client.form_rate.hidden = false;
     });
 
-    client.form_rate.oninput = function() {
+    client.form_rate.oninput = function () {
         this.ratingoutput.value = this.ratingslider.value
     }
     
-    client.form_rate.onsubmit = function() {
+    client.form_rate.onsubmit = function () {
         var self = this;
-        var query_string = encodeURI(
+        var query = encodeURI(
             "api/set/rating" + 
             "?beer_id=" + client.kegs[client.render_index].beer.id +
             "&rating=" + this.ratingslider.value +
             "&comments=" + this.ratingdescription.value
         );
 
-        console.log(query_string);
-        client.ajax.send('POST', query_string).then(function(response) {
+        console.log(query);
+        polyfetch(query, {method: 'POST'}).then(function (response) {
             self.reset();
             self.hidden = true;            
             client.options.hidden = false;
         });
+        
         return false;
     }
 
     // -------------------
     // EventSource Handling
     // -------------------
-    client.source.onmessage = function(e) {
+    client.source.onmessage = function (e) {
         var id = parseInt(e.lastEventId);
         var src = e.origin; 
 
@@ -126,9 +111,9 @@
     // -------------------
     // Window Resize Handling
     // -------------------
-    window.onresize = function() {
+    window.onresize = function () {
         client.render_consumption();
         client.render_remaining();
     }
 
-})();
+}());

@@ -12,8 +12,7 @@
 
 function SmartkegClient(socket) {
     this.source = new EventSource(socket.toString());
-    this.ajax = new Ajax(socket.get_url());
-    this.socket = socket;
+    this.host = socket.url;
     this.last_update_id = 0;
     this.render_index = 0;
     this.beer_display = null;
@@ -41,6 +40,38 @@ SmartkegClient.prototype.set_remaining_display = function (selector) {
 SmartkegClient.prototype.set_temperature_display = function (selector) {
     this.temperature_display = document.querySelector(selector);
 }
+
+/**
+ * SmartkegClient.setFormCloseTrigger: Set trigger elements for
+ * closing forms and add event listeners
+ * @param selector: Trigger selector;
+ */
+SmartkegClient.prototype.setFormCloseTrigger = function (selector) {
+    var self = this;
+    var triggers = document.querySelectorAll(selector);
+    
+    Array.prototype.forEach.call(triggers, function (el) {
+        el.addEventListener('click', function () {
+            self.closeForm(this.polyclosest('form');
+        }
+    });
+}
+
+/**
+ * SmartkegClient.closeForm: Hide form and all children except firstChild
+ * @param form: Form to close
+ */
+SmartkegClient.prototype.closeForm = function (form) {
+    var children = Array.prototype.slice.call(form.children, 0);
+    
+    form.hidden = true;
+
+    children[0].hidden = false;
+    children.slice(1).forEach(function (el) {
+        el.hidden = true;
+    }
+}
+
 
 SmartkegClient.prototype.render = function () {
     this.render_beer();
@@ -103,10 +134,10 @@ SmartkegClient.prototype.render_brewers = function (selector) {
         label.innerHTML = current.name;
 
         radio.addEventListener('click', function () {
-            self.ajax.send('POST', 'api/get/beer?brewer_id=' + this.value).then(function (response) {
+            polyfetch(this.host + 'api/get/beer?brewer_id=' + this.value).then(function (response) {
                 self.brewer_offering = JSON.parse(response);
                 self.render_brewer_offering('#tap-form-beer');
-            });
+            }
 
             this.parentElement.hidden = true;
         });
@@ -188,10 +219,11 @@ SmartkegClient.prototype.render_tap_menu = function (selector) {
         
         radio.addEventListener('click', function () {
             self.replace = this.value;
-            self.ajax.send('POST', 'api/get/brewer').then(function (response) {
+
+            polyfetch(this.host + 'api/get/brewer').then(function (response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
-            });
+            }
             
             this.parentElement.hidden = true;
         });
