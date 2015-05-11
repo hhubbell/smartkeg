@@ -15,7 +15,6 @@ import smartkeg
 import RPi.GPIO as GPIO
 import time
 import json
-import os
 
 def config(path):
     """
