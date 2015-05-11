@@ -19,7 +19,7 @@ UGLIFYJS="uglifyjs"
 CLEANCSS="cleancss"
 
 # Minify all JS into one file
-JS="srv/src/js/polyfill.js srv/src/js/socket.js  srv/src/js/graph.js srv/src/js/client.js srv/src/js/main.js"
+JS="srv/src/js/polyfill.js srv/src/js/socket.js srv/src/js/graph.js srv/src/js/client.js srv/src/js/main.js"
 OUTJS="srv/src/js/smartkeg.min.js"
 
 # Minify CSS
