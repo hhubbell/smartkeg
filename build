@@ -31,7 +31,7 @@ echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 if ! echo $@ | grep -e $nocheck > /dev/null;
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
-    echo -ne "\tMySQL/MariaDB   "
+    echo -ne "\tMySQL/MariaDB           "
     # MySQL/MariaDB
     if command -v mysql > /dev/null;
     then
@@ -43,20 +43,21 @@ then
     fi
 
     # python-mysql
-    echo -ne "\tpython-mysql    "
-    if $PKG_MGR $PKG_QUERY mysql-python > /dev/null;
+    # This requires pip, unless the user builds from source.    
+    echo -ne "\tmysql-connector-python  "
+    if pip list | grep mysql-connector-python > /dev/null;
     then
         echo -e $DEP_OK
     else
         DEP_PASS=false
-        DEP_NEED+=('mysql-python')
         echo -e $DEP_NO
+        echo -e "    ${BOLD}NOTICE:${RESET} mysql-connector-python must be installed using pip or built from source.  You must complete this step yourself."
     fi
 
     # RPi.GPIO
     # This requires pip, unless the user builds from source.
-    echo -ne "\tRPi.GPIO        "
-    if pip2 list | grep RPi.GPIO > /dev/null;
+    echo -ne "\tRPi.GPIO                "
+    if pip list | grep RPi.GPIO > /dev/null;
     then
         echo -e $DEP_OK
     else
@@ -67,8 +68,8 @@ then
 
     # qrcode
     # This also requires pip, unless the user builds from source.
-    echo -ne "\tqrcode          "
-    if pip2 list | grep qrcode > /dev/null;
+    echo -ne "\tqrcode                  "
+    if pip list | grep qrcode > /dev/null;
     then
         echo -e $DEP_OK
     else
@@ -81,7 +82,7 @@ then
     # pywebkitgtk
     if ! echo $@ | grep -e $nogui > /dev/null;
     then
-        echo -ne "\tpywebkitgtk     "
+        echo -ne "\tpywebkitgtk             "
         if $PKG_MGR $PKG_QUERY pywebkitgtk > /dev/null;
         then
             echo -e $DEP_OK

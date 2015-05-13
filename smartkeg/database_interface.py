@@ -8,13 +8,12 @@
 #               INSERT, UPDATE, and SELECT permissions.
 # ----------------------------------------------------------------------------
 
-import MySQLdb
-import MySQLdb.cursors
+import mysql.connector
 
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd, logger=None):
         self.logger = logger        
-        self.connect(addr, dbn, user, pwd)
+        self.conn = self.connect(addr, dbn, user, pwd)
 
     def __exit__(self):
         self.conn.close()
@@ -27,9 +26,14 @@ class DatabaseInterface(object):
                         errors if attempt fails.
         """
         try:
-            self.conn = MySQLdb.connect(addr, user, pwd, dbn, cursorclass=MySQLdb.cursors.DictCursor)
-        except MySQLdb.OperationalError as e:
-            self.log_message(('[Database Interface]', 'Could not connect to the database for the following reason:', e))
+            return mysql.connector.connect(
+                user=user,
+                password=pwd,
+                host=addr,
+                database=dbn
+            )
+        except mysql.connector.Error as e:
+            self.log_message(('[Database Interface]', 'The following error occured during connection:', e))
 
     def log_message(self, message):
         """
@@ -45,7 +49,7 @@ class DatabaseInterface(object):
         @Created:       09/01/2014
         @Description:   Gets the database cursor to prep for a transaction
         """
-        self.cur = self.conn.cursor()
+        return self.conn.cursor(dictionary=True)
 
     def INSERT(self, query, params=None):
         """
@@ -53,13 +57,15 @@ class DatabaseInterface(object):
         @Created:       09/01/2014
         @Description:   Makes an INSERT transaction on the database
         """
-        self.prepare()
+        cur = self.prepare()
         try:
-            self.cur.executemany(query, params)
+            cur.executemany(query, params)
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed INSERT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
+
+        cur.close()
 
     def SELECT(self, query, params=None):
         """
@@ -67,14 +73,15 @@ class DatabaseInterface(object):
         @Created:       09/01/2014
         @Description:   Makes a SELECT transaction on the database, returns result
         """
-        self.prepare()
+        cur = self.prepare()
         try:
-            self.cur.execute(query, params)
-            res = self.cur.fetchall()
+            cur.execute(query, params)
+            res = cur.fetchall()
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed SELECT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
 
+        cur.close()
 
         return res
 
@@ -84,10 +91,12 @@ class DatabaseInterface(object):
         @Created:       11/24/2014
         @Description:   Makes an UPDATE transaction on the database
         """
-        self.prepare()
+        cur = self.prepare()
         try:
-            self.cur.execute(query, params)
+            cur.execute(query, params)
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
             self.log_message(('[Database Interface]', 'Failed UPDATE transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
+
+        cur.close()
