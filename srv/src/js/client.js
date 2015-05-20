@@ -52,8 +52,8 @@ SmartkegClient.prototype.setFormCloseTrigger = function (selector) {
     
     Array.prototype.forEach.call(triggers, function (el) {
         el.addEventListener('click', function () {
-            self.closeForm(this.polyclosest('form');
-        }
+            self.closeForm(this.polyclosest('form'));
+        });
     });
 }
 
@@ -69,7 +69,7 @@ SmartkegClient.prototype.closeForm = function (form) {
     children[0].hidden = false;
     children.slice(1).forEach(function (el) {
         el.hidden = true;
-    }
+    });
 }
 
 
@@ -137,7 +137,7 @@ SmartkegClient.prototype.render_brewers = function (selector) {
             polyfetch(this.host + 'api/get/beer?brewer_id=' + this.value).then(function (response) {
                 self.brewer_offering = JSON.parse(response);
                 self.render_brewer_offering('#tap-form-beer');
-            }
+            });
 
             this.parentElement.hidden = true;
         });
@@ -223,7 +223,7 @@ SmartkegClient.prototype.render_tap_menu = function (selector) {
             polyfetch(this.host + 'api/get/brewer').then(function (response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
-            }
+            });
             
             this.parentElement.hidden = true;
         });
