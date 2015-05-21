@@ -111,9 +111,9 @@ class TimeSeriesRegression(object):
         while i < self.periods and i < len(rma):
             points = rma[i::self.periods]
             
-            print rma
-            print self.periods
-            print points
+            print(rma)
+            print(self.periods)
+            print(points)
 
             season_avg.append(sum(points) / len(points))
             i += 1

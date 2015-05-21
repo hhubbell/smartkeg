@@ -12,7 +12,7 @@ class Query:
         @Created:       02/18/2015
         @Description:   Format query params for a WHERE clause
         """
-        fmt = 'AND'.join([" {} = %s ".format(x) for x in params.keys()])
+        fmt = 'AND'.join([" {} = %s ".format(x) for x in list(params.keys())])
         if fmt: fmt = 'WHERE' + fmt
 
         return fmt
@@ -23,8 +23,8 @@ class Query:
         @Created:       02/18/2015
         @Description:   Format query params for an INSERT VALUES clause
         """
-        return '(' + ', '.join(params.keys()) + ') ' + \
-                'VALUES (' + ', '.join(['%s' for x in params.values()]) + ')'
+        return '(' + ', '.join(list(params.keys())) + ') ' + \
+                'VALUES (' + ', '.join(['%s' for x in list(params.values())]) + ')'
 
     def get_beers(obj, params):
         """
@@ -48,7 +48,7 @@ class Query:
             ORDER BY b.name
         """.format(obj.format_where(params))
         
-        return query, params.values()
+        return query, list(params.values())
 
     def get_brewers(obj, params):
         """
@@ -67,7 +67,7 @@ class Query:
             ORDER BY name
         """.format(obj.format_where(params))
 
-        return query, params.values()
+        return query, list(params.values())
 
     def get_daily(obj):
         """
@@ -165,7 +165,7 @@ class Query:
             INSERT INTO Keg {}        
         """.format(obj.format_values(params))
 
-        return query, params.values()
+        return query, list(params.values())
 
     def set_pour(obj, params):
         """
@@ -177,7 +177,7 @@ class Query:
             INSERT INTO Pour {}
         """.format(obj.format_values(params))
 
-        return query, params.values()
+        return query, list(params.values())
 
     def set_rating(obj, params):
         """
@@ -189,7 +189,7 @@ class Query:
             INSERT INTO Keg {}        
         """.format(obj.format_values(params))
 
-        return query, params.values()
+        return query, list(params.values())
 
     def rem_keg(obj, params):
         """

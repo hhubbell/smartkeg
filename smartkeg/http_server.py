@@ -5,21 +5,21 @@
 # Description:  Is responsible for serving data over HTTP
 # ----------------------------------------------------------------------------
 
-from SocketServer import ThreadingMixIn
+from socketserver import ThreadingMixIn
 from multiprocessing import Process, Value
-from ctypes import c_char_p
-from query import Query
-import BaseHTTPServer
-import StringIO
+from ctypes import c_wchar_p
+from .query import Query
+import http.server
+import io
 import socket
 import qrcode
 import qrcode.image.svg
 import json
-import urlparse
+import urllib.parse
 import gzip
 import time
 
-class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(http.server.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
     HTTP = {
         'OK':                   200,
@@ -55,13 +55,13 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.path[1:4] == 'api':
             if self.server.conn:
-                page_buffer = self.database_transaction(self.path[5:])
+                page_buffer = self.database_transaction(self.path[5:]).encode('utf-8')
                 content_type = 'text/plain'
             else:
                 self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
 
         elif self.path[1:4] == 'sse':
-            page_buffer = self.server.sse_response.value
+            page_buffer = self.server.sse_response.value.encode('utf-8')
             content_type = 'text/event-stream'
 
         else:
@@ -69,26 +69,26 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             content_type = self.get_content_type(page)
 
             try:
-                with open(page) as f: page_buffer = f.read()
+                with open(page, 'rb') as f: page_buffer = f.read()
             except IOError:
                 self.send_error(self.HTTP['FILE_NOT_FOUND'])
 
         return page_buffer, content_type
 
-    def encode(self, body):
+    def encode(self, stream):
         """
         @Author:        Harrison Hubbell
         @Created:       04/06/2015
         @Description:   Compresses response body.
         """
         ENCODE_AS = 'gzip'
-        output = StringIO.StringIO()
+        output = io.BytesIO()
         encoding = None
-        fbuffer = body
+        fbuffer = stream
 
         if ENCODE_AS in self.headers['Accept-Encoding']:
             with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
-                f.write(body)
+                f.write(stream)
             
             encoding = ENCODE_AS
             fbuffer = output.getvalue()              
@@ -113,16 +113,14 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         while set's should require a POST.
         """
         res = None
-        parsed = urlparse.urlparse(message)
+        parsed = urllib.parse.urlparse(message)
         path = parsed.path.split('/')
 
         if self.command == 'GET':
-            params = urlparse.parse_qs(parsed.query)
+            params = urllib.parse.parse_qs(parsed.query)
         elif self.command == 'POST':
             length = int(self.headers.getheader('Content-Length'))
-            params = urlparse.parse_qs(self.rfile.read(length))
-
-        print path, params
+            params = urllib.parse.parse_qs(self.rfile.read(length))
 
         if len(path) >= 2:
             if path[0] == 'get':
@@ -165,8 +163,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.send_error(self.HTTP['MALFORMED'])
 
-        print type(res)
-        
         return res
 
     def do_GET(self):
@@ -204,7 +200,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(data)
 
 
-class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     """Handle Requests in a Seperate Thread."""
 
 
@@ -215,7 +211,7 @@ class HTTPServer(object):
         self.httpd.pipe = pipe
         self.httpd.logger = logger
         self.httpd.conn = dbi
-        self.sse = Value(c_char_p, '')
+        self.sse = Value(c_wchar_p, '')
         self.update_id = 0
         self.create_qrcode()
 
