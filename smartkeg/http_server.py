@@ -125,25 +125,25 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         if len(path) >= 2:
             if path[0] == 'get':
                 if path[1] == 'beer': 
-                    res = json.dumps(self.server.conn.SELECT(*Query().get_beers(params)))
+                    res = json.dumps(self.server.dbi.SELECT(*Query().get_beers(params)))
 
                 elif path[1] == 'brewer':
-                    res = json.dumps(self.server.conn.SELECT(*Query().get_brewers(params)))
+                    res = json.dumps(self.server.dbi.SELECT(*Query().get_brewers(params)))
 
                 elif path[1] == 'serving':
-                    res = json.dumps(self.server.conn.SELECT(*Query().get_now_serving()))
+                    res = json.dumps(self.server.dbi.SELECT(*Query().get_now_serving()))
 
                 elif path[1] == 'daily':
-                    res = json.dumps(self.server.conn.SELECT(*Query().get_daily()))
+                    res = json.dumps(self.server.dbi.SELECT(*Query().get_daily()))
 
                 elif path[1] == 'remaining':
                     fmt = params.pop('format', None)
                     
                     if fmt[0] == 'percent':
-                        res = json.dumps(self.server.conn.SELECT(*Query().get_percent_remaining()))
+                        res = json.dumps(self.server.dbi.SELECT(*Query().get_percent_remaining()))
 
                     elif fmt[0] == 'volume':
-                        res = json.dumps(self.server.conn.SELECT(*Query().get_volume_remaining()))
+                        res = json.dumps(self.server.dbi.SELECT(*Query().get_volume_remaining()))
 
                     else:
                         self.send_error(self.HTTP['MALFORMED'])
@@ -151,11 +151,11 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             elif path[0] == 'set' and self.command == 'POST':
                 if path[1] == 'keg':
                     if 'replace' in params:
-                        self.server.conn.UPDATE(*Query().rem_keg(params['replace']))
+                        self.server.dbi.UPDATE(*Query().rem_keg(params['replace']))
                         
-                    res = self.server.conn.INSERT(*Query().set_keg(params))
+                    res = self.server.dbi.INSERT(*Query().set_keg(params))
                 elif path[1] == 'rating':
-                    res = self.server.conn.INSERT(*Query().set_rating(params))
+                    res = self.server.dbi.INSERT(*Query().set_rating(params))
                 else:
                     self.send_error(self.HTTP['MALFORMED'])
             else:
@@ -210,7 +210,7 @@ class HTTPServer(object):
         self.httpd.root = path
         self.httpd.pipe = pipe
         self.httpd.logger = logger
-        self.httpd.conn = dbi
+        self.httpd.dbi = dbi
         self.sse = Value(c_wchar_p, '')
         self.update_id = 0
         self.create_qrcode()
