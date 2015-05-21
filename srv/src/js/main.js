@@ -6,13 +6,9 @@
  * ------------------------------------------------------------------------ */
 
 (function () {
-    var PROTOCOL = new RegExp('^(http(s)?:\/\/)');
-    var TRAILING = new RegExp('\/$');
-    var HOST = document.URL.replace(PROTOCOL, '').replace(TRAILING, '');
-    var PORT = 8000;
+    var client = new SmartkegClient();
+    var source = new EventSource('sse');
     
-    var client = new SmartkegClient(new Socket(HOST, PORT));
-
     client.set_temperature_display('#current-temperature');
     client.set_beer_display('#serving');
     client.set_consumption_display('#consumption-graph');
@@ -91,7 +87,7 @@
     // -------------------
     // EventSource Handling
     // -------------------
-    client.source.onmessage = function (e) {
+    source.onmessage = function (e) {
         var id = parseInt(e.lastEventId);
         var src = e.origin; 
 

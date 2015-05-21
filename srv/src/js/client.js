@@ -10,9 +10,7 @@
  *              graph.js
  * ------------------------------------------------------------------------ */
 
-function SmartkegClient(socket) {
-    this.source = new EventSource(socket.toString());
-    this.host = socket.url;
+function SmartkegClient() {
     this.last_update_id = 0;
     this.render_index = 0;
     this.beer_display = null;
@@ -134,7 +132,7 @@ SmartkegClient.prototype.render_brewers = function (selector) {
         label.innerHTML = current.name;
 
         radio.addEventListener('click', function () {
-            polyfetch(this.host + 'api/get/beer?brewer_id=' + this.value).then(function (response) {
+            polyfetch('api/get/beer?brewer_id=' + this.value).then(function (response) {
                 self.brewer_offering = JSON.parse(response);
                 self.render_brewer_offering('#tap-form-beer');
             });
@@ -220,7 +218,7 @@ SmartkegClient.prototype.render_tap_menu = function (selector) {
         radio.addEventListener('click', function () {
             self.replace = this.value;
 
-            polyfetch(this.host + 'api/get/brewer').then(function (response) {
+            polyfetch('api/get/brewer').then(function (response) {
                 self.brewers = JSON.parse(response);
                 self.render_brewers('#tap-form-brewer');
             });
