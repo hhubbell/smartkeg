@@ -225,7 +225,7 @@ textarea {
     font-size:              18pt;
 }
 
-#chart {
+.chart {
     -webkit-flex-grow:      2;    
     flex-grow:              2;
     vertical-align:         top;
