@@ -73,6 +73,33 @@ Template.prototype.hud = function (kegs) {
 }
 
 /**
+ *
+ */
+Template.prototype.consumption = function (values, title) {
+    var opt = {class: 'chart'};
+    
+    title = title || 'Consumption';
+
+    return this.contentBox(title, new ScatterPlot(values).renderTemplate(), opt);
+}
+
+/**
+ *
+ */
+Template.prototype.info = function (kv, title) {
+    var DISPLAY = ['Name', 'Brand', 'ABV', 'IBU', 'Rating']
+    var content = [];
+
+    title = title || 'Beer Info';
+
+    for (var i = 0; i < DISPLAY.length; i++) {     
+        content.push("<div class='serving-data'><span class='serving-attribute'>" + DISPLAY[i] + ": </span><span class='serving-content'>" + kv[DISPLAY[i].toLowerCase()] + "</span></div>");
+    }
+
+    return this.contentBox(title, content.join(''));
+}
+
+/**
  * Template.remaining: Render a remaining graph content box
  * @param amount:   value to graph (between 0 and 1)
  * @option title:   optional value to title box.
@@ -92,12 +119,13 @@ Template.prototype.remaining = function (amount, title) {
  * @return:         string
  */
 Template.prototype.beerView = function (beer, i, arr) {
-    var beerInfo = this.contentBox(beer.name, 'Beer info goes here');
+    var beerInfo = this.info(beer, 'Tap ' + (i + 1));
     var beerRem = this.remaining(beer.remaining);
-    var beerAdv = this.contentBox('Consumption', 'Advanced consumption graph will go here');
-    var content = [beerInfo, beerRem, beerAdv];
+    var beerAdv = this.consumption(beer.consumption);
 
-    return "<section id='tap" + (i + 1) + "' class='beer-view'>" + content.join('') + "</section>";
+    return "<section id='tap" + (i + 1) + "' class='beer-view'>" + 
+        "<section class='beer-hud'>" + beerInfo + beerRem + "</section>" +
+        beerAdv + "</section>";
 }
 
 /**
