@@ -73,7 +73,7 @@ Plot.prototype.renderTemplate = function () {
 function ScatterPlot(values, radius, style) {
     Plot.call(this, values);
     
-    this.radius = radius;
+    this.radius = radius || 2;
     this.style = style;
 }
 ScatterPlot.prototype = Object.create(Plot.prototype);
@@ -81,44 +81,40 @@ ScatterPlot.prototype.constructor = ScatterPlot;
 
 /**
  * ScatterPlot.renderTemplate: Return a string representation of the svg.
- * @param height:   graph height
- * @param width:    graph width
  * @return:         string
- * 
- * XXX FIXME: This will not render like other graphs -- use percents
  */
-ScatterPlot.prototype.renderInner = function (height, width) {
-    var self = this;
-    var parent = document.querySelector(selector);
-    var height = parent.clientHeight;
-    var width = parent.clientWidth;
-    var element = [];
+ScatterPlot.prototype.renderInner = function () { 
+    var content = [];
     var ptOpt = {class: 'chart-day-mean'}
-    var point;
+    var maxX;
+    var maxY;
     var x;
     var y;
     
     this.values.forEach(function (set) {
+        maxX = Math.max.apply(null, set.map(function (el) { return el[0] }));
+        maxY = Math.max.apply(null, set.map(function (el) { return el[1] }));
+    
         for (var i = 0; i < set.length; i++) {
-            x = set[i][0] / 100 * width;
-            y = set[i][1] / 100 * height;
-            element.push(this.pointTemplate(x, y, self.style, self.radius, ptOpt));
+            x = set[i][0] / maxX * 100;
+            y = 100 - (set[i][1] / maxY * 100);
+            content.push(this.point(x, y, this.style, this.radius, ptOpt));
         }
-    });
+    }, this);
 
-    return element.join('');
+    return content.join('');
 }
 
 /**
- * ScatterPlot.pointFragment: Create a string of an svg point
+ * ScatterPlot.point: Create a string of an svg point
  * @param x:        x value
  * @param y:        y value
- * @param type:     point type (circle or rect)
+ * @param type:     point type (circle or rect), will default to circle if undefined
  * @param size:     point size
  * @param options:  point options
  * @return          string
  */
-ScatterPlot.prototype.pointTemplate = function (x, y, type, size, options) {
+ScatterPlot.prototype.point = function (x, y, type, size, options) {
     var point;
     var pcl = '';
 
@@ -128,10 +124,10 @@ ScatterPlot.prototype.pointTemplate = function (x, y, type, size, options) {
 
     switch (type) {
         case 'rect':
-            point = "<rect x='" + x + "' y='" + y + "' width='" + size + "' height='" + size + "'  " + pcl + "></rect>";
+            point = "<rect x='" + x + "%' y='" + y + "%' width='" + size + "' height='" + size + "'  " + pcl + "></rect>";
             break;
-        case 'circle':
-            point = "<circle cx='" + x + "' cy='" + y + "' r='" + size + "' " + pcl + "></circle>";
+        default:
+            point = "<circle cx='" + x + "%' cy='" + y + "%' r='" + size + "' " + pcl + "></circle>";
             break;
     }
 
