@@ -1,98 +1,145 @@
-/* ------------------------------------------------------------------------ *
+/* 
  * Filename:    graph.js
  * Author:      Harrison Hubbell
  * Date:        10/14/2014
  * Description: Manage formatting SVG graphs.
- * ------------------------------------------------------------------------ */
+ */
 
-function ScatterPlot(selector) {
-    this.SVG_NS = 'http://www.w3.org/2000/svg';
-    this.set_canvas(selector);
-    this.height = this.element.clientHeight;
-    this.width = this.element.clientWidth;
-    this.selector = selector;
-    this.sets = [];
-}
-
-ScatterPlot.prototype.push = function(set) {
-    this.sets.push(set);
-}
-
-ScatterPlot.prototype.pop = function() {
-    this.sets.pop();
-}
-
-ScatterPlot.prototype.popall = function() {
-    this.sets.length = 0;
-}
-
-ScatterPlot.prototype.clear = function() {
-    this.element.polyempty();
-    this.set_defs();
-}
-
-ScatterPlot.prototype.set_canvas = function(selector) {
-    this.element = document.querySelector(selector);
-    this.set_defs();
-}
-
-ScatterPlot.prototype.set_defs = function() {
-    this.defs = this.element.getElementsByTagNameNS(this.SVG_NS, 'defs')[0];
-
-    if (!this.defs) {
-        this.defs = document.createElementNS(this.SVG_NS, 'defs');
-        this.element.appendChild(this.defs);
+/**
+ * Graph: Parent Class for all SVG graph Objects.
+ * @option values:  An array of values to graph (Children must decide how).
+ *                  Values are optional and can be added later.
+ */
+function Plot(values) {
+    this.values = [];
+    
+    if (values) {
+        this.push(values);
     }
 }
+Plot.prototype.SVGNAMESPACE = 'http://www.w3.org/2000/svg';
 
-ScatterPlot.prototype.set_radius = function(radius) {
-    this.radius = radius;
+/**
+ * Plot.push: Add a set of values to graph
+ * @param values:   Values to append.
+ */
+Plot.prototype.push = function (values) {
+    this.values.push(values);
 }
 
-ScatterPlot.prototype.set_style = function(style) {
+/**
+ * Plot.pop: Remove a set of values
+ */
+Plot.prototype.pop = function () {
+    this.values.pop();
+}
+
+/**
+ * Plot.popall: Remove all sets of values
+ */
+Plot.prototype.popall = function() {
+    this.values.length = 0;
+}
+
+/**
+ * Plot.renderTo: Render to a specified element.
+ * @param element: element to render to.
+ */
+Plot.prototype.renderTo = function (element) {
+    element.innerHTML = this.renderTemplate();
+}
+
+/**
+ * Plot.renderInner: Render the inner parts of the svg graph
+ * @return:         string
+ */
+Plot.prototype.renderInner = function () {
+    return;
+}
+
+/**
+ * Plot.renderTemplate: Return a string representation of the svg.
+ * @return:         string
+ */
+Plot.prototype.renderTemplate = function () {
+    return '<svg>' + this.renderInner() + '</svg>';
+}
+
+
+/**
+ * ScatterPlot: Class for making 2D scatter plots (x, y)
+ * @option values:  Array of values (x,y).
+ */
+function ScatterPlot(values, radius, style) {
+    Plot.call(this, values);
+    
+    this.radius = radius;
     this.style = style;
 }
+ScatterPlot.prototype = Object.create(Plot.prototype);
+ScatterPlot.prototype.constructor = ScatterPlot;
 
-ScatterPlot.prototype.render_points = function(bottom) {
+/**
+ * ScatterPlot.renderTemplate: Return a string representation of the svg.
+ * @param height:   graph height
+ * @param width:    graph width
+ * @return:         string
+ * 
+ * XXX FIXME: This will not render like other graphs -- use percents
+ */
+ScatterPlot.prototype.renderInner = function (height, width) {
     var self = this;
-
-    this.sets.forEach(function(set) {
-        var radius = self.radius;
-        var style = self.style;
-        var length = set[set.length - 1].x;
- 
+    var parent = document.querySelector(selector);
+    var height = parent.clientHeight;
+    var width = parent.clientWidth;
+    var element = [];
+    var ptOpt = {class: 'chart-day-mean'}
+    var point;
+    var x;
+    var y;
+    
+    this.values.forEach(function (set) {
         for (var i = 0; i < set.length; i++) {
-            var y_prog = set[i].y;
-            var j = i - 1;
-            
-            while (set[j]) {
-                y_prog += set[j].y;
-                j -= 1;
-            }
-
-            var y_val = y_prog / bottom * self.height;
-            var x_val = ((set[i].x / length) * self.width);
-            var point = document.createElementNS(self.SVG_NS, style);
-
-            point.classList.add('chart-day-mean');
-
-            if (style === 'rect') {
-                point.setAttributeNS(null, 'x', x_val - radius/2);
-                point.setAttributeNS(null, 'y', y_val - radius/2);
-                point.setAttributeNS(null, 'width', radius);
-                point.setAttributeNS(null, 'height', radius);
-            } else if (style === 'circle') {
-                point.setAttributeNS(null, 'cx', x_val);
-                point.setAttributeNS(null, 'cy', y_val);
-                point.setAttributeNS(null, 'r', radius);
-            }
-
-            self.element.appendChild(point);
+            x = set[i][0] / 100 * width;
+            y = set[i][1] / 100 * height;
+            element.push(this.pointTemplate(x, y, self.style, self.radius, ptOpt));
         }
     });
 
+    return element.join('');
 }
 
+/**
+ * ScatterPlot.pointFragment: Create a string of an svg point
+ * @param x:        x value
+ * @param y:        y value
+ * @param type:     point type (circle or rect)
+ * @param size:     point size
+ * @param options:  point options
+ * @return          string
+ */
+ScatterPlot.prototype.pointTemplate = function (x, y, type, size, options) {
+    var point;
+    var pcl = '';
+
+    if (options && options.class) {
+        pcl = "class='" + options.class + "'";  
+    }
+
+    switch (type) {
+        case 'rect':
+            point = "<rect x='" + x + "' y='" + y + "' width='" + size + "' height='" + size + "'  " + pcl + "></rect>";
+            break;
+        case 'circle':
+            point = "<circle cx='" + x + "' cy='" + y + "' r='" + size + "' " + pcl + "></circle>";
+            break;
+    }
+
+    return point;
+}
+
+/*
+ * XXX FIXME: Make this work!
 ScatterPlot.prototype.render_seasonal_trendline = function(bottom, vertical_fix, start_percent, width_percent, set, type) {
     this.height = this.element.clientHeight;
     this.width = this.element.clientWidth;
@@ -132,91 +179,82 @@ ScatterPlot.prototype.render_seasonal_trendline = function(bottom, vertical_fix,
 
     return y_val
 }
+*/
 
-ScatterPlot.prototype.render = function(max, points, trend) {
-    this.height = this.element.clientHeight;
-    this.width = this.element.clientWidth;
 
-    if (trend) this.render_seasonal_trendline(max);
-    if (points) this.render_points(max);
+/**
+ * BarGraph: Class for making bar graphs
+ * @option  values: Array of y values
+ */
+function BarGraph(values) {
+    Plot.call(this, values);
 }
+BarGraph.prototype = Object.create(Plot.prototype);
+BarGraph.prototype.constructor = BarGraph;
 
+/**
+ * BarGraph.renderInner: Return a string representation of the svg innards.
+ * @return:         string
+ */
+BarGraph.prototype.renderInner = function () {
+    var max = Math.max.apply(null, this.values);
+    var content = [];
+    var barWidth = (100 / this.values.length || 1);
+    var barHeight;
+    var x;
+    var y;
 
-function BarGraph(selector) {
-    this.SVG_NS = 'http://www.w3.org/2000/svg';
-    this.REM_MED = .45;
-    this.REM_LOW = .20;
-    this.set_canvas(selector);
-    this.height = this.element.clientHeight;
-    this.width = this.element.clientWidth;
-    this.categories = []
-}
-
-BarGraph.prototype.push = function(category) {
-    this.categories.push(category);
-}
-
-BarGraph.prototype.pop = function() {
-    this.categories.pop();
-}
-
-BarGraph.prototype.popall = function() {
-    this.categories.length = 0;
-}
-
-BarGraph.prototype.clear = function() {
-    this.element.polyempty();
-    this.set_defs();
-}
-
-BarGraph.prototype.set_canvas = function(selector) {
-    this.element = document.querySelector(selector);
-    this.set_defs()
-}
-
-BarGraph.prototype.set_defs = function() {
-    this.defs = this.element.getElementsByTagNameNS(this.SVG_NS, 'defs')[0];
-
-    if (!this.defs) {
-        this.defs = document.createElementNS(this.SVG_NS, 'defs');
-        this.element.appendChild(this.defs);
-    }
-}
-
-BarGraph.prototype.render = function() {
-    this.height = this.element.clientHeight;
-    this.width = this.element.clientWidth;
-
-    var bar_width = (100 / this.categories.length || 1) + "%";
-    var bar_x = this.width / this.categories.length;
-    var TEXT_WIDTH = 124;
-
-    for (var i = 0; i < this.categories.length; i++) {
-        var rect = document.createElementNS(this.SVG_NS, 'rect');
-        var text = document.createElementNS(this.SVG_NS, 'text');
-        var bar_top = (1 - this.categories[i]) * this.height
-
-        // ASSIGN COLOR BASED ON AMOUNT REMAINING
-        if (this.categories[i] < this.REM_LOW) {
-            rect.classList.add('low');
-        } else if (this.categories[i] < this.REM_MED) {
-            rect.classList.add('medium');
-        } else {
-            rect.classList.add('ok');
-        }
+    for (var i = 0; i < this.values.length; i++) {
+        barHeight = (this.values[i] / max * 100);
+        y = 100 - barHeight;
+        x = barWidth * i;
+        content.push("<rect x='" + x + "%' y='" + y + "%' width='" + barWidth + "%' height='" + barHeight + "%'></rect>");
         
-        rect.setAttributeNS(null, 'x', bar_x * i);
-        rect.setAttributeNS(null, 'y', bar_top);
-        rect.setAttributeNS(null, 'width', bar_width);
-        rect.setAttributeNS(null, 'height', this.height - bar_top);
-
-        
-        text.classList.add('remaining-text');
-        text.setAttributeNS(null, 'x', this.width / 2 - TEXT_WIDTH / 2);
-        text.setAttributeNS(null, 'y', this.height / 2);
-        text.textContent = (this.categories[i] * 100).toFixed(2) + '%';
-
-        this.element.appendChild(rect);
-        this.element.appendChild(text);
     }
+
+    return content.join('');
+}
+
+
+/**
+ * RemainingGraph: Class for making remaining graphs
+ * @option value: single y value (between 0 and 1)
+ */
+function RemainingGraph (value) {
+    Plot.call(this, value);
+}
+RemainingGraph.prototype = Object.create(Plot.prototype);
+RemainingGraph.prototype.constructor = RemainingGraph;
+RemainingGraph.prototype.REMAININGMEDIUM = .45;
+RemainingGraph.prototype.REMAININGLOW = .20;
+
+/**
+ * RemainingGraph.push: Override normal push so RemainingGraph can only hold a single value
+ */
+RemainingGraph.prototype.push = function (val) {
+    this.values = val;
+    this.value = this.values;
+}
+
+/**
+ * RemainingGraph.renderInner: Render the remaining bar and text percent.
+ * @return:         string
+ */
+RemainingGraph.prototype.renderInner = function () {
+    var barHeight = (this.value * 100).toFixed(2);
+    var y = 100 - barHeight;
+    var textClass = "class='remaining-text'";
+    var remClass;    
+
+    if (this.value < this.REMAININGLOW) {
+        remClass = "class='low'";
+    } else if (this.value < this.REMAININGMEDIUM) {
+        remClass = "class='medium'";
+    } else {
+        remClass = "class='ok'";
+    }
+
+    return "<rect x='0' y='" + y + "%' width='100%' height='" +
+        barHeight + "%' " + remClass + "></rect>" +
+        "<text x='50%' y='50%' " + textClass + ">" + barHeight + "%</text>";
 }
