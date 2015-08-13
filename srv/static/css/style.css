@@ -86,8 +86,8 @@ label[for='beer-menu-action'] {
 }
 
 main {
-    display:                -webkit-flex;    
-    display:                flex;
+    /*display:                -webkit-flex;    
+    display:                flex;*/
     margin:                 auto;
 }
 
@@ -101,6 +101,21 @@ textarea {
     color:                  #BDC3C7;
     border:                 none;
     outline:                none;
+}
+
+.beer-link {
+    text-decoration:        none;
+    color:                  inherit;
+    display:                inline-block;
+}
+
+.beer-view {
+    display:                none;
+}
+
+.beer-view:target {
+    display:                -webkit-flex;    
+    display:                flex;
 }
 
 .beer-menu-form {
@@ -217,7 +232,9 @@ textarea {
 }
 
 #hud {
-    vertical-align:         top;
+    margin:                 auto;
+    display:                -webkit-flex;
+    display:                flex;
 }
 
 #serving {
@@ -303,6 +320,7 @@ svg {
     font-size:              36pt;
     font-family:            helvetica, "Open Sans", sans-serif;
     fill:                   #ECF0F1;
+    text-anchor:            middle;
 }
 
 /* -------------------- *
