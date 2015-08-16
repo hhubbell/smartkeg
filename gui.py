@@ -16,7 +16,7 @@ import gobject
 DEFAULT_HOST = 'http://localhost'
 
 if __name__ == '__main__':
-    host = sys.argv[1] if len(sys.argv) > 2 else DEFAULT_HOST
+    host = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_HOST
 
     gobject.threads_init()
     window = gtk.Window()
