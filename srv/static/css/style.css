@@ -1,7 +1,7 @@
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:700,400,300);
 
 * {
-    font-family:            helvetica, 'Open Sans', sans-serif;
+    font-family:            Open Sans, sans-serif;
     font-size:              12pt;
 }
 
@@ -34,12 +34,17 @@ header {
 
 header * {
     vertical-align:         middle;
+    display:                inline;
+}
+
+header a {
+    text-decoration:        none;
 }
 
 h1 {
     color:                  #C0392B;
     display:                inline-block;
-    font-size:              28pt;
+    font-size:              30pt;
     font-weight:            100;
     margin:                 0;
 }
@@ -88,7 +93,22 @@ label[for='beer-menu-action'] {
 main {
     /*display:                -webkit-flex;    
     display:                flex;*/
-    margin:                 auto;
+    margin:                 5em;    
+}
+
+main > section {
+    width:                  100%;
+}
+
+nav {
+    display:                inline;
+}
+
+nav a {
+    text-decoration:        none;
+    color:                  inherit;
+    display:                inline-block;
+    padding:                0em 1em 0em 1em;    
 }
 
 output {
@@ -107,6 +127,7 @@ textarea {
     text-decoration:        none;
     color:                  inherit;
     display:                inline-block;
+    max-width:              30%;
 }
 
 .beer-view {
@@ -116,6 +137,10 @@ textarea {
 .beer-view:target {
     display:                -webkit-flex;    
     display:                flex;
+}
+
+.beer-view:target ~ #hud {
+    display:                none;
 }
 
 .beer-menu-form {
@@ -143,6 +168,15 @@ textarea {
     margin-bottom:          0px;
 }
 
+.chart {
+    -webkit-flex-grow:      2;    
+    flex-grow:              2;
+    vertical-align:         top;
+}
+
+.chart svg {
+    height:                 275px;
+}
 
 .circle-badge {
     background-color:       #C0392B;
@@ -184,7 +218,6 @@ textarea {
 
 .header-right {
     float:                  right;
-    display:                inline;
 }
 
 .rating-slider {
@@ -215,26 +248,18 @@ textarea {
     display:                block;
 }
 
-#consumption-graph {
-    height:                 275px;
-}
-
 #current-temperature {
     color:                  #2C3E50;
     padding-right:          3em;
     font-size:              18pt;
 }
 
-.chart {
-    -webkit-flex-grow:      2;    
-    flex-grow:              2;
-    vertical-align:         top;
-}
 
 #hud {
-    margin:                 auto;
     display:                -webkit-flex;
     display:                flex;
+    justify-content:        center;
+    -webkit-justify-content: center;
 }
 
 #serving {
@@ -266,6 +291,8 @@ textarea {
  * -------------------- */
 svg {
     width:                  100%;
+    max-height:             100%;
+    vertical-align:         bottom;
 }
 
 .chart-day {
@@ -317,8 +344,8 @@ svg {
 }
 
 .remaining-text {
-    font-size:              36pt;
-    font-family:            helvetica, "Open Sans", sans-serif;
+    font-size:              32pt;
+    font-family:            Open Sans, sans-serif;
     fill:                   #ECF0F1;
     text-anchor:            middle;
 }
@@ -328,8 +355,7 @@ svg {
  * -------------------- */
 @media all and (max-width: 960px) {
     main {
-        -webkit-flex-direction: column;        
-        flex-direction:     column;
+        margin:             5em 0em 5em 0em;
     }
 
     #chart {
@@ -340,26 +366,51 @@ svg {
         height:             initial;
     }
 
-    #hud {
-        -webkit-order:      2;
-        order:              2;
-        -webkit-display:    flex;        
-        display:            flex;
+    .beer-view {
+        margin:             0;
     }
 
-    .content-box{
+    .content-box {
         -webkit-flex-grow:  1;
         flex-grow:          1;
+    }
 }
 
 @media all and (max-width: 540px) {
-    #hud {
+    main {
+        margin:             0em;
+    }
+
+    nav {
+        display:            block;
+        text-align:         center;
+    }
+
+    nav a {
+        padding-left:       .25em;
+        padding-right:      .25em;
+    }
+
+    .header-right {
+        float:              none;
+    }
+
+    .beer-view {
         -webkit-flex-direction: column;
         flex-direction:     column;
     }
 
+    .beer-link {
+        max-width:          100%;
+    }
+
     #current-temperature {
-        padding-right:      0;
+        display:            none;
+    }
+
+    #hud {
+        -webkit-flex-direction: column;        
+        flex-direction:     column;
     }
 
     #qrcode {

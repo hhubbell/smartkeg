@@ -180,13 +180,22 @@ ScatterPlot.prototype.render_seasonal_trendline = function(bottom, vertical_fix,
 
 /**
  * BarGraph: Class for making bar graphs
- * @option  values: Array of y values
+ * @option values:  Array of y values
+ * @option labels:  Labels for values
  */
-function BarGraph(values) {
+function BarGraph(values, labels) {
     Plot.call(this, values);
+    this.labels = labels
 }
 BarGraph.prototype = Object.create(Plot.prototype);
 BarGraph.prototype.constructor = BarGraph;
+
+/**
+ * BarGraph.push
+ */
+BarGraph.prototype.push = function (values) {
+    this.values = values;
+}
 
 /**
  * BarGraph.renderInner: Return a string representation of the svg innards.
@@ -201,7 +210,7 @@ BarGraph.prototype.renderInner = function () {
     var y;
 
     for (var i = 0; i < this.values.length; i++) {
-        barHeight = (this.values[i] / max * 100);
+        barHeight = this.values[i] / max * 100;
         y = 100 - barHeight;
         x = barWidth * i;
         content.push("<rect x='" + x + "%' y='" + y + "%' width='" + barWidth + "%' height='" + barHeight + "%'></rect>");

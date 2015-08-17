@@ -64,23 +64,53 @@ Template.prototype.hud = function (kegs) {
         content.push("<a href='#tap" + (i + 1) + "' class='beer-link'>" +
             this.remaining(
                 kegs[i].remaining,            
-                kegs[i].name
+                "<h4>" + kegs[i].name + "</h4>"
             ) + "</a>"
         );
     }
 
-    return content.join('')
+    return "<section id='hud'>" + content.join('') + "</section";
+}
+
+Template.prototype.nav = function (kegs) {
+    var content = [];
+
+    for (var i = 0; i < kegs.length; i++) {
+        content.push("<a href='#tap" + (i + 1) + "'>" + kegs[i].name + "</a>");
+    }
+
+    return content.join('');
 }
 
 /**
  *
  */
-Template.prototype.consumption = function (values, title) {
+Template.prototype.consumption = function (values, title, plot) {
     var opt = {class: 'chart'};
-    
+    var plot;
+    var graph;
+
     title = title || 'Consumption';
 
-    return this.contentBox(title, new ScatterPlot(values).renderTemplate(), opt);
+    switch (plot) {
+        case 'bar':
+            plot = new BarGraph(values.map(function (el) { return el[1] }));
+            graph = plot.renderTemplate();
+            break;
+        case 'both':
+            plot = new BarGraph(values.map(function (el) { return el[1] }));
+            graph = plot.renderInner();
+            plot = new ScatterPlot(values);
+            graph += plot.renderInner();
+            graph = "<svg>" + graph + "</svg>";
+            break;
+        default:
+            plot = new ScatterPlot(values);
+            graph = plot.renderTemplate();
+            break;
+    }
+
+    return this.contentBox(title, graph, opt);
 }
 
 /**
@@ -119,13 +149,13 @@ Template.prototype.remaining = function (amount, title) {
  * @return:         string
  */
 Template.prototype.beerView = function (beer, i, arr) {
-    var beerInfo = this.info(beer, 'Tap ' + (i + 1));
+    var beerInfo = this.info(beer, 'Now Serving on Tap ' + (i + 1));
     var beerRem = this.remaining(beer.remaining);
     var beerAdv = this.consumption(beer.consumption);
 
-    return "<section id='tap" + (i + 1) + "' class='beer-view'>" + 
-        "<section class='beer-hud'>" + beerInfo + beerRem + "</section>" +
-        beerAdv + "</section>";
+    return "<section id='tap" + (i + 1) + "' class='beer-view'>" +
+        "<section class='beer-hud'>" + 
+        beerInfo + beerRem + "</section>" + beerAdv + "</section>";
 }
 
 /**
