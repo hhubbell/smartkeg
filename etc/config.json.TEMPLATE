@@ -16,10 +16,6 @@
         "host": "",
         "port": 80
     },
-    "socket": {
-        "host": "",
-        "port": 8000
-    },
     "flow_meter": {
         "pins": [12]
     },
