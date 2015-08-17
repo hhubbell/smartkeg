@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-# ----------------------------------------------------------------------------
+#
 # Filename:     main.py
 # Author:       Harrison Hubbell
 # Date:         08/31/2014
-# Description:  Is responsible for spooling and monitoring smartkeg processes,
-#               and handing data interaction between these parts.  Each
-#               process that requires interaction with the database will get
-#               its own connection.  This should improve performance by
-#               allowing the database to manage ACID transactions.
-# ----------------------------------------------------------------------------
+# Description:  Is responsible for spooling and monitoring smartkeg
+#               processes, and handing data interaction between these parts.
+#
 
 from multiprocessing import Process, Pipe
 import logging

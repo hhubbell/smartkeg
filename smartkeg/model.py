@@ -1,10 +1,10 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     model.py
 # Author:       Harrison Hubbell
 # Date:         10/07/2014
 # Description:  Statistical modeling package for the Smartkeg. All "Models"
 #               MUST have a forecast() methed.
-# ----------------------------------------------------------------------------
+#
 
 import math
 import logging

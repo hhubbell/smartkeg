@@ -1,12 +1,9 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     flow_meter.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
-# Description:  Reads flow from flow meter. For the current scope of the
-#               project ther is only one flow meter per kegerator.  The
-#               FlowMeterReader object can however, with some modification,
-#               be made to handle multiple FlowMeters in form of child procs.
-# ----------------------------------------------------------------------------
+# Description:  Reads flow from flow meter.
+#
 
 from multiprocessing import Process, Queue
 from .query import Query

@@ -1,9 +1,9 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     http_server.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
 # Description:  Is responsible for serving data over HTTP
-# ----------------------------------------------------------------------------
+#
 
 from socketserver import ThreadingMixIn
 from multiprocessing import Process, Value

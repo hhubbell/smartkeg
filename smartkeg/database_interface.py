@@ -1,12 +1,12 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     main.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
 # Description:  Manages connection with MariaDB database. The current scope
-#               of the project does not allow users to delete records via this
-#               interface. In fact, the database user should only have
+#               of the project does not allow users to delete records via 
+#               this interface. In fact, the database user should only have
 #               INSERT, UPDATE, and SELECT permissions.
-# ----------------------------------------------------------------------------
+#
 
 import mysql.connector
 import logging

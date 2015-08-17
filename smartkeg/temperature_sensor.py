@@ -1,11 +1,11 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     temperature_sensor.py
 # Author:       Harrison Hubbell
 # Date:         08/31/2014
 # Description:  Reads temperatures from sensors, and returns these values
 #               to its parent process.  This Class expects a DS18B20 3-pin
 #               sensor to generate temperature values.
-# ----------------------------------------------------------------------------
+#
 
 import logging
 import time
