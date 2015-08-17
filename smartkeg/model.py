@@ -6,32 +6,24 @@
 #               MUST have a forecast() methed.
 #
 
-import math
 import logging
-
-class ModelMaker(object):
-    def __init__(self, model, pipe):
-        self.model = model
-        self.pipe = pipe
-
-    def run(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/05/2014
-        @Description:   Main method of SmartkegModelMaker. Is responsible for
-                        receiving data and calculating the forecast model.
-        """
-        while True:
-            data = self.pipe.recv()
-            forecast = self.model.forecast(data)
-            logging.info('New model: {}'.format(self.model))
-            logging.info('New forecast: {}'.format(self.model.prediction))
-            self.pipe.send(forecast)
-
+import math
 
 class TimeSeriesRegression(object):
     def __init__(self, periods):
         self.periods = periods
+
+    def __str__(self):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       11/05/2014
+        @Description:   Returns a string representation of the time-series
+                        regression model.
+        """
+        t = '({} + {}(x))'.format(str(self.intercept), str(self.slope))
+        s = '({})'.format(' + '.join(['{}(s{})'.format(self.seasonality(x), x) for x in range(0, self.periods)]))
+        
+        return t + ' * ' + s
 
     def forecast(self, data):
         """
@@ -176,21 +168,3 @@ class TimeSeriesRegression(object):
             i += 1
 
         return moving_avg
-
-    def __str__(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       11/05/2014
-        @Description:   Returns a string representation of the time-series
-                        regression model.
-        """
-        T = "(" + str(self.intercept) + " + " + str(self.slope) + "(x))"
-        S = "("
-        
-        for p in range(0, self.periods):
-            S += str(self.seasonality(p)) + "(s" + str(p) + ")"
-            if p != self.periods: S+= " + " 
-            
-        S += ")"
-
-        return T + " * " + S
