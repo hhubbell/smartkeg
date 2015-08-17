@@ -12,10 +12,9 @@ class Query:
         @Created:       02/18/2015
         @Description:   Format query params for a WHERE clause
         """
-        fmt = 'AND'.join([" {} = %s ".format(x) for x in params.keys()])
-        if fmt: fmt = 'WHERE' + fmt
+        fmt = ' AND '.join(['{}=%s'.format(x) for x in params.keys()])
 
-        return fmt
+        return 'WHERE ' + fmt if fmt else fmt
 
     def format_values(obj, params):
         """
@@ -23,8 +22,10 @@ class Query:
         @Created:       02/18/2015
         @Description:   Format query params for an INSERT VALUES clause
         """
-        return '(' + ', '.join(params.keys()) + ') ' + \
-                'VALUES (' + ', '.join(['%s' for x in params.values()]) + ')'
+        return '({}) VALUES ({})'.format(
+            ', '.join(params.keys()),
+            ', '.join(['%s' for x in params.values()])
+        )
 
     def get_beers(obj, params):
         """
