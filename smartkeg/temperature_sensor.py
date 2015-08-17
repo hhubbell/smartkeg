@@ -7,16 +7,16 @@
 #               sensor to generate temperature values.
 # ----------------------------------------------------------------------------
 
+import logging
 import time
 import re
 
 class TemperatureSensor(object):
     TEMP_SCALE = 1000.00
 
-    def __init__(self, sensor_path, name, logger):
+    def __init__(self, sensor_path, name):
         self.name = name
         self.sensor = sensor_path
-        self.logger = logger
 
     def get_name(self):
         """
@@ -48,16 +48,15 @@ class TemperatureSensor(object):
                 temperature = re.split('t=', thermo.read())
                 self.temperature = float(temperature[1]) / self.TEMP_SCALE
         except IOError as e:
-            self.logger.log(('[Temperature Sensor]', e))
+            logging.error(e)
             self.temperature = None
 
 
 
 class TemperatureSensorController(object):
-    def __init__(self,  sensors, path, fname, interval, pipe=None, dbi=None, logger=None):
+    def __init__(self,  sensors, path, fname, interval, pipe=None, dbi=None):
         self.dbi = dbi
         self.interval = interval
-        self.logger = logger
         self.pipe = pipe
         self.sensors = {}
 
@@ -71,7 +70,7 @@ class TemperatureSensorController(object):
         @Description:   Creates dict of TemperatureSensor Objects.
         """
         path = therm_dir + sensor + '/' + filename
-        self.sensors[sensor] = TemperatureSensor(path, sensor, self.logger)
+        self.sensors[sensor] = TemperatureSensor(path, sensor)
 
     def sensor_read(self, name):
         """
@@ -121,7 +120,7 @@ class TemperatureSensorController(object):
 
             for sensor in celcius_temps:
                 fahrenheit_temps[sensor] = self.celcius_to_fahrenheit(celcius_temps[sensor])
-                self.logger.log(('[Temperature Sensor]', sensor, fahrenheit_temps[sensor], 'F'))
+                logging.info('{} {} F'.format(sensor, fahrenheit_temps[sensor]))
 
             if fahrenheit_temps: 
                 self.pipe.send(fahrenheit_temps)

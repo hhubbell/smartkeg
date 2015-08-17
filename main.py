@@ -11,10 +11,12 @@
 # ----------------------------------------------------------------------------
 
 from multiprocessing import Process, Pipe
+import logging
 import smartkeg
 import RPi.GPIO as GPIO
 import time
 import json
+
 
 def config(path):
     """
@@ -25,21 +27,20 @@ def config(path):
     with open(path, 'r') as f:
         return json.load(f)
 
-def db_connect(cfg, logger):
+def db_connect(cfg):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
     @Description:   Creates a database interface for inserting and
                     selecting data.
     """
-    logger.log('Initializing Database Connection.')
+    logging.info('Initializing Database Connection.')
 
     return smartkeg.DatabaseInterface(
         cfg['address'],
         cfg['schema'],
         cfg['user'],
-        cfg['password'],
-        logger=logger
+        cfg['password']
     )
 
 def start_all(procs):
@@ -75,7 +76,7 @@ def proc_poll_recv(node):
     """
     if node.poll(): return node.recv()
     
-def spawn_flow_meter(pipe, cfg, logger=None, dbi=None):
+def spawn_flow_meter(pipe, cfg, dbi=None):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
@@ -84,12 +85,11 @@ def spawn_flow_meter(pipe, cfg, logger=None, dbi=None):
     flo = smartkeg.FlowMeterController(
         cfg['pins'],
         pipe=pipe,
-        dbi=dbi,
-        logger=logger
+        dbi=dbi
     )
     flo.run()
 
-def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
+def spawn_http_server(pipe, cfg, path, dbi=None):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
@@ -100,13 +100,12 @@ def spawn_http_server(pipe, cfg, path, logger=None, dbi=None):
         cfg['port'],
         path,
         pipe=pipe,
-        dbi=dbi,
-        logger=logger
+        dbi=dbi
     )
     srv.set_sse_response(json.dumps({'test': 123, 'shmest': 456}))
     srv.serve_forever()
 
-def spawn_model(pipe, logger=None):
+def spawn_model(pipe):
     """
     @Author:        Harrison Hubbell
     @Created:       10/07/2014
@@ -117,11 +116,10 @@ def spawn_model(pipe, logger=None):
     mod = smartkeg.ModelMaker(
         smartkeg.TimeSeriesRegression(PERIODS),
         pipe,
-        logger=logger
     )
     mod.run()
 
-def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
+def spawn_temp_sensor(pipe, cfg, dbi=None):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
@@ -133,8 +131,7 @@ def spawn_temp_sensor(pipe, cfg, logger=None, dbi=None):
             cfg['file'],
             cfg['interval'],            
             pipe=pipe,
-            dbi=dbi,
-            logger=logger
+            dbi=dbi
         )
 
         tmp.run()
@@ -147,16 +144,24 @@ if __name__ == '__main__':
     SRV_PATH = '/srv/smartkeg/'
 
     cfg = config(CFG_PATH)
-    log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
+    #log = smartkeg.Logger(cfg['logger']['directory'], cfg['logger']['file'])
+    logging.basicConfig(
+        filename='{}{}.log'.format(
+            cfg['logger']['directory'] + cfg['logger']['file'],
+            time.strftime('%Y%m%d')
+        ),
+        format='%(asctime)s %(levelname)s: %(message)s',
+        level=logging.INFO
+    )
+    
     procs = {
-        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], log, db_connect(cfg['database'], log))),
-        'MOD': proc_add(spawn_model, args=(log,)),
-        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], log, db_connect(cfg['database'], log))),
-        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, log, db_connect(cfg['database'], log)))
+        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database']))),
+        'MOD': proc_add(spawn_model),
+        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database']))),
+        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, db_connect(cfg['database'])))
     }
 
     start_all([procs[x][0] for x in procs])
 
     while True:
-        
         time.sleep(0.1)

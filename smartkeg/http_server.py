@@ -9,6 +9,7 @@ from socketserver import ThreadingMixIn
 from multiprocessing import Process, Value
 from ctypes import c_wchar_p
 from .query import Query
+import logging
 import http.server
 import io
 import socket
@@ -102,7 +103,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         @Description:   Overrides standard logging functionality to
                         log server actions to a file.
         """
-        if self.server.logger: self.server.logger.log(('[HTTP Server]',) + args)
+        logging.debug(args)
 
     def database_transaction(self, message):
         """
@@ -205,11 +206,10 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
 
 
 class HTTPServer(object):
-    def __init__(self, host, port, path, pipe=None, dbi=None, logger=None):
+    def __init__(self, host, port, path, pipe=None, dbi=None):
         self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
         self.httpd.root = path
         self.httpd.pipe = pipe
-        self.httpd.logger = logger
         self.httpd.dbi = dbi
         self.sse = Value(c_wchar_p, '')
         self.update_id = 0

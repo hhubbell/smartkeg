@@ -11,6 +11,7 @@
 from multiprocessing import Process, Queue
 from .query import Query
 import RPi.GPIO as GPIO
+import logging
 import time
 
 class FlowMeter(object):
@@ -75,11 +76,10 @@ class FlowMeter(object):
                 time.sleep(0.1)
 
 class FlowMeterController(object):
-    def __init__(self, pins, pipe=None, dbi=None, logger=None):
+    def __init__(self, pins, pipe=None, dbi=None):
         self.dbi = dbi        
         self.fmq = Queue()
         self.fms = self.register_meters(pins)        
-        self.logger = logger        
         self.pipe = pipe
 
     def register_meters(self, pins):
@@ -109,6 +109,6 @@ class FlowMeterController(object):
         while True:
             while not fmq.empty():
                 data = fmq.get()
-                self.logger.log(('[Flow Meter]', 'flow detected', data))
+                logging.info('Flow detected {}'.format(data))
                 self.pipe.send(data)
 

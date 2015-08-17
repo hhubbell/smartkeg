@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 
 import math
+import logging
 
 class ModelMaker(object):
-    def __init__(self, model, pipe, logger=None):
+    def __init__(self, model, pipe):
         self.model = model
         self.pipe = pipe
-        self.logger = logger
 
     def run(self):
         """
@@ -24,8 +24,8 @@ class ModelMaker(object):
         while True:
             data = self.pipe.recv()
             forecast = self.model.forecast(data)
-            self.logger.log(('[ModelMaker]','New model:', str(self.model)))
-            self.logger.log(('[ModelMaker]','New forecast:', self.model.prediction))
+            logging.info('New model: {}'.format(self.model))
+            logging.info('New forecast: {}'.format(self.model.prediction))
             self.pipe.send(forecast)
 
 

@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 
 import mysql.connector
+import logging
 
 class DatabaseInterface(object):
-    def __init__(self, addr, dbn, user, pwd, logger=None):
-        self.logger = logger        
+    def __init__(self, addr, dbn, user, pwd):
         self.conn = self.connect(addr, dbn, user, pwd)
 
     def __exit__(self):
@@ -33,15 +33,7 @@ class DatabaseInterface(object):
                 database=dbn
             )
         except mysql.connector.Error as e:
-            self.log_message(('[Database Interface]', 'The following error occured during connection:', e))
-
-    def log_message(self, message):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/31/2014
-        @Description:   Logs a message if the logger has been specified.
-        """
-        if self.logger: self.logger.log(message)
+            logging.error('The following error occured during connection: {}'.format(e))
 
     def prepare(self):
         """
@@ -63,7 +55,7 @@ class DatabaseInterface(object):
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
-            self.log_message(('[Database Interface]', 'Failed INSERT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
+            logging.error('Failed INSERT transaction: {}\nQuery:\n{}\nparams:\n{}'.format(e, query, params))
 
         cur.close()
 
@@ -79,7 +71,7 @@ class DatabaseInterface(object):
             res = cur.fetchall()
         except Exception as e:
             self.conn.rollback()
-            self.log_message(('[Database Interface]', 'Failed SELECT transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
+            logging.error('Failed SELECT transaction: {}\nQuery:\n{}\nparams:\n{}'.format(e, query, params))
 
         cur.close()
 
@@ -97,6 +89,6 @@ class DatabaseInterface(object):
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
-            self.log_message(('[Database Interface]', 'Failed UPDATE transaction:', e, '\nQuery:\n', query, '\nParams:\n', params))
+            logging.error('Failed UPDATE transaction: {}\nQuery:\n{}\nparams:\n{}'.format(e, query, params))
 
         cur.close()
