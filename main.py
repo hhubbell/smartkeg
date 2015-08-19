@@ -95,7 +95,7 @@ def spawn_flow_meter(pipe, cfg, dbi=None):
     @Created:       08/31/2014
     @Description:   Creates the Flow Meter process.
     """
-    flo = smartkeg.FlowMeterController(
+    flo = smartkeg.FlowMeterManager(
         cfg['pins'],
         pipe=pipe,
         dbi=dbi
@@ -108,11 +108,9 @@ def spawn_temp_sensor(pipe, cfg, dbi=None):
         @Created:       08/31/2014
         @Description:   Creates the Temperature Sensor process.
         """
-        tmp = smartkeg.TemperatureSensorController(
-            cfg['sensors'],            
-            cfg['directory'],
-            cfg['file'],
-            cfg['interval'],            
+        tmp = smartkeg.TemperatureSensorManager(
+            cfg['interval'],                        
+            sensors=cfg['sensors'],            
             pipe=pipe,
             dbi=dbi
         )

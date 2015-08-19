@@ -12,27 +12,12 @@ import time
 import re
 
 class TemperatureSensor(object):
-    TEMP_SCALE = 1000.00
+    FILE = 'w1_slave'    
+    SCALE = 1000.00
 
-    def __init__(self, sensor_path, name):
-        self.name = name
-        self.sensor = sensor_path
-
-    def get_name(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Returns the sensor name.
-        """
-        return self.name
-
-    def get_temperature(self):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Returns the temperature read.
-        """
-        return self.temperature
+    def __init__(self, name, path):
+        self.id = name
+        self.sensor = '{}{}/{}'.format(path, name, self.FILE)
 
     def read(self):
         """
@@ -43,62 +28,65 @@ class TemperatureSensor(object):
                         file because the DS18B20 is a digital 3-pin sensor
                         and writes directly using STDIN.
         """
+        temperature = None
+
         try:
             with open(self.sensor, 'r') as thermo:
                 temperature = re.split('t=', thermo.read())
-                self.temperature = float(temperature[1]) / self.TEMP_SCALE
+                temperature = float(temperature[1]) / self.SCALE
         except IOError as e:
             logging.error(e)
-            self.temperature = None
+
+        return temperature
 
 
+class TemperatureSensorManager(object):
+    PATH = '/sys/bus/w1/devices/'
 
-class TemperatureSensorController(object):
-    def __init__(self,  sensors, path, fname, interval, pipe=None, dbi=None):
-        self.dbi = dbi
-        self.interval = interval
+    def __init__(self, interval, sensors=None, path=None, filename=None, pipe=None, dbi=None):
+        sensors = sensors if sensors is not None else []
+        
+        logging.info('Starting TemperatureSensorManager...')
+        logging.info('Initializing with sensors {}'.format(sensors))
+
+        self.interval = interval        
+        self.path = path if path is not None else self.PATH
         self.pipe = pipe
-        self.sensors = {}
+        self.dbi = dbi
+                
+        self.sensors = [TemperatureSensor(x, self.path) for x in sensors]
 
-        for sensor in sensors:
-            self.sensor_add(sensor, path, fname)
-
-    def sensor_add(self, sensor, therm_dir, filename):
+    def add(self, *ids):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
         @Description:   Creates dict of TemperatureSensor Objects.
         """
-        path = therm_dir + sensor + '/' + filename
-        self.sensors[sensor] = TemperatureSensor(path, sensor)
+        self.sensors += [TemperatureSensor(x, self.path) for x in ids]
 
-    def sensor_read(self, name):
+    def read(self, id):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
         @Description:   Reads from the specified sensor.
         """
-        return self.sensor[name].read()
+        sensor = next(x for x in self.sensors if x.id == id)
 
-    def sensor_read_all(self):
+        if sensor:
+            return sensor.read()
+        else:
+            raise IndexError
+
+    def read_all(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/04/2014
-        @Description:   Reads all sensors in the sensor dict, and
-                        returns a dict with the associated sensor
-                        for each temperature.
+        @Description:   Reads all sensors and returns a dict with the
+                        associated temperature for each sensor.
         """
-        temperatures = {}
-        for sensor in self.sensors:
-            self.sensors[sensor].read()
-            celcius_temp = self.sensors[sensor].get_temperature()
+        return {x.id: x.read() for x in self.sensors}
 
-            if celcius_temp:
-                temperatures[sensor] = celcius_temp
-
-        return temperatures
-
-    def celcius_to_fahrenheit(self, celcius):
+    def convert(self, celcius):
         """
         @Author:        Harrison Hubbell
         @Created:       08/31/2014
@@ -113,16 +101,12 @@ class TemperatureSensorController(object):
         @Description:   When a read job is received get the current temperature
                         and return the data to the parent proc as a dict.
         """
-        fahrenheit_temps = {}
-
         while True:
-            celcius_temps = self.sensor_read_all()
+            fahr = {k: self.convert(v) for k, v in self.read_all().items() if v is not None}
+            [logging.info('{} {} F'.format(k, v)) for k, v in fahr.items()]
 
-            for sensor in celcius_temps:
-                fahrenheit_temps[sensor] = self.celcius_to_fahrenheit(celcius_temps[sensor])
-                logging.info('{} {} F'.format(sensor, fahrenheit_temps[sensor]))
-
-            if fahrenheit_temps: 
-                self.pipe.send(fahrenheit_temps)
+            self.pipe.send(fahr)
+            
+            # TODO Log to database
 
             time.sleep(self.interval)
