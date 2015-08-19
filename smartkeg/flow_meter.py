@@ -14,16 +14,16 @@ import time
 class FlowMeter(object):
     _PINTS_PER_LITER = 2.11338
     _PULSES_PER_LITER = 450.00
-    _TIMEOUT = 2.00
+    TIMEOUT = 2.00
 
     def __init__(self, pin, conn):
         self.pin = pin
         self.conn = conn
-        self.units = 'Pints'
+        self.units = 'pints'
         self.ticks = 0
         self.setup_data_pin()
 
-    def convert_ticks_to_pints(self):
+    def to_pints(self, ticks):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
@@ -34,9 +34,9 @@ class FlowMeter(object):
                         1 Liter = 450 Pulses.
                         
         """
-        self.pints = (float(self.ticks) / self._PULSES_PER_LITER) * self._PINTS_PER_LITER
+        return (ticks / self._PULSES_PER_LITER) * self._PINTS_PER_LITER
 
-    def reset_ticks(self):
+    def reset(self):
         """
         @Author:        Harrison Hubbell
         @Created:       10/05/2014
@@ -53,7 +53,7 @@ class FlowMeter(object):
         GPIO.setup(self.pin, GPIO.IN)
         GPIO.add_event_detect(self.pin, GPIO.RISING)
 
-    def monitor_flow(self):
+    def monitor(self):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
@@ -61,10 +61,12 @@ class FlowMeter(object):
                         it if true.
         """
         while True:
-            if self.ticks > 0 and time.time() - self.last_tick > self._TIMEOUT:
-                self.convert_ticks_to_pints()
-                self.conn.put(self.pints)
-                self.reset_ticks()
+            if self.ticks > 0 and time.time() - self.last_tick > self.TIMEOUT:
+                self.conn.put({
+                    'pin': self.pin,
+                    'amount': self.to_pints(self.ticks)
+                })
+                self.reset()
 
             if GPIO.event_detected(self.pin):
                 self.ticks += 1
@@ -72,14 +74,19 @@ class FlowMeter(object):
             else:
                 time.sleep(0.1)
 
-class FlowMeterController(object):
-    def __init__(self, pins, pipe=None, dbi=None):
-        self.dbi = dbi        
-        self.fmq = Queue()
-        self.fms = self.register_meters(pins)        
-        self.pipe = pipe
+class FlowMeterManager(object):
+    def __init__(self, pins=None, pipe=None, dbi=None):
+        pins = pins if pins is not None else []        
 
-    def register_meters(self, pins):
+        logging.info('Starting FlowMeterManager...')
+        logging.info('Initializing with meters on pins {}'.format(pins))
+
+        self.fmq = Queue()
+        self.meters = [Process(target=FlowMeter(x, self.fmq).monitor) for x in pins]        
+        self.pipe = pipe
+        self.dbi = dbi                
+
+    def add(self, *pins):
         """
         @Author:        Harrison Hubbell
         @Created:       03/05/2015
@@ -87,15 +94,18 @@ class FlowMeterController(object):
                         the controller to accept flow input from multiple 
                         taps.
         """
-        fms = []
-        for pin in pins:
-            fm = FlowMeter(pin, self.fmq)
-            p = Process(target=fm.monitor_flow())
-            p.start()
-            
-            fms.append(fm)
+        self.meters += [Process(target=FlowMeter(x, self.fmq).monitor) for x in pins]
 
-        return fms
+    def start(self, pin):
+        meter = next(x for x in self.meters if x.id == id)
+
+        if meter:
+            return meter.start()
+        else:
+            raise IndexError
+
+    def start_all(self):
+        [x.start() for x in self.meters]
 
     def run(self):
         """
@@ -103,6 +113,8 @@ class FlowMeterController(object):
         @Created:       10/04/2014
         @Description:   Starts monitor the FlowMeter for pouring
         """
+        self.start_all()
+        
         while True:
             while not fmq.empty():
                 data = fmq.get()
