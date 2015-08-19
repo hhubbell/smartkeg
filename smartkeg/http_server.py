@@ -64,7 +64,6 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         else:
             page = self.path[1:] or self._INDEX
-            #page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
             content_type = self.get_content_type(page)
 
             try:
@@ -72,7 +71,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     page_buffer = f.read()
             except IOError as e: 
                 self.send_error(404)
-                logging.error(e)
+                logging.info(e)
 
         return page_buffer, content_type
 
@@ -87,7 +86,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         encoding = None
         fbuffer = stream
 
-        if ENCODING in self.headers['Accept-Encoding']:
+        if ENCODING in self.headers['Accept-Encoding'] and stream is not None:
             with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
                 f.write(stream)
             
@@ -114,7 +113,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         data, content_type = self.get_resource()
         data, content_encoding = self.encode(data)        
 
-        if data and content_type:
+        if data is not None and content_type is not None:
             self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
@@ -131,13 +130,16 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         data, content_type = self.get_resource()
         data, content_encoding = self.encode(data)                
 
-        if data and content_type:
+        if data is not None and content_type is not None:
             self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
                 self.send_header("Content-encoding", content_encoding)
             self.end_headers()
             self.wfile.write(data)
+        else:
+            self.send_error(500)
+            logging.critical('{} {} caused an Internal Server Error'.format(self.command, self.path))
 
 
 class SSEHandler(object):
@@ -183,9 +185,9 @@ class APIHandler(object):
 
     def handle(self, method, url, headers):
         self.check()
-        page_buffer = self.transact(method, url[5:], headers)
+        page_buffer = self.transact(method, url, headers).encode('utf-8')
         
-        return page_buffer.encode('utf-8'), self.CONTENT_TYPE
+        return page_buffer, self.CONTENT_TYPE
 
     def transact(self, method, url, headers):
         """
@@ -227,6 +229,8 @@ class APIHandler(object):
 
                     elif fmt[0] == 'volume':
                         res = json.dumps(self.dbi.SELECT(*Query().get_volume_remaining()))
+                else:
+                    raise APIMalformedError(method, url)
                         
             elif path[0] == 'set' and method == 'POST':
                 if path[1] == 'keg':
@@ -258,7 +262,7 @@ class APIMalformedError(Exception):
         self.url = url
 
     def __str__(self):
-        return ERRORSTRING.format(self.url, self.method)
+        return self.ERRORSTRING.format(self.method, self.url)
 
 
 class APIForbiddenError(APIMalformedError):
@@ -322,7 +326,6 @@ class HTTPServerManager(object):
             self.update_id += 1
             f.write('id: {}\ndata: {}\n\n'.format(self.update_id, data))
             
-        logging.info(data)
         self.lock.release()
             
     def spawn_server(self, host=None, port=None):

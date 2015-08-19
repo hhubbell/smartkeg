@@ -173,7 +173,7 @@ if __name__ == '__main__':
             time.strftime('%Y%m%d')
         ),
         format='%(asctime)s %(levelname)s: %(message)s',
-        level=logging.DEBUG
+        level=logging.INFO
     )
     logging.info('Starting the Smartkeg system')
     
@@ -195,8 +195,6 @@ if __name__ == '__main__':
         for beer in TESTDF:
             #subtract a little beer
             beer['remaining'] -= .001
-
-            logging.info(beer['remaining'])
 
             if beer['remaining'] < 0:
                 beer['remaining'] = 1
