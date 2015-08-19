@@ -56,11 +56,11 @@ def model(data):
 
     return forecast
 
-def start_all(procs):
+def start(*procs):
     """
     @Author:        Harrison Hubbell
     @Created:       10/05/2014
-    @Description:   Starts all processes in the procs list.
+    @Description:   Starts all processes supplied.
     """
     for proc in procs:
         proc.start()
@@ -102,7 +102,7 @@ def spawn_flow_meter(pipe, cfg, dbi=None):
     )
     flo.run()
 
-def spawn_http_server(pipe, cfg, path, dbi=None):
+def spawn_http_server(pipe, cfg, path, initial=None, dbi=None):
     """
     @Author:        Harrison Hubbell
     @Created:       08/31/2014
@@ -115,7 +115,7 @@ def spawn_http_server(pipe, cfg, path, dbi=None):
         pipe=pipe,
         dbi=dbi
     )
-    srv.set_sse_response(json.dumps({'test': 123, 'shmest': 456}))
+    srv.set_sse_response(json.dumps(initial))
     srv.serve_forever()
 
 def spawn_temp_sensor(pipe, cfg, dbi=None):
@@ -142,24 +142,81 @@ if __name__ == '__main__':
     CFG_PATH = '/etc/smartkeg/config.json'    
     SRV_PATH = '/srv/smartkeg/'
 
+    TESTDF = [
+        {
+            'name': 'Bud Light',
+            'brand': 'Budweiser',
+            'abv': 4.5,
+            'ibu': 'NA',
+            'rating': 3,
+            'remaining': .34,
+            'consumption': [[0, 5], [1, 7], [2, 9], [3,1], [4,3], [5, 6], [6, 13], [2, 2], [3,4], [4,10]]
+        },
+        {
+            'name': 'Fiddlehead IPA',
+            'brand': 'Fiddlehead',
+            'abv': 4.5,
+            'ibu': 'NA',
+            'rating': 3,
+            'remaining': .19,
+            'consumption': [[0, 1], [1, 8], [2, 2], [3,4], [4,10]]
+        },
+        {
+            'name': 'Cone Head',
+            'brand': 'Zero Gravity',
+            'abv': 4.5,
+            'ibu': 'NA',
+            'rating': 3,
+            'remaining': .7865,
+            'consumption': [[0, 1], [1, 8], [2, 2], [3,4], [4,9]]
+        },
+        {
+            'name': 'Hodad',
+            'brand': 'Fiddlehead',
+            'abv': 4.5,
+            'ibu': 'NA',
+            'rating': 3,
+            'remaining': .365,
+            'consumption': [[0, 1], [1, 3], [2, 4], [3, 6], [4, 8]]
+        }
+    ]
+
     cfg = config(CFG_PATH)
-    
+
     logging.basicConfig(
         filename='{}{}.log'.format(
             cfg['logger']['directory'] + cfg['logger']['file'],
             time.strftime('%Y%m%d')
         ),
         format='%(asctime)s %(levelname)s: %(message)s',
-        level=logging.INFO
+        level=logging.DEBUG
     )
+    logging.info('Starting the Smartkeg system')
     
-    procs = {
-        'FLO': proc_add(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database']))),
-        'TMP': proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database']))),
-        'WEB': proc_add(spawn_http_server, args=(cfg['server'], SRV_PATH, db_connect(cfg['database'])))
-    }
+    http = smartkeg.HTTPServerManager(
+        cfg['server']['host'],
+        cfg['server']['port'],
+        SRV_PATH,
+        dbi=db_connect(cfg['database'])
+    )
+    http.sse_response(json.dumps(TESTDF))
+    http.start()
 
-    start_all([procs[x][0] for x in procs])
+    flowproc, flowpipe = proc_add(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database'])))
+    tempproc, temppipe = proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database'])))
+
+    start(flowproc, tempproc)
 
     while True:
-        time.sleep(0.1)
+        for beer in TESTDF:
+            #subtract a little beer
+            beer['remaining'] -= .001
+
+            logging.info(beer['remaining'])
+
+            if beer['remaining'] < 0:
+                beer['remaining'] = 1
+
+        http.sse_response(json.dumps(TESTDF))
+        time.sleep(1)
+        #time.sleep(0.1)

@@ -6,8 +6,7 @@
 #
 
 from socketserver import ThreadingMixIn
-from multiprocessing import Process, Value
-from ctypes import c_wchar_p
+from multiprocessing import Process, Lock
 from .query import Query
 import logging
 import http.server
@@ -22,13 +21,6 @@ import time
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
-    HTTP = {
-        'OK':                   200,
-        'MALFORMED':            400,
-        'FORBIDDEN':            403,
-        'FILE_NOT_FOUND':       404,
-        'SERVICE_UNAVAILABLE':  503
-    }
 
     def get_content_type(self, req):
         """ 
@@ -55,24 +47,32 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         content_type = None
 
         if self.path[1:4] == 'api':
-            if self.server.conn:
-                page_buffer = self.database_transaction(self.path[5:]).encode('utf-8')
-                content_type = 'text/plain'
-            else:
-                self.send_error(self.HTTP['SERVICE_UNAVAILABLE'])
+            try:
+                page_buffer, content_type = self.server.api.handle(self.command, self.path[5:], self.headers)
+            except APINotConnectedError as e:
+                self.send_error(503)
+                logging.error(e)
+            except APIMalformedError as e:
+                self.send_error(400)
+                logging.info(e)
+            except APIForbiddenError as e:
+                self.send_error(403)
+                logging.info(e)
 
         elif self.path[1:4] == 'sse':
-            page_buffer = self.server.sse_response.value.encode('utf-8')
-            content_type = 'text/event-stream'
+            page_buffer, content_type = self.server.sse.handle()
 
         else:
-            page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
+            page = self.path[1:] or self._INDEX
+            #page = self.server.root + self._INDEX if self.path[1:] == '' else self.server.root + self.path[1:]
             content_type = self.get_content_type(page)
 
             try:
-                with open(page, 'rb') as f: page_buffer = f.read()
-            except IOError:
-                self.send_error(self.HTTP['FILE_NOT_FOUND'])
+                with open(self.server.root + page, 'rb') as f:
+                    page_buffer = f.read()
+            except IOError as e: 
+                self.send_error(404)
+                logging.error(e)
 
         return page_buffer, content_type
 
@@ -82,16 +82,16 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         @Created:       04/06/2015
         @Description:   Compresses response body.
         """
-        ENCODE_AS = 'gzip'
+        ENCODING = 'gzip'
         output = io.BytesIO()
         encoding = None
         fbuffer = stream
 
-        if ENCODE_AS in self.headers['Accept-Encoding']:
+        if ENCODING in self.headers['Accept-Encoding']:
             with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
                 f.write(stream)
             
-            encoding = ENCODE_AS
+            encoding = ENCODING
             fbuffer = output.getvalue()              
 
         return fbuffer, encoding
@@ -105,67 +105,6 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         """
         logging.debug(args)
 
-    def database_transaction(self, message):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       12/14/2014
-        @Description:   Handle user requests that require database
-                        interaction.  get's should be method agnostic,
-                        while set's should require a POST.
-        """
-        res = None
-        parsed = urllib.parse.urlparse(message)
-        path = parsed.path.split('/')
-
-        if self.command == 'GET':
-            params = urllib.parse.parse_qs(parsed.query)
-        elif self.command == 'POST':
-            length = int(self.headers.getheader('Content-Length'))
-            params = urllib.parse.parse_qs(self.rfile.read(length))
-
-        if len(path) >= 2:
-            if path[0] == 'get':
-                if path[1] == 'beer': 
-                    res = json.dumps(self.server.dbi.SELECT(*Query().get_beers(params)))
-
-                elif path[1] == 'brewer':
-                    res = json.dumps(self.server.dbi.SELECT(*Query().get_brewers(params)))
-
-                elif path[1] == 'serving':
-                    res = json.dumps(self.server.dbi.SELECT(*Query().get_now_serving()))
-
-                elif path[1] == 'daily':
-                    res = json.dumps(self.server.dbi.SELECT(*Query().get_daily()))
-
-                elif path[1] == 'remaining':
-                    fmt = params.pop('format', None)
-                    
-                    if fmt[0] == 'percent':
-                        res = json.dumps(self.server.dbi.SELECT(*Query().get_percent_remaining()))
-
-                    elif fmt[0] == 'volume':
-                        res = json.dumps(self.server.dbi.SELECT(*Query().get_volume_remaining()))
-
-                    else:
-                        self.send_error(self.HTTP['MALFORMED'])
-                        
-            elif path[0] == 'set' and self.command == 'POST':
-                if path[1] == 'keg':
-                    if 'replace' in params:
-                        self.server.dbi.UPDATE(*Query().rem_keg(params['replace']))
-                        
-                    res = self.server.dbi.INSERT(*Query().set_keg(params))
-                elif path[1] == 'rating':
-                    res = self.server.dbi.INSERT(*Query().set_rating(params))
-                else:
-                    self.send_error(self.HTTP['MALFORMED'])
-            else:
-                self.send_error(self.HTTP['FORBIDDEN'])
-        else:
-            self.send_error(self.HTTP['MALFORMED'])
-
-        return res
-
     def do_GET(self):
         """
         @Author:        Harrison Hubbell
@@ -176,7 +115,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         data, content_encoding = self.encode(data)        
 
         if data and content_type:
-            self.send_response(self.HTTP['OK'])
+            self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
                 self.send_header("Content-encoding", content_encoding)
@@ -193,7 +132,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         data, content_encoding = self.encode(data)                
 
         if data and content_type:
-            self.send_response(self.HTTP['OK'])
+            self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
                 self.send_header("Content-encoding", content_encoding)
@@ -201,27 +140,157 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(data)
 
 
+class SSEHandler(object):
+    CONTENT_TYPE = 'text/event-stream'
+    
+    def __init__(self, path, lock):
+        self.path = path + '/static/sse.txt'
+        self.lock = lock
+
+    def __str__(self):
+        self.lock.aquire()
+
+        with open(self.path, 'r') as f:
+            data = f.read()
+
+        self.lock.release()
+
+        return data
+
+    def __bytes__(self):
+        self.lock.acquire()
+
+        with open(self.path, 'rb') as f:
+            data = f.read()
+
+        self.lock.release()
+
+        return data
+
+    def handle(self, byte=True):
+        return bytes(self) if byte else str(self), self.CONTENT_TYPE
+
+
+class APIHandler(object):
+    CONTENT_TYPE = 'text/plain'
+
+    def __init__(self, dbi):
+        self.dbi = dbi
+
+    def check(self):
+        if not self.dbi:
+            raise APINotConnectedError
+
+    def handle(self, method, url, headers):
+        self.check()
+        page_buffer = self.transact(method, url[5:], headers)
+        
+        return page_buffer.encode('utf-8'), self.CONTENT_TYPE
+
+    def transact(self, method, url, headers):
+        """
+        @Author:        Harrison Hubbell
+        @Created:       12/14/2014
+        @Description:   Handle user requests that require database
+                        interaction.  get's should be method agnostic,
+                        while set's should require a POST.
+        """
+        res = None
+        parsed = urllib.parse.urlparse(url)
+        path = parsed.path.split('/')
+
+        if method == 'GET':
+            params = urllib.parse.parse_qs(parsed.query)
+        elif method == 'POST':
+            length = int(headers.getheader('Content-Length'))
+            params = urllib.parse.parse_qs(self.rfile.read(length))
+
+        if len(path) >= 2:
+            if path[0] == 'get':
+                if path[1] == 'beer': 
+                    res = json.dumps(self.dbi.SELECT(*Query().get_beers(params)))
+
+                elif path[1] == 'brewer':
+                    res = json.dumps(self.dbi.SELECT(*Query().get_brewers(params)))
+
+                elif path[1] == 'serving':
+                    res = json.dumps(self.dbi.SELECT(*Query().get_now_serving()))
+
+                elif path[1] == 'daily':
+                    res = json.dumps(self.dbi.SELECT(*Query().get_daily()))
+
+                elif path[1] == 'remaining':
+                    fmt = params.pop('format', 'percent')
+                    
+                    if fmt[0] == 'percent':
+                        res = json.dumps(self.dbi.SELECT(*Query().get_percent_remaining()))
+
+                    elif fmt[0] == 'volume':
+                        res = json.dumps(self.dbi.SELECT(*Query().get_volume_remaining()))
+                        
+            elif path[0] == 'set' and method == 'POST':
+                if path[1] == 'keg':
+                    if 'replace' in params:
+                        self.dbi.UPDATE(*Query().rem_keg(params['replace']))
+                        
+                    res = self.dbi.INSERT(*Query().set_keg(params))
+                elif path[1] == 'rating':
+                    res = self.dbi.INSERT(*Query().set_rating(params))
+                else:
+                    raise APIMalformedError(method, url)
+            else:
+                raise APIForbiddenError(method, url)
+        else:
+            raise APIMalformedError(method, url)
+
+        return res
+
+
+class APINotConnectedError(Exception):
+    def __str__(self):
+        return 'API has no database connection'
+
+
+class APIMalformedError(Exception):
+    ERRORSTRING = 'API Query "{} {}" is malformed'
+    def __init__(self, method, url):
+        self.method = method
+        self.url = url
+
+    def __str__(self):
+        return ERRORSTRING.format(self.url, self.method)
+
+
+class APIForbiddenError(APIMalformedError):
+    ERRORSTRING = 'API Query "{} {}" is forbidden'
+
+    
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     """Handle Requests in a Seperate Thread."""
+    def __init__(self, addr, handler, api, sse, root):
+        super(ThreadedHTTPServer, self).__init__(addr, handler)
+        self.api = api
+        self.sse = sse
+        self.root = root
 
 
-class HTTPServer(object):
-    def __init__(self, host, port, path, pipe=None, dbi=None):
-        self.httpd = ThreadedHTTPServer((host, port), RequestHandler)
-        self.httpd.root = path
-        self.httpd.pipe = pipe
-        self.httpd.dbi = dbi
-        self.sse = Value(c_wchar_p, '')
+class HTTPServerManager(object):
+    def __init__(self, host, port, path, dbi=None):
+        self.host = host
+        self.port = port
+        self.path = path
+        self.dbi = dbi
         self.update_id = 0
+        self.lock = Lock();        
         self.create_qrcode()
 
     def create_qrcode(self):
         """
         @Author:        Harrison Hubbell
         @Created:       11/18/2014
-        @Description:   Gets the current interface address of the server, and
-                        renders a QR Code that allows devices to go to that
-                        address.
+        @Description:   Gets the current interface address of the server,
+                        and renders a QR Code that allows devices to go 
+                        to that address.
         """
         GOOGLE = ('8.8.8.8', 80)
         
@@ -239,37 +308,47 @@ class HTTPServer(object):
         qr.make()
 
         image = qr.make_image()
-        image.save(self.httpd.root + 'static/img/qrcode.svg')
+        image.save(self.path + 'static/img/qrcode.svg')
 
-    def set_sse_response(self, data):
+    def sse_response(self, data):
         """
         @Author:        Harrison Hubbell
         @Created:       04/06/2015
         @Description:   Manages setting the HTTPServer sse reponse.
         """
-        self.update_id += 1
-        self.sse.value = 'id: {}\ndata: {}\n\n'.format(self.update_id, data)
-
-    def spawn_server(self, sse):
+        self.lock.acquire()
+        
+        with open(self.path + '/static/sse.txt', 'w') as f:
+            self.update_id += 1
+            f.write('id: {}\ndata: {}\n\n'.format(self.update_id, data))
+            
+        logging.info(data)
+        self.lock.release()
+            
+    def spawn_server(self, host=None, port=None):
         """
         @Author:        Harrison Hubbell
         @Created:       04/13/2015
         @Description:   Spawn the http server instance.
         """
-        self.httpd.sse_response = self.sse
+        host = host if host is not None else self.host
+        port = port if port is not None else self.port
+        
+        self.httpd = ThreadedHTTPServer(
+            (host, port),
+            RequestHandler,
+            APIHandler(self.dbi),
+            SSEHandler(self.path, self.lock),
+            self.path
+        )
+        
         self.httpd.serve_forever()
 
-    def serve_forever(self):
+    def start(self):
         """
         @Author:        Harrison Hubbell
         @Created:       04/13/2015
         @Description:   Spawn a thread and a shared memory pool for
                         setting new SSE responses.
         """
-        Process(target=self.spawn_server, args=(self.sse,)).start()
-
-        while True:
-            if self.pipe.poll():
-                self.set_sse_response(self.pipe.recv())
-
-            time.sleep(0.1)
+        Process(target=self.spawn_server).start()
