@@ -102,22 +102,6 @@ def spawn_flow_meter(pipe, cfg, dbi=None):
     )
     flo.run()
 
-def spawn_http_server(pipe, cfg, path, initial=None, dbi=None):
-    """
-    @Author:        Harrison Hubbell
-    @Created:       08/31/2014
-    @Description:   Creates the HTTP Server process.
-    """
-    srv = smartkeg.HTTPServer(
-        cfg['host'],
-        cfg['port'],
-        path,
-        pipe=pipe,
-        dbi=dbi
-    )
-    srv.set_sse_response(json.dumps(initial))
-    srv.serve_forever()
-
 def spawn_temp_sensor(pipe, cfg, dbi=None):
         """
         @Author:        Harrison Hubbell
