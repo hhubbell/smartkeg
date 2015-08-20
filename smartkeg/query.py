@@ -1,209 +1,210 @@
-# ----------------------------------------------------------------------------
+#
 # Filename:     query.py
 # Author:       Harrison Hubbell
 # Date:         10/04/2014
 # Description:  SQL Queries used by various smartkeg processes
-# ----------------------------------------------------------------------------
+#
 
-class Query:
-    def format_where(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format query params for a WHERE clause
-        """
-        fmt = ' AND '.join(['{}=%s'.format(x) for x in params.keys()])
+def format_where(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format query params for a WHERE clause
+    """
+    fmt = ' AND '.join(['{}=%s'.format(x) for x in params.keys()])
 
-        return 'WHERE ' + fmt if fmt else fmt
+    return 'WHERE ' + fmt if fmt else fmt
 
-    def format_values(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format query params for an INSERT VALUES clause
-        """
-        return '({}) VALUES ({})'.format(
-            ', '.join(params.keys()),
-            ', '.join(['%s' for x in params.values()])
-        )
+def format_values(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format query params for an INSERT VALUES clause
+    """
+    return '({}) VALUES ({})'.format(
+        ', '.join(params.keys()),
+        ', '.join(['%s' for x in params.values()])
+    )
 
-    def get_beers(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format a query to get beers based on params
-        """        
-        query = """
+def get_beers(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format a query to get beers based on params
+    """        
+    query = """
+        SELECT
+            b.id        AS id,
+            b.name      AS name,
+            b.abv       AS abv,
+            b.ibu       AS ibu,
+            bt.type     AS type,
+            bt.subtype  AS subtype,
+            br.name     AS brewer
+        FROM Beer AS b
+        LEFT JOIN BeerType AS bt ON b.type_id = bt.id
+        LEFT JOIN Brewer AS br ON b.brewer_id = br.id
+        {}
+        ORDER BY b.name
+    """.format(format_where(params))
+    
+    return query, list(params.values())
+
+def get_brewers(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format a query to get brewers based on params
+    """
+    query = """
+        SELECT
+            id,
+            name,
+            city,
+            state,
+            country
+        FROM Brewer
+        ORDER BY name
+    """.format(format_where(params))
+
+    return query, list(params.values())
+
+def get_daily():
+    """
+    @Author:        Harrison Hubbell
+    @Created:       03/30/2015
+    @Description:   Format a query to get daily consumption
+    XXX: Needs work
+    """
+    query = """
+        SELECT
+            DATE(pour_time) AS day,
+            SUM(volume)     AS amount
+        FROM Pour
+        GROUP BY DATE(pour_time)
+        ORDER BY pour_time
+    """
+    
+    return query, []
+
+def get_now_serving():
+    """
+    @Author:        Harrison Hubbell
+    @Created:       03/30/2015
+    @Description:   Format a query to get currently served kegs
+    """
+    query = """
+        SELECT 
+            bs.*,
+            k.id        AS keg_id,
+            k.volume    AS volume,
+            (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining
+        FROM (
             SELECT
-                b.id        AS id,
+                b.id        AS beer_id,
                 b.name      AS name,
                 b.abv       AS abv,
                 b.ibu       AS ibu,
+                br.name     AS brewer,
                 bt.type     AS type,
                 bt.subtype  AS subtype,
-                br.name     AS brewer
+                AVG(bra.rating) AS rating
             FROM Beer AS b
-            LEFT JOIN BeerType AS bt ON b.type_id = bt.id
-            LEFT JOIN Brewer AS br ON b.brewer_id = br.id
-            {}
-            ORDER BY b.name
-        """.format(obj.format_where(params))
-        
-        return query, list(params.values())
+            JOIN Brewer AS br ON b.brewer_id = br.id
+            JOIN BeerType AS bt ON b.type_id = bt.id
+            LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id
+            GROUP BY b.id
+        ) AS bs
+        JOIN Keg AS k ON bs.beer_id = k.beer_id
+        LEFT JOIN Pour AS p on k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id
+    """
 
-    def get_brewers(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format a query to get brewers based on params
-        """
-        query = """
-            SELECT
-                id,
-                name,
-                city,
-                state,
-                country
-            FROM Brewer
-            ORDER BY name
-        """.format(obj.format_where(params))
+    return query, []
 
-        return query, list(params.values())
+def get_percent_remaining():
+    """
+    @Author:        Harrison Hubbell
+    @Created:       03/30/2015
+    @Description:   Format a query to get percent of keg remaining
+    """
+    query = """
+        SELECT (k.volume - SUM(p.volume)) / k.volume
+        FROM Keg AS k
+        JOIN Pour AS p ON k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id
+    """
 
-    def get_daily(obj):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       03/30/2015
-        @Description:   Format a query to get daily consumption
-        XXX: Needs work
-        """
-        query = """
-            SELECT
-                DATE(pour_time) AS day,
-                SUM(volume)     AS amount
-            FROM Pour
-            GROUP BY DATE(pour_time)
-            ORDER BY pour_time
-        """
-        
-        return query, []
+    return query, []
 
-    def get_now_serving(obj):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       03/30/2015
-        @Description:   Format a query to get currently served kegs
-        """
-        query = """
-            SELECT 
-                bs.*,
-                k.id        AS keg_id,
-                k.volume    AS volume,
-                (k.volume - SUM(IFNULL(p.volume, 0))) / k.volume AS remaining
-            FROM (
-                SELECT
-                    b.id        AS beer_id,
-                    b.name      AS name,
-                    b.abv       AS abv,
-                    b.ibu       AS ibu,
-                    br.name     AS brewer,
-                    bt.type     AS type,
-                    bt.subtype  AS subtype,
-                    AVG(bra.rating) AS rating
-                FROM Beer AS b
-                JOIN Brewer AS br ON b.brewer_id = br.id
-                JOIN BeerType AS bt ON b.type_id = bt.id
-                LEFT JOIN BeerRating AS bra ON b.id = bra.beer_id
-                GROUP BY b.id
-            ) AS bs
-            JOIN Keg AS k ON bs.beer_id = k.beer_id
-            LEFT JOIN Pour AS p on k.id = p.keg_id
-            WHERE k.now_serving = 1
-            GROUP BY k.id
-        """
+def get_volume_remaining():
+    """
+    @Author:        Harrison Hubbell
+    @Created:       03/30/2015
+    @Description:   Format a query to get volume of keg remaining
+    """
+    query = """
+        SELECT k.volume - SUM(p.volume)
+        FROM Keg AS k
+        JOIN Pour AS p ON k.id = p.keg_id
+        WHERE k.now_serving = 1
+        GROUP BY k.id
+    """
 
-        return query, []
+    return query, []
 
-    def get_percent_remaining(obj):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       03/30/2015
-        @Description:   Format a query to get percent of keg remaining
-        """
-        query = """
-            SELECT (k.volume - SUM(p.volume)) / k.volume
-            FROM Keg AS k
-            JOIN Pour AS p ON k.id = p.keg_id
-            WHERE k.now_serving = 1
-            GROUP BY k.id
-        """
+def set_keg(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format a query to set a new keg based on params
+    """
+    query = """
+        INSERT INTO Keg {}        
+    """.format(format_values(params))
 
-        return query, []
+    return query, list(params.values())
 
-    def get_volume_remaining(obj):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       03/30/2015
-        @Description:   Format a query to get volume of keg remaining
-        """
-        query = """
-            SELECT k.volume - SUM(p.volume)
-            FROM Keg AS k
-            JOIN Pour AS p ON k.id = p.keg_id
-            WHERE k.now_serving = 1
-            GROUP BY k.id
-        """
+def set_pour(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       03/05/2015
+    @Description:   Format a query to insert a new pour
+    """
+    query = """
+        INSERT INTO Pour {}
+    """.format(format_values(params))
 
-        return query, []
+    return query, list(params.values())
 
-    def set_keg(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format a query to set a new keg based on params
-        """
-        query = """
-            INSERT INTO Keg {}        
-        """.format(obj.format_values(params))
+def set_rating(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format a query to set a new rating based on params
+    """
+    query = """
+        INSERT INTO Keg {}        
+    """.format(format_values(params))
 
-        return query, list(params.values())
+    return query, list(params.values())
 
-    def set_pour(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       03/05/2015
-        @Description:   Format a query to insert a new pour
-        """
-        query = """
-            INSERT INTO Pour {}
-        """.format(obj.format_values(params))
+def rem_keg(params):
+    """
+    @Author:        Harrison Hubbell
+    @Created:       02/18/2015
+    @Description:   Format a query to stop a keg based on params
+    """
+    query = """
+        UPDATE Keg
+        SET now_serving = 0
+        WHERE id IN (%s)
+    """
+    return query, params
 
-        return query, list(params.values())
-
-    def set_rating(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format a query to set a new rating based on params
-        """
-        query = """
-            INSERT INTO Keg {}        
-        """.format(obj.format_values(params))
-
-        return query, list(params.values())
-
-    def rem_keg(obj, params):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       02/18/2015
-        @Description:   Format a query to stop a keg based on params
-        """
-        query = """
-            UPDATE Keg
-            SET now_serving = 0
-            WHERE id IN (%s)
-        """
-        return query, params
+'''        
     # --------------------
     # INSERTS
     # --------------------
@@ -356,3 +357,4 @@ class Query:
         GROUP BY DATE(p.pour_time)
         ORDER BY day ASC
     """
+'''

@@ -6,10 +6,10 @@
 #
 
 from multiprocessing import Process, Queue
-from .query import Query
 import RPi.GPIO as GPIO
 import logging
 import time
+import query
 
 class FlowMeter(object):
     _PINTS_PER_LITER = 2.11338

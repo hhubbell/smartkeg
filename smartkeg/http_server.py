@@ -7,7 +7,6 @@
 
 from socketserver import ThreadingMixIn
 from multiprocessing import Process, Lock
-from .query import Query
 import logging
 import http.server
 import io
@@ -18,6 +17,7 @@ import json
 import urllib.parse
 import gzip
 import time
+import query
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
@@ -145,14 +145,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 class SSEHandler(object):
     CONTENT_TYPE = 'text/event-stream'
     
-    def __init__(self, path, lock):
-        self.path = path + '/static/sse.txt'
+    def __init__(self, filename, lock):
+        self.filename = filename
         self.lock = lock
 
     def __str__(self):
         self.lock.aquire()
 
-        with open(self.path, 'r') as f:
+        with open(self.filename, 'r') as f:
             data = f.read()
 
         self.lock.release()
@@ -162,7 +162,7 @@ class SSEHandler(object):
     def __bytes__(self):
         self.lock.acquire()
 
-        with open(self.path, 'rb') as f:
+        with open(self.filename, 'rb') as f:
             data = f.read()
 
         self.lock.release()
@@ -210,36 +210,36 @@ class APIHandler(object):
         if len(path) >= 2:
             if path[0] == 'get':
                 if path[1] == 'beer': 
-                    res = json.dumps(self.dbi.SELECT(*Query().get_beers(params)))
+                    res = self.dbi.SELECT(*query.get_beers(params))
 
                 elif path[1] == 'brewer':
-                    res = json.dumps(self.dbi.SELECT(*Query().get_brewers(params)))
+                    res = self.dbi.SELECT(*query.get_brewers(params))
 
                 elif path[1] == 'serving':
-                    res = json.dumps(self.dbi.SELECT(*Query().get_now_serving()))
+                    res = self.dbi.SELECT(*query.get_now_serving())
 
                 elif path[1] == 'daily':
-                    res = json.dumps(self.dbi.SELECT(*Query().get_daily()))
+                    res = self.dbi.SELECT(*query.get_daily())
 
                 elif path[1] == 'remaining':
                     fmt = params.pop('format', 'percent')
                     
                     if fmt[0] == 'percent':
-                        res = json.dumps(self.dbi.SELECT(*Query().get_percent_remaining()))
+                        res = self.dbi.SELECT(*query.get_percent_remaining())
 
                     elif fmt[0] == 'volume':
-                        res = json.dumps(self.dbi.SELECT(*Query().get_volume_remaining()))
+                        res = self.dbi.SELECT(*query.get_volume_remaining())
                 else:
                     raise APIMalformedError(method, url)
                         
             elif path[0] == 'set' and method == 'POST':
                 if path[1] == 'keg':
                     if 'replace' in params:
-                        self.dbi.UPDATE(*Query().rem_keg(params['replace']))
+                        self.dbi.UPDATE(*query.rem_keg(params['replace']))
                         
-                    res = self.dbi.INSERT(*Query().set_keg(params))
+                    res = self.dbi.INSERT(*query.set_keg(params))
                 elif path[1] == 'rating':
-                    res = self.dbi.INSERT(*Query().set_rating(params))
+                    res = self.dbi.INSERT(*query.set_rating(params))
                 else:
                     raise APIMalformedError(method, url)
             else:
@@ -247,7 +247,7 @@ class APIHandler(object):
         else:
             raise APIMalformedError(method, url)
 
-        return res
+        return json.dumps(res)
 
 
 class APINotConnectedError(Exception):
@@ -341,7 +341,7 @@ class HTTPServerManager(object):
             (host, port),
             RequestHandler,
             APIHandler(self.dbi),
-            SSEHandler(self.path, self.lock),
+            SSEHandler(self.path + '/static/sse.txt', self.lock),
             self.path
         )
         
