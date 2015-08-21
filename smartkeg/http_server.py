@@ -7,6 +7,7 @@
 
 from socketserver import ThreadingMixIn
 from multiprocessing import Process, Lock
+from . import query
 import logging
 import http.server
 import io
@@ -16,8 +17,7 @@ import qrcode.image.svg
 import json
 import urllib.parse
 import gzip
-import time
-import query
+import datetime
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
     _INDEX = 'index.html'    
@@ -47,17 +47,12 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         content_type = None
 
         if self.path[1:4] == 'api':
-            try:
-                page_buffer, content_type = self.server.api.handle(self.command, self.path[5:], self.headers)
-            except APINotConnectedError as e:
-                self.send_error(503)
-                logging.error(e)
-            except APIMalformedError as e:
-                self.send_error(400)
-                logging.info(e)
-            except APIForbiddenError as e:
-                self.send_error(403)
-                logging.info(e)
+            page_buffer, content_type = self.server.api.handle(
+                self.command,
+                self.path[5:],
+                self.headers,
+                self.rfile
+            )
 
         elif self.path[1:4] == 'sse':
             page_buffer, content_type = self.server.sse.handle()
@@ -66,12 +61,8 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             page = self.path[1:] or self._INDEX
             content_type = self.get_content_type(page)
 
-            try:
-                with open(self.server.root + page, 'rb') as f:
-                    page_buffer = f.read()
-            except IOError as e: 
-                self.send_error(404)
-                logging.info(e)
+            with open(self.server.root + page, 'rb') as f:
+                page_buffer = f.read()
 
         return page_buffer, content_type
 
@@ -110,16 +101,37 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         @Created:       09/01/2014
         @Description:   Handles GET requests
         """
-        data, content_type = self.get_resource()
-        data, content_encoding = self.encode(data)        
+        try:
+            data, content_type = self.get_resource()
+            data, content_encoding = self.encode(data)
 
-        if data is not None and content_type is not None:
             self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
                 self.send_header("Content-encoding", content_encoding)
             self.end_headers()
             self.wfile.write(data)
+
+        except IOError as e:
+            self.send_error(404)
+            logging.info(e)
+
+        except APINotConnectedError as e:
+            self.send_error(503)
+            logging.error(e)
+
+        except APIMalformedError as e:
+            self.send_error(400)
+            logging.info(e)
+
+        except APIForbiddenError as e:
+            self.send_error(403)
+            logging.info(e)
+
+        except Exception as e:
+            self.send_error(500)
+            logging.critical('{} {} caused an Internal Server Error'.format(self.command, self.path))
+            logging.critical(e)  
 
     def do_POST(self):
         """
@@ -183,13 +195,74 @@ class APIHandler(object):
         if not self.dbi:
             raise APINotConnectedError
 
-    def handle(self, method, url, headers):
+    def handle(self, method, url, headers, rfile, byte=True):
         self.check()
-        page_buffer = self.transact(method, url, headers).encode('utf-8')
+        page_buffer = self.transact(method, url, headers, rfile)
+        page_buffer = page_buffer.encode('utf-8') if byte else page_buffer
         
         return page_buffer, self.CONTENT_TYPE
 
-    def transact(self, method, url, headers):
+    def parse_url(self, method, url, headers, rfile):
+        parsed = urllib.parse.urlparse(url)
+        path = parsed.path.split('/')
+
+        if method == 'GET':
+            params = urllib.parse.parse_qsl(parsed.query)
+        elif method == 'POST':
+            length = int(headers.getheader('Content-Length'))
+            params = urllib.parse.parse_qsl(rfile.read(length))
+
+        return path, params
+
+    def get(self, endpoint, params):
+        res = None
+
+        if endpoint == 'beer': 
+            res = self.dbi.select(*query.get_beers(params))
+
+        elif endpoint == 'brewer':
+            res = self.dbi.select(*query.get_brewers(params))
+
+        elif endpoint == 'serving':
+            res = self.dbi.select(*query.get_now_serving())
+
+        elif endpoint == 'daily':
+            res = self.dbi.select(*query.get_daily())
+
+        elif endpoint == 'remaining':
+            fmt = next((x[1] for x in params if x[0] == 'format'), 'percent')
+                    
+            if fmt == 'percent':
+                res = self.dbi.select(*query.get_percent_remaining())
+
+            elif fmt == 'volume':
+                res = self.dbi.select(*query.get_volume_remaining())
+                
+            else:
+                raise APIMalformedError(endpoint, params=params)
+        
+        else:
+            raise APIMalformedError(endpoint, params=params)
+
+        return res
+
+    def set(self, endpoint, params):
+        res = None
+        
+        if endpoint == 'keg':
+            if 'replace' in params:
+                self.dbi.update(*query.rem_keg(params['replace']))        
+                res = self.dbi.insert(*query.set_keg(params))
+                
+        elif endpoint == 'rating':
+            res = self.dbi.insert(*query.set_rating(params))
+
+        else:
+            raise APIMalformedError(endpoint)
+        
+        return res
+
+    def transact(self, method, url, headers, rfile):
         """
         @Author:        Harrison Hubbell
         @Created:       12/14/2014
@@ -198,56 +271,22 @@ class APIHandler(object):
                         while set's should require a POST.
         """
         res = None
-        parsed = urllib.parse.urlparse(url)
-        path = parsed.path.split('/')
-
-        if method == 'GET':
-            params = urllib.parse.parse_qs(parsed.query)
-        elif method == 'POST':
-            length = int(headers.getheader('Content-Length'))
-            params = urllib.parse.parse_qs(self.rfile.read(length))
+        
+        path, params = self.parse_url(method, url, headers, rfile)
 
         if len(path) >= 2:
             if path[0] == 'get':
-                if path[1] == 'beer': 
-                    res = self.dbi.SELECT(*query.get_beers(params))
-
-                elif path[1] == 'brewer':
-                    res = self.dbi.SELECT(*query.get_brewers(params))
-
-                elif path[1] == 'serving':
-                    res = self.dbi.SELECT(*query.get_now_serving())
-
-                elif path[1] == 'daily':
-                    res = self.dbi.SELECT(*query.get_daily())
-
-                elif path[1] == 'remaining':
-                    fmt = params.pop('format', 'percent')
-                    
-                    if fmt[0] == 'percent':
-                        res = self.dbi.SELECT(*query.get_percent_remaining())
-
-                    elif fmt[0] == 'volume':
-                        res = self.dbi.SELECT(*query.get_volume_remaining())
-                else:
-                    raise APIMalformedError(method, url)
+                res = self.get(path[1], params)
                         
             elif path[0] == 'set' and method == 'POST':
-                if path[1] == 'keg':
-                    if 'replace' in params:
-                        self.dbi.UPDATE(*query.rem_keg(params['replace']))
-                        
-                    res = self.dbi.INSERT(*query.set_keg(params))
-                elif path[1] == 'rating':
-                    res = self.dbi.INSERT(*query.set_rating(params))
-                else:
-                    raise APIMalformedError(method, url)
+                res = self.set(path[1], params)
+                
             else:
-                raise APIForbiddenError(method, url)
+                raise APIForbiddenError(url, method=method)
         else:
-            raise APIMalformedError(method, url)
+            raise APIMalformedError(url, method=method)
 
-        return json.dumps(res)
+        return json.dumps(res, default=lambda x: str(x) if isinstance(x, datetime.date) else x)
 
 
 class APINotConnectedError(Exception):
@@ -256,17 +295,18 @@ class APINotConnectedError(Exception):
 
 
 class APIMalformedError(Exception):
-    ERRORSTRING = 'API Query "{} {}" is malformed'
-    def __init__(self, method, url):
-        self.method = method
+    ERRORSTRING = 'API Query "{:5}{}{}" is malformed'
+    def __init__(self, url, params=None, method=None):
+        self.params = '?' + urllib.parse.urlencode(params) if params else ''
+        self.method = method or ''
         self.url = url
 
     def __str__(self):
-        return self.ERRORSTRING.format(self.method, self.url)
+        return self.ERRORSTRING.format(self.method, self.url, self.params)
 
 
 class APIForbiddenError(APIMalformedError):
-    ERRORSTRING = 'API Query "{} {}" is forbidden'
+    ERRORSTRING = 'API Query "{:5}{}{}" is forbidden'
 
     
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):

@@ -175,13 +175,17 @@ if __name__ == '__main__':
     )
     logging.info('Starting the Smartkeg system')
     
+    db = db_connect(cfg['database'])
+
+    serving = db.select(*smartkeg.query.get_now_serving())
+
     http = smartkeg.HTTPServerManager(
         cfg['server']['host'],
         cfg['server']['port'],
         SRV_PATH,
         dbi=db_connect(cfg['database'])
     )
-    http.sse_response(json.dumps(TESTDF))
+    http.sse_response(json.dumps(serving))
     http.start()
 
     flowproc, flowpipe = proc_add(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database'])))
@@ -190,13 +194,13 @@ if __name__ == '__main__':
     start(flowproc, tempproc)
 
     while True:
-        for beer in TESTDF:
+        for beer in serving:
             #subtract a little beer
             beer['remaining'] -= .001
 
             if beer['remaining'] < 0:
                 beer['remaining'] = 1
 
-        http.sse_response(json.dumps(TESTDF))
+        http.sse_response(json.dumps(serving))
         time.sleep(1)
         #time.sleep(0.1)

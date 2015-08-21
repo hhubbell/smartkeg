@@ -11,7 +11,7 @@ def format_where(params):
     @Created:       02/18/2015
     @Description:   Format query params for a WHERE clause
     """
-    fmt = ' AND '.join(['{}=%s'.format(x) for x in params.keys()])
+    fmt = ' AND '.join(['{}=%s'.format(x[0]) for x in params])
 
     return 'WHERE ' + fmt if fmt else fmt
 
@@ -22,8 +22,8 @@ def format_values(params):
     @Description:   Format query params for an INSERT VALUES clause
     """
     return '({}) VALUES ({})'.format(
-        ', '.join(params.keys()),
-        ', '.join(['%s' for x in params.values()])
+        ', '.join([x[0] for x in params]),
+        ', '.join(['%s' for x in params])
     )
 
 def get_beers(params):
@@ -48,7 +48,7 @@ def get_beers(params):
         ORDER BY b.name
     """.format(format_where(params))
     
-    return query, list(params.values())
+    return query, [x[1] for x in params]
 
 def get_brewers(params):
     """
@@ -64,10 +64,11 @@ def get_brewers(params):
             state,
             country
         FROM Brewer
+        {}
         ORDER BY name
     """.format(format_where(params))
 
-    return query, list(params.values())
+    return query, [x[1] for x in params]
 
 def get_daily():
     """
@@ -165,7 +166,7 @@ def set_keg(params):
         INSERT INTO Keg {}        
     """.format(format_values(params))
 
-    return query, list(params.values())
+    return query, [x[1] for x in params]
 
 def set_pour(params):
     """
@@ -177,7 +178,7 @@ def set_pour(params):
         INSERT INTO Pour {}
     """.format(format_values(params))
 
-    return query, list(params.values())
+    return query, [x[1] for x in params]
 
 def set_rating(params):
     """
@@ -189,7 +190,7 @@ def set_rating(params):
         INSERT INTO Keg {}        
     """.format(format_values(params))
 
-    return query, list(params.values())
+    return query, [x[1] for x in params]
 
 def rem_keg(params):
     """
