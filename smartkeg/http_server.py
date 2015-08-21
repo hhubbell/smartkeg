@@ -139,20 +139,37 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         @Created:       11/21/2014
         @Description:   Handles POST requests
         """
-        data, content_type = self.get_resource()
-        data, content_encoding = self.encode(data)                
+        try:
+            data, content_type = self.get_resource()
+            data, content_encoding = self.encode(data)
 
-        if data is not None and content_type is not None:
             self.send_response(200)
             self.send_header("Content-type", content_type)
             if content_encoding:
                 self.send_header("Content-encoding", content_encoding)
             self.end_headers()
             self.wfile.write(data)
-        else:
+
+        except IOError as e:
+            self.send_error(404)
+            logging.info(e)
+
+        except APINotConnectedError as e:
+            self.send_error(503)
+            logging.error(e)
+
+        except APIMalformedError as e:
+            self.send_error(400)
+            logging.info(e)
+
+        except APIForbiddenError as e:
+            self.send_error(403)
+            logging.info(e)
+
+        except Exception as e:
             self.send_error(500)
             logging.critical('{} {} caused an Internal Server Error'.format(self.command, self.path))
-
+            logging.critical(e)
 
 class SSEHandler(object):
     CONTENT_TYPE = 'text/event-stream'
