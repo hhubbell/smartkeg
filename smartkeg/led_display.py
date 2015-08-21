@@ -13,8 +13,6 @@
 #               flicker.
 #
 
-import time
-
 class LEDDisplay(object):
     ROW = [
         [15, 13, 11],
