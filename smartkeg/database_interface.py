@@ -43,7 +43,7 @@ class DatabaseInterface(object):
         """
         return self.conn.cursor(dictionary=True)
 
-    def INSERT(self, query, params=None):
+    def insert(self, query, params=None):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
@@ -59,12 +59,13 @@ class DatabaseInterface(object):
 
         cur.close()
 
-    def SELECT(self, query, params=None):
+    def select(self, query, params=None):
         """
         @Author:        Harrison Hubbell
         @Created:       09/01/2014
         @Description:   Makes a SELECT transaction on the database, returns result
         """
+        res = None
         cur = self.prepare()
         try:
             cur.execute(query, params)
@@ -77,7 +78,7 @@ class DatabaseInterface(object):
 
         return res
 
-    def UPDATE(self, query, params=None):
+    def update(self, query, params=None):
         """
         @Author:        Harrison Hubbell
         @Created:       11/24/2014
