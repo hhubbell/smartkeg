@@ -116,4 +116,5 @@ class TemperatureSensorManager(object):
 
                 self.dbi.insert(*query.set_temperature({'temperature': avg}))
                 self.pipe.send(avg)
-                time.sleep(self.interval)
+
+            time.sleep(self.interval)

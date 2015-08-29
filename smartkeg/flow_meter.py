@@ -23,6 +23,11 @@ class FlowMeter(object):
         self.ticks = 0
         self.setup_data_pin()
 
+        logging.info('FlowMeter initialized on pin {} (units: {})'.format(
+            self.pin,
+            self.units
+        ))                
+
     def to_pints(self, ticks):
         """
         @Author:        Harrison Hubbell
@@ -120,4 +125,6 @@ class FlowMeterManager(object):
                 data = fmq.get()
                 logging.info('Flow detected {}'.format(data))
                 self.pipe.send(data)
+            
+            time.sleep(0.1)
 
