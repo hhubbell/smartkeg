@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- Filename:    build.sql
+-- Filename:    data.sql
 -- Author:      Harrison Hubbell
 -- Created:     11/18/2014
 -- Description: Setup data for the smartkeg database
@@ -18,7 +18,7 @@ VALUES
     ('28-00000574d4ae', 'Fridge')
 ;
 
--- Some VT Brewers
+-- Some Brewers
 INSERT INTO Brewer
     (name, city, state, country)
 VALUES
@@ -29,7 +29,8 @@ VALUES
     ('Long Trail Brewing Company', 'Bridgewater Corners', 'VT', 'United States'),
     ('Magic Hat Brewing Company', 'Burlington', 'VT', 'United States'),
     ('Otter Creek Brewing Company', 'Middlebury', 'VT', 'United States'),
-    ('Switchback Brewing Company', 'Burlington', 'VT', 'United States')
+    ('Switchback Brewing Company', 'Burlington', 'VT', 'United States'),
+    ('Smuttynose Brewing Company', 'Hampton', 'NH', 'United States'),
 ;
 
 INSERT INTO BeerType
@@ -66,5 +67,6 @@ VALUES
     ((SELECT id FROM Brewer WHERE name = 'Long Trail Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'Altbier'), 'Double Bag', 7.2, 33),
     ((SELECT id FROM Brewer WHERE name = 'Magic Hat Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'Stout'), 'Heart of Darkness', 5.7, 30),
     ((SELECT id FROM Brewer WHERE name = 'Otter Creek Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'India Pale Ale'), 'Otter Creek Black IPA', 6.0, 60),
-    ((SELECT id FROM Brewer WHERE name = 'Switchback Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'American Pale Ale'), 'Switchback Ale', 5.0, NULL)
+    ((SELECT id FROM Brewer WHERE name = 'Switchback Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'American Pale Ale'), 'Switchback Ale', 5.0, NULL),
+    ((SELECT id FROM Brewer WHERE name = 'Smuttynose Brewing Company'), (SELECT id FROM BeerType WHERE subtype = 'Brown'), 'Old Brown Dog Ale', 6.7, 29.5)
 ;
