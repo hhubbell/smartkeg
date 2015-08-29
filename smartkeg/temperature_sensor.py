@@ -7,6 +7,7 @@
 #               sensor to generate temperature values.
 #
 
+from . import query
 import logging
 import time
 import re
@@ -64,6 +65,9 @@ class TemperatureSensorManager(object):
         """
         self.sensors += [TemperatureSensor(x, self.path) for x in ids]
 
+    def avg(self, vals):
+        return sum(vals) / len(vals) if vals else 0
+
     def read(self, id):
         """
         @Author:        Harrison Hubbell
@@ -103,10 +107,13 @@ class TemperatureSensorManager(object):
         """
         while True:
             fahr = {k: self.convert(v) for k, v in self.read_all().items() if v is not None}
-            [logging.info('{} {} F'.format(k, v)) for k, v in fahr.items()]
-
-            self.pipe.send(fahr)
             
-            # TODO Log to database
+            if fahr:
+                avg = self.avg([x for x in fahr.values()])
 
-            time.sleep(self.interval)
+                [logging.info('{} {} F'.format(x[0], x[1])) for k, v in fahr.items()]
+                logging.info('Average: {} F'.format(avg))
+
+                self.dbi.insert(*query.set_temperature({'temperature': avg}))
+                self.pipe.send(avg)
+                time.sleep(self.interval)

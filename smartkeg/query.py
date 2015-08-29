@@ -156,15 +156,18 @@ def get_volume_remaining():
 
     return query, []
 
+def get_fridge_temp(params):
+    query = """SELECT id FROM FridgeTemp {}""".format(format_where(params))
+    return query, [x[1] for x in params]
+
+
 def set_keg(params):
     """
     @Author:        Harrison Hubbell
     @Created:       02/18/2015
     @Description:   Format a query to set a new keg based on params
     """
-    query = """
-        INSERT INTO Keg {}        
-    """.format(format_values(params))
+    query = """INSERT INTO Keg {}""".format(format_values(params))
 
     return query, [x[1] for x in params]
 
@@ -174,9 +177,7 @@ def set_pour(params):
     @Created:       03/05/2015
     @Description:   Format a query to insert a new pour
     """
-    query = """
-        INSERT INTO Pour {}
-    """.format(format_values(params))
+    query = """INSERT INTO Pour {}""".format(format_values(params))
 
     return query, [x[1] for x in params]
 
@@ -186,11 +187,14 @@ def set_rating(params):
     @Created:       02/18/2015
     @Description:   Format a query to set a new rating based on params
     """
-    query = """
-        INSERT INTO Keg {}        
-    """.format(format_values(params))
+    query = """INSERT INTO BeerRating {}""".format(format_values(params[0]))
 
     return query, [x[1] for x in params]
+
+def set_temperature(params):
+    query = """INSERT INTO FridgeTemp {}""".format(format_values(params[0]))
+
+    return query, [(x[0][1], x[1][1]) for x in params]
 
 def rem_keg(params):
     """
