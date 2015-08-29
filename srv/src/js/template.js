@@ -6,9 +6,11 @@
  */
 
 /**
- * Template: Manage creating of html.
+ * Template: Manage creation of html.
  */
 function Template() {}
+Template.prototype.HUD = 'hud';
+Template.prototype.TAP = 'tap';
 
 /**
  * Template.fragmentFromString: Create a Document Fragment from HTML string.
@@ -53,11 +55,28 @@ Template.prototype.contentBox = function (header, content, options) {
 }
 
 /**
- * Template.hud: Render the hud content
- * @param kegs:     Array of kegs to render
+ * Template.wrappers: Make wrappers for hud and beer views
+ * @param kegs:    beers to wrap
  * @return:         string
  */
+Template.prototype.wrappers = function (kegs) {
+    return this.beerViewWrapper(kegs) + this.hudWrapper();
+}
+
+/**
+ * Template.hudWrapper: Create wrapper for hud
+ * @return:         string
+ */
+Template.prototype.hudWrapper = function () {
+    return "<section id='" + this.HUD + "'></section>";
+}
+
+/**
+ * Template.hud: Render the hud content
+ * @param kegs:     Array of kegs to render
+ */
 Template.prototype.hud = function (kegs) {
+    var target = document.getElementById(this.HUD);
     var content = [];
 
     for (var i = 0; i < kegs.length; i++) {
@@ -69,9 +88,14 @@ Template.prototype.hud = function (kegs) {
         );
     }
 
-    return "<section id='hud'>" + content.join('') + "</section";
+    target.innerHTML = content.join('');
 }
 
+/**
+ * Template.nav: Render navigation
+ * @param kegs:     kegs to put in nav
+ * @return:         string
+ */
 Template.prototype.nav = function (kegs) {
     var content = [];
 
@@ -83,7 +107,10 @@ Template.prototype.nav = function (kegs) {
 }
 
 /**
- *
+ * Template.consumption: Render beer consumption graph
+ * @param values:   (x, y) value array
+ * @option title:   optional title for box
+ * @option display: optional method to display (scatter[default], bar, both)
  */
 Template.prototype.consumption = function (values, title, plot) {
     var opt = {class: 'chart'};
@@ -114,7 +141,10 @@ Template.prototype.consumption = function (values, title, plot) {
 }
 
 /**
- *
+ * Template.info: Render beer info content box
+ * @param kv:       key, value object of beer
+ * @option title:   optional title for box
+ * @return:         string
  */
 Template.prototype.info = function (kv, title) {
     var DISPLAY = ['Name', 'Brand', 'ABV', 'IBU', 'Rating']
@@ -146,23 +176,33 @@ Template.prototype.remaining = function (amount, title) {
  * @param beer:     single keg object
  * @param i:        array index
  * @param arr:      array
- * @return:         string
  */
 Template.prototype.beerView = function (beer, i, arr) {
+    var target = document.getElementById(this.TAP + (i + 1));
     var beerInfo = this.info(beer, 'Now Serving on Tap ' + (i + 1));
     var beerRem = this.remaining(beer.remaining);
     var beerAdv = this.consumption(beer.consumption);
 
-    return "<section id='tap" + (i + 1) + "' class='beer-view'>" +
-        "<section class='beer-hud'>" + 
-        beerInfo + beerRem + "</section>" + beerAdv + "</section>";
+    target.innerHTML = "<section class='beer-hud'>" + beerInfo +
+                beerRem + "</section>" + beerAdv + "</section>";
+
+}
+
+/**
+ * Template.beerView: Render a beer view wrapper
+ * @param kegs:     array of kegs to create wrappers for
+ * @return:         string
+ */
+Template.prototype.beerViewWrapper = function (kegs) {
+    return kegs.map(function (beer, i, arr) {
+        return "<section id='" + this.TAP + (i + 1) + "' class='beer-view'></section>";
+    }, this).join('');
 }
 
 /**
  * Template.beerViewAll: Render all beer views
- * @param kegs:     Array of kegs to render
- * @return:         string
+ * @param kegs:     array of kegs to render
  */
 Template.prototype.beerViewAll = function (kegs) {
-    return kegs.map(this.beerView, this).join('');
+    kegs.map(this.beerView, this);
 }
