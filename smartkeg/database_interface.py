@@ -14,7 +14,10 @@ import logging
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd):
         self.conn = self.connect(addr, dbn, user, pwd)
-    
+
+    def __def__(self):
+        self.conn.close()
+
     def __enter__(self):
         self.prepare()
         return self
