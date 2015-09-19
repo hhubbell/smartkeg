@@ -232,28 +232,28 @@ class APIHandler(object):
         return path, params
 
     def get(self, endpoint, params):
-        res = None
-
+        sql = None
+        
         if endpoint == 'beer': 
-            res = self.dbi.select(*query.get_beers(params))
+            sql = query.get_beers(params)
 
         elif endpoint == 'brewer':
-            res = self.dbi.select(*query.get_brewers(params))
+            sql = query.get_brewers(params)
 
         elif endpoint == 'serving':
-            res = self.dbi.select(*query.get_now_serving())
+            sql = query.get_now_serving()
 
         elif endpoint == 'daily':
-            res = self.dbi.select(*query.get_daily())
+            sql = query.get_daily()
 
         elif endpoint == 'remaining':
             fmt = next((x[1] for x in params if x[0] == 'format'), 'percent')
                     
             if fmt == 'percent':
-                res = self.dbi.select(*query.get_percent_remaining())
+                sql = query.get_percent_remaining()
 
             elif fmt == 'volume':
-                res = self.dbi.select(*query.get_volume_remaining())
+                sql = query.get_volume_remaining()
                 
             else:
                 raise APIMalformedError(endpoint, params=params)
@@ -261,18 +261,21 @@ class APIHandler(object):
         else:
             raise APIMalformedError(endpoint, params=params)
 
-        return res
+        with self.dbi as dbi:
+            return dbi.select(*sql) if sql else None
 
     def set(self, endpoint, params):
         res = None
         
         if endpoint == 'keg':
             if 'replace' in params:
-                self.dbi.update(*query.rem_keg(params['replace']))        
-                res = self.dbi.insert(*query.set_keg(params))
+                with self.dbi as dbi:
+                dbi.update(*query.rem_keg(params['replace']))        
+                res = dbi.insert(*query.set_keg(params))
                 
         elif endpoint == 'rating':
-            res = self.dbi.insert(*query.set_rating(params))
+            with self.dbi as dbi:
+                res = dbi.insert(*query.set_rating(params))
 
         else:
             raise APIMalformedError(endpoint)

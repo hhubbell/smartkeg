@@ -113,8 +113,10 @@ class TemperatureSensorManager(object):
 
                 [logging.info('{} {} F'.format(x[0], x[1])) for k, v in fahr.items()]
                 logging.info('Average: {} F'.format(avg))
-
-                self.dbi.insert(*query.set_temperature({'temperature': avg}))
+                
+                with self.dbi as dbi:
+                    dbi.insert(*query.set_temperature({'temperature': avg}))
+                
                 self.pipe.send(avg)
 
             time.sleep(self.interval)
