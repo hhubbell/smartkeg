@@ -65,7 +65,7 @@ def start(*procs):
     for proc in procs:
         proc.start()
 
-def proc_add(target, args=None, name=None):
+def proc(target, args=None, name=None):
     """
     @Author:        Harrison Hubbell
     @Created:       10/05/2014
@@ -79,15 +79,6 @@ def proc_add(target, args=None, name=None):
     args = (pipe_from,) + args
 
     return Process(target=target, args=args, name=name), pipe_to
-    
-def proc_poll_recv(node):
-    """
-    @Author:        Harrison Hubbell
-    @created:       10/05/2014
-    @Description:   Receives data from a process via its pipe without
-                    blocking processing, by polling first.
-    """
-    if node.poll(): return node.recv()
     
 def spawn_flow_meter(pipe, cfg, dbi=None):
     """
@@ -124,6 +115,7 @@ if __name__ == '__main__':
     CFG_PATH = '/etc/smartkeg/config.json'    
     SRV_PATH = '/srv/smartkeg/'
 
+    # Test data frame
     TESTDF = [
         {
             'name': 'Bud Light',
@@ -163,6 +155,17 @@ if __name__ == '__main__':
         }
     ]
 
+    # Replacement beer when other hits 0
+    REPLF = {
+            'name': 'Baltic Porter',
+            'brand': 'Smuttynose',
+            'abv': 9.9,
+            'ibu': 'NA',
+            'rating': 5,
+            'remaining': 1,
+            'consumption': [[0, 1], [1, 8], [2, 2], [4,3], [5, 6], [6, 13], [2, 2], [4,10]]
+    }
+
     cfg = config(CFG_PATH)
 
     logging.basicConfig(
@@ -176,8 +179,9 @@ if __name__ == '__main__':
     logging.info('Starting the Smartkeg system')
     
     db = db_connect(cfg['database'])
-
-    serving = db.select(*smartkeg.query.get_now_serving())
+    
+    serving = TESTDF#db.select(*smartkeg.query.get_now_serving())
+    temperature = db.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
 
     http = smartkeg.HTTPServerManager(
         cfg['server']['host'],
@@ -188,18 +192,24 @@ if __name__ == '__main__':
     http.sse_response(json.dumps(serving))
     http.start()
 
-    flowproc, flowpipe = proc_add(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database'])))
-    tempproc, temppipe = proc_add(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database'])))
+    flowproc, flowpipe = proc(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database'])))
+    tempproc, temppipe = proc(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database'])))
 
     start(flowproc, tempproc)
 
     while True:
-        for beer in serving:
+        if flowpipe.poll():
+            serving = db.select(*smartkeg.query.get_now_serving())
+
+        if temppipe.poll():
+            temperature = db.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
+            
+        for i, beer in enumerate(serving):
             #subtract a little beer
             beer['remaining'] -= .001
 
             if beer['remaining'] < 0:
-                beer['remaining'] = 1
+                serving[i] = dict(REPLF)
 
         http.sse_response(json.dumps(serving))
         time.sleep(1)
