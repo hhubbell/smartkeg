@@ -30,9 +30,9 @@ class FlowMeter(object):
 
     def to_pints(self, ticks):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Converts flow meter ticks to pint value. According
+        @author:        Harrison Hubbell
+        @created:       10/05/2014
+        @description:   Converts flow meter ticks to pint value. According
                         to documentation, the flow meter used:
                             Liquid Flow Meter - Plastic 1/2" NPS Threaded
                         from Adafruit (Product ID 828) calculates 
@@ -43,26 +43,26 @@ class FlowMeter(object):
 
     def reset(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Resets ticks to zero
+        @author:        Harrison Hubbell
+        @created:       10/05/2014
+        @description:   Resets ticks to zero
         """
         self.ticks = 0
 
     def setup_data_pin(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Prepares the data pin for incoming voltage
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Prepares the data pin for incoming voltage
         """
         GPIO.setup(self.pin, GPIO.IN)
         GPIO.add_event_detect(self.pin, GPIO.RISING)
 
     def monitor(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   The main loop. checks for a pour and handles
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   The main loop. checks for a pour and handles
                         it if true.
         """
         while True:
@@ -93,9 +93,9 @@ class FlowMeterManager(object):
 
     def add(self, *pins):
         """
-        @Author:        Harrison Hubbell
-        @Created:       03/05/2015
-        @Description:   Create a FlowMeter thread for each pin which allows
+        @author:        Harrison Hubbell
+        @created:       03/05/2015
+        @description:   Create a FlowMeter thread for each pin which allows
                         the controller to accept flow input from multiple 
                         taps.
         """
@@ -114,9 +114,9 @@ class FlowMeterManager(object):
 
     def run(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Starts monitor the FlowMeter for pouring
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Starts monitor the FlowMeter for pouring
         """
         self.start_all()
         

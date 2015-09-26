@@ -7,9 +7,9 @@
 
 def format_where(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format query params for a WHERE clause
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format query params for a WHERE clause
     """
     fmt = ' AND '.join(['{}=%s'.format(x[0]) for x in params])
 
@@ -17,9 +17,9 @@ def format_where(params):
 
 def format_values(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format query params for an INSERT VALUES clause
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format query params for an INSERT VALUES clause
     """
     return '({}) VALUES ({})'.format(
         ', '.join([x[0] for x in params]),
@@ -28,9 +28,9 @@ def format_values(params):
 
 def get_beers(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format a query to get beers based on params
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format a query to get beers based on params
     """        
     query = """
         SELECT
@@ -52,9 +52,9 @@ def get_beers(params):
 
 def get_brewers(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format a query to get brewers based on params
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format a query to get brewers based on params
     """
     query = """
         SELECT
@@ -72,9 +72,9 @@ def get_brewers(params):
 
 def get_daily():
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/30/2015
-    @Description:   Format a query to get daily consumption
+    @author:        Harrison Hubbell
+    @created:       03/30/2015
+    @description:   Format a query to get daily consumption
     XXX: Needs work
     """
     query = """
@@ -90,9 +90,9 @@ def get_daily():
 
 def get_now_serving():
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/30/2015
-    @Description:   Format a query to get currently served kegs
+    @author:        Harrison Hubbell
+    @created:       03/30/2015
+    @description:   Format a query to get currently served kegs
     """
     query = """
         SELECT 
@@ -126,9 +126,9 @@ def get_now_serving():
 
 def get_percent_remaining():
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/30/2015
-    @Description:   Format a query to get percent of keg remaining
+    @author:        Harrison Hubbell
+    @created:       03/30/2015
+    @description:   Format a query to get percent of keg remaining
     """
     query = """
         SELECT (k.volume - SUM(p.volume)) / k.volume
@@ -142,9 +142,9 @@ def get_percent_remaining():
 
 def get_volume_remaining():
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/30/2015
-    @Description:   Format a query to get volume of keg remaining
+    @author:        Harrison Hubbell
+    @created:       03/30/2015
+    @description:   Format a query to get volume of keg remaining
     """
     query = """
         SELECT k.volume - SUM(p.volume)
@@ -163,9 +163,9 @@ def get_fridge_temp(params):
 
 def set_keg(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format a query to set a new keg based on params
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format a query to set a new keg based on params
     """
     query = """INSERT INTO Keg {}""".format(format_values(params))
 
@@ -173,9 +173,9 @@ def set_keg(params):
 
 def set_pour(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/05/2015
-    @Description:   Format a query to insert a new pour
+    @author:        Harrison Hubbell
+    @created:       03/05/2015
+    @description:   Format a query to insert a new pour
     """
     query = """INSERT INTO Pour {}""".format(format_values(params))
 
@@ -183,9 +183,9 @@ def set_pour(params):
 
 def set_rating(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format a query to set a new rating based on params
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format a query to set a new rating based on params
     """
     query = """INSERT INTO BeerRating {}""".format(format_values(params[0]))
 
@@ -198,9 +198,9 @@ def set_temperature(params):
 
 def rem_keg(params):
     """
-    @Author:        Harrison Hubbell
-    @Created:       02/18/2015
-    @Description:   Format a query to stop a keg based on params
+    @author:        Harrison Hubbell
+    @created:       02/18/2015
+    @description:   Format a query to stop a keg based on params
     """
     query = """
         UPDATE Keg

@@ -27,9 +27,9 @@ class LEDDisplay(object):
 
     def light(self, row):
         """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Lights a given row of LEDs based on the List of
+        @author:        Harrison Hubbell
+        @created:       08/31/2014
+        @description:   Lights a given row of LEDs based on the List of
                         pin numbers passed in
         """
         self.GPIO.setup(row[0], self.GPIO.OUT)
@@ -41,9 +41,9 @@ class LEDDisplay(object):
 
     def get(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Receives the number of rows to light and updates
+        @author:        Harrison Hubbell
+        @created:       10/05/2014
+        @description:   Receives the number of rows to light and updates
                         if there is a new value.
         """
         if self.pipe.poll():
@@ -51,9 +51,9 @@ class LEDDisplay(object):
         
     def run(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Lights each the number of rows it is told to light,
+        @author:        Harrison Hubbell
+        @created:       08/31/2014
+        @description:   Lights each the number of rows it is told to light,
                         which is received from its parent proc.
         """
         while True:

@@ -15,9 +15,9 @@ class TimeSeriesRegression(object):
 
     def __str__(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/05/2014
-        @Description:   Returns a string representation of the time-series
+        @author:        Harrison Hubbell
+        @created:       11/05/2014
+        @description:   Returns a string representation of the time-series
                         regression model.
         """
         t = '({} + {}(x))'.format(str(self.intercept), str(self.slope))
@@ -27,9 +27,9 @@ class TimeSeriesRegression(object):
 
     def forecast(self, data):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/05/2014
-        @Description:   Creates the time-series regression model.
+        @author:        Harrison Hubbell
+        @created:       11/05/2014
+        @description:   Creates the time-series regression model.
         """
         self.trend = self.calculate_regression_line(data)
         self.seasonality = self.calculate_seasonal_indices(data)
@@ -46,9 +46,9 @@ class TimeSeriesRegression(object):
 
     def calculate_regression_line(self, data):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/04/2014
-        @Description:   Calculate the regression line based on given data.
+        @author:        Harrison Hubbell
+        @created:       11/04/2014
+        @description:   Calculate the regression line based on given data.
                         Returns a lambda function of the trend line function.
         """
         y_vals = []
@@ -79,9 +79,9 @@ class TimeSeriesRegression(object):
 
     def calculate_seasonal_indices(self, data):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/04/2104
-        @Description:   Calculate the seasonal indecies for each period.
+        @author:        Harrison Hubbell
+        @created:       11/04/2104
+        @description:   Calculate the seasonal indecies for each period.
                         If periods is EVEN: The simple moving average must
                         be centered.
                         If periods is ODD:  The simple moving average is 
@@ -117,9 +117,9 @@ class TimeSeriesRegression(object):
 
     def centered_moving_avg(self, simple_moving_avg):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/04/2014
-        @Description:   Calculate centered moving average from a simple
+        @author:        Harrison Hubbell
+        @created:       11/04/2014
+        @description:   Calculate centered moving average from a simple
                         moving average.
         """
         i = 0
@@ -134,9 +134,9 @@ class TimeSeriesRegression(object):
 
     def ratio_to_moving_avg(self, data_set, cma):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/06/2014
-        @Description:   Calculate the ratio to moving average for the 
+        @author:        Harrison Hubbell
+        @created:       11/06/2014
+        @description:   Calculate the ratio to moving average for the 
                         centered moving average.  A little black magic
                         happens here because using 0 based indicies and 
                         the number of periods allows the index of the 
@@ -154,9 +154,9 @@ class TimeSeriesRegression(object):
 
     def simple_moving_avg(self, data_set):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/04/2014
-        @Description:   Create simple moving average set based on input
+        @author:        Harrison Hubbell
+        @created:       11/04/2014
+        @description:   Create simple moving average set based on input
                         data and the number of periods
         """
         i = 0

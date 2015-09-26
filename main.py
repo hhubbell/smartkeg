@@ -17,18 +17,18 @@ import json
 
 def config(path):
     """
-    @Author:        Harrison Hubbell
-    @Created:       03/18/2015
-    @Description:   Gathers config info and returns a serialized JSON object.
+    @author:        Harrison Hubbell
+    @created:       03/18/2015
+    @description:   Reads config info and returns a serialized JSON object.
     """
     with open(path, 'r') as f:
         return json.load(f)
 
 def db_connect(cfg):
     """
-    @Author:        Harrison Hubbell
-    @Created:       08/31/2014
-    @Description:   Creates a database interface for inserting and
+    @author:        Harrison Hubbell
+    @created:       08/31/2014
+    @description:   Creates a database interface for inserting and
                     selecting data.
     """
     logging.info('Initializing Database Connection.')
@@ -42,9 +42,9 @@ def db_connect(cfg):
 
 def model(data):
     """
-    @Author:        Harrison Hubbell
-    @Created:       08/17/2015
-    @Description:   Generate a new time series regression model
+    @author:        Harrison Hubbell
+    @created:       08/17/2015
+    @description:   Generate a new time series regression model
     """
     PERIODS = 7
     
@@ -58,18 +58,18 @@ def model(data):
 
 def start(*procs):
     """
-    @Author:        Harrison Hubbell
-    @Created:       10/05/2014
-    @Description:   Starts all processes supplied.
+    @author:        Harrison Hubbell
+    @created:       10/05/2014
+    @description:   Starts all processes supplied.
     """
     for proc in procs:
         proc.start()
 
 def proc(target, args=None, name=None):
     """
-    @Author:        Harrison Hubbell
-    @Created:       10/05/2014
-    @Description:   Adds a process and manages creating the pipes
+    @author:        Harrison Hubbell
+    @created:       10/05/2014
+    @description:   Adds a process and manages creating the pipes
                     between both nodes.  Returns a tuple of the 
                     process and pipe to that process.
     """
@@ -79,12 +79,12 @@ def proc(target, args=None, name=None):
     args = (pipe_from,) + args
 
     return Process(target=target, args=args, name=name), pipe_to
-    
+
 def spawn_flow_meter(pipe, cfg, dbi=None):
     """
-    @Author:        Harrison Hubbell
-    @Created:       08/31/2014
-    @Description:   Creates the Flow Meter process.
+    @author:        Harrison Hubbell
+    @created:       08/31/2014
+    @description:   Creates the Flow Meter process.
     """
     flo = smartkeg.FlowMeterManager(
         cfg['pins'],
@@ -94,19 +94,19 @@ def spawn_flow_meter(pipe, cfg, dbi=None):
     flo.run()
 
 def spawn_temp_sensor(pipe, cfg, dbi=None):
-        """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Creates the Temperature Sensor process.
-        """
-        tmp = smartkeg.TemperatureSensorManager(
-            cfg['interval'],                        
-            sensors=cfg['sensors'],            
-            pipe=pipe,
-            dbi=dbi
-        )
+    """
+    @author:        Harrison Hubbell
+    @created:       08/31/2014
+    @description:   Creates the Temperature Sensor process.
+    """
+    tmp = smartkeg.TemperatureSensorManager(
+        cfg['interval'],                        
+        sensors=cfg['sensors'],            
+        pipe=pipe,
+        dbi=dbi
+    )
 
-        tmp.run()
+    tmp.run()
 
 
 if __name__ == '__main__':
@@ -180,8 +180,9 @@ if __name__ == '__main__':
     
     db = db_connect(cfg['database'])
     
-    serving = TESTDF#db.select(*smartkeg.query.get_now_serving())
-    temperature = db.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
+    with db as d:
+        serving = TESTDF#d.select(*smartkeg.query.get_now_serving())
+        temperature = d.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
 
     http = smartkeg.HTTPServerManager(
         cfg['server']['host'],

@@ -22,9 +22,9 @@ class TemperatureSensor(object):
 
     def read(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Opens the temperature file in the sensor path and
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Opens the temperature file in the sensor path and
                         reads its value. Temperatures are located in a
                         file because the DS18B20 is a digital 3-pin sensor
                         and writes directly using STDIN.
@@ -59,9 +59,9 @@ class TemperatureSensorManager(object):
 
     def add(self, *ids):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Creates dict of TemperatureSensor Objects.
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Creates dict of TemperatureSensor Objects.
         """
         self.sensors += [TemperatureSensor(x, self.path) for x in ids]
 
@@ -70,9 +70,9 @@ class TemperatureSensorManager(object):
 
     def read(self, id):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Reads from the specified sensor.
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Reads from the specified sensor.
         """
         sensor = next(x for x in self.sensors if x.id == id)
 
@@ -83,26 +83,26 @@ class TemperatureSensorManager(object):
 
     def read_all(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/04/2014
-        @Description:   Reads all sensors and returns a dict with the
+        @author:        Harrison Hubbell
+        @created:       10/04/2014
+        @description:   Reads all sensors and returns a dict with the
                         associated temperature for each sensor.
         """
         return {x.id: x.read() for x in self.sensors}
 
     def convert(self, celcius):
         """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   Converts Celcius values to Fahrenheit.
+        @author:        Harrison Hubbell
+        @created:       08/31/2014
+        @description:   Converts Celcius values to Fahrenheit.
         """
         return celcius * 1.8 + 32
 
     def run(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       08/31/2014
-        @Description:   When a read job is received get the current temperature
+        @author:        Harrison Hubbell
+        @created:       08/31/2014
+        @description:   When a read job is received get the current temperature
                         and return the data to the parent proc as a dict.
         """
         while True:

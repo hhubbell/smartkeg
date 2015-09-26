@@ -27,9 +27,9 @@ class DatabaseInterface(object):
 
     def connect(self, addr, dbn, user, pwd):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Attempts to connect to the MySQL database.
+        @author:        Harrison Hubbell
+        @created:       10/05/2014
+        @description:   Attempts to connect to the MySQL database.
                         Handles errors if attempt fails.
         """
         try:
@@ -47,25 +47,25 @@ class DatabaseInterface(object):
 
     def prepare(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Gets the database cursor to prep for a transaction
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Gets the database cursor to prep for a transaction
         """
         self.cur = self.conn.cursor(dictionary=True)
 
     def finish(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/18/2015
-        @Description:   Closes the database cursor
+        @author:        Harrison Hubbell
+        @created:       09/18/2015
+        @description:   Closes the database cursor
         """
         self.cur.close()
 
     def insert(self, query, params=None):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Makes an INSERT transaction on the database
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Makes an INSERT transaction on the database
         """
         try:
             self.cur.executemany(query, params)
@@ -79,9 +79,9 @@ class DatabaseInterface(object):
 
     def select(self, query, params=None):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Makes a SELECT transaction on the database, returns result
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Makes a SELECT transaction on the database, returns result
         """
         res = None
         try:
@@ -98,9 +98,9 @@ class DatabaseInterface(object):
 
     def update(self, query, params=None):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/24/2014
-        @Description:   Makes an UPDATE transaction on the database
+        @author:        Harrison Hubbell
+        @created:       11/24/2014
+        @description:   Makes an UPDATE transaction on the database
         """
         try:
             self.cur.execute(query, params)

@@ -24,9 +24,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def get_content_type(self, req):
         """ 
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Return content type based on file.  Essentially
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Return content type based on file.  Essentially
                         just a lot of if statements
         """
         if req.endswith('.css'):    return 'text/css'
@@ -39,9 +39,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def get_resource(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       10/05/2014
-        @Description:   Locates the requested resource.
+        @author:        Harrison Hubbell
+        @created:       10/05/2014
+        @description:   Locates the requested resource.
         """
         page_buffer = None
         content_type = None
@@ -68,9 +68,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def encode(self, stream):
         """
-        @Author:        Harrison Hubbell
-        @Created:       04/06/2015
-        @Description:   Compresses response body.
+        @author:        Harrison Hubbell
+        @created:       04/06/2015
+        @description:   Compresses response body.
         """
         ENCODING = 'gzip'
         output = io.BytesIO()
@@ -88,18 +88,18 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Overrides standard logging functionality to
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Overrides standard logging functionality to
                         log server actions to a file.
         """
         logging.debug(args)
 
     def do_GET(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       09/01/2014
-        @Description:   Handles GET requests
+        @author:        Harrison Hubbell
+        @created:       09/01/2014
+        @description:   Handles GET requests
         """
         try:
             data, content_type = self.get_resource()
@@ -135,9 +135,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/21/2014
-        @Description:   Handles POST requests
+        @author:        Harrison Hubbell
+        @created:       11/21/2014
+        @description:   Handles POST requests
         """
         try:
             data, content_type = self.get_resource()
@@ -284,9 +284,9 @@ class APIHandler(object):
 
     def transact(self, method, url, headers, rfile):
         """
-        @Author:        Harrison Hubbell
-        @Created:       12/14/2014
-        @Description:   Handle user requests that require database
+        @author:        Harrison Hubbell
+        @created:       12/14/2014
+        @description:   Handle user requests that require database
                         interaction.  get's should be method agnostic,
                         while set's should require a POST.
         """
@@ -350,9 +350,9 @@ class HTTPServerManager(object):
 
     def create_qrcode(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       11/18/2014
-        @Description:   Gets the current interface address of the server,
+        @author:        Harrison Hubbell
+        @created:       11/18/2014
+        @description:   Gets the current interface address of the server,
                         and renders a QR Code that allows devices to go 
                         to that address.
         """
@@ -376,9 +376,9 @@ class HTTPServerManager(object):
 
     def sse_response(self, data):
         """
-        @Author:        Harrison Hubbell
-        @Created:       04/06/2015
-        @Description:   Manages setting the HTTPServer sse reponse.
+        @author:        Harrison Hubbell
+        @created:       04/06/2015
+        @description:   Manages setting the HTTPServer sse reponse.
         """
         self.lock.acquire()
         
@@ -390,9 +390,9 @@ class HTTPServerManager(object):
             
     def spawn_server(self, host=None, port=None):
         """
-        @Author:        Harrison Hubbell
-        @Created:       04/13/2015
-        @Description:   Spawn the http server instance.
+        @author:        Harrison Hubbell
+        @created:       04/13/2015
+        @description:   Spawn the http server instance.
         """
         host = host if host is not None else self.host
         port = port if port is not None else self.port
@@ -409,9 +409,9 @@ class HTTPServerManager(object):
 
     def start(self):
         """
-        @Author:        Harrison Hubbell
-        @Created:       04/13/2015
-        @Description:   Spawn a thread and a shared memory pool for
+        @author:        Harrison Hubbell
+        @created:       04/13/2015
+        @description:   Spawn a thread and a shared memory pool for
                         setting new SSE responses.
         """
         Process(target=self.spawn_server).start()
