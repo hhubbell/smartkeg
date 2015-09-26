@@ -24,7 +24,7 @@ def config(path):
     with open(path, 'r') as f:
         return json.load(f)
 
-def db_connect(cfg):
+def dbconnect(cfg):
     """
     @author:        Harrison Hubbell
     @created:       08/31/2014
@@ -167,7 +167,9 @@ if __name__ == '__main__':
     }
 
     cfg = config(CFG_PATH)
-
+    fridge = cfg['fridge']
+    dbconf = cfg['database']
+    
     logging.basicConfig(
         filename='{}{}.log'.format(
             cfg['logger']['directory'] + cfg['logger']['file'],
@@ -178,40 +180,50 @@ if __name__ == '__main__':
     )
     logging.info('Starting the Smartkeg system')
     
-    db = db_connect(cfg['database'])
+    
+    db = dbconnect(dbconf)
     
     with db as d:
-        serving = TESTDF#d.select(*smartkeg.query.get_now_serving())
-        temperature = d.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
+        srv = TESTDF#d.select(*smartkeg.query.get_now_serving())
+        tmp = d.select(*smartkeg.query.get_fridge_temp(fridge.items()))
 
     http = smartkeg.HTTPServerManager(
         cfg['server']['host'],
         cfg['server']['port'],
         SRV_PATH,
-        dbi=db_connect(cfg['database'])
+        dbi=dbconnect(dbconf)
     )
-    http.sse_response(json.dumps(serving))
+    http.sse_response(json.dumps(srv))
     http.start()
 
-    flowproc, flowpipe = proc(spawn_flow_meter, args=(cfg['flow_meter'], db_connect(cfg['database'])))
-    tempproc, temppipe = proc(spawn_temp_sensor, args=(cfg['temp_sensor'], db_connect(cfg['database'])))
+    flowproc, flowpipe = proc(
+        spawn_flow_meter,
+        args=(cfg['flow_meter'], dbconnect(dbconf))
+    )
+    
+    tempproc, temppipe = proc(
+        spawn_temp_sensor,
+        args=(cfg['temp_sensor'], dbconnect(dbconf))
+    )
 
     start(flowproc, tempproc)
 
     while True:
         if flowpipe.poll():
-            serving = db.select(*smartkeg.query.get_now_serving())
+            with db as d:
+                srv = d.select(*smartkeg.query.get_now_serving())
 
         if temppipe.poll():
-            temperature = db.select(*smartkeg.query.get_fridge_temp(cfg['fridge'].items()))
+            with db as d:
+                tmp = d.select(*smartkeg.query.get_fridge_temp(fridge.items()))
             
-        for i, beer in enumerate(serving):
+        for i, beer in enumerate(srv):
             #subtract a little beer
             beer['remaining'] -= .001
 
             if beer['remaining'] < 0:
-                serving[i] = dict(REPLF)
+                srv[i] = dict(REPLF)
 
-        http.sse_response(json.dumps(serving))
+        http.sse_response(json.dumps(srv))
         time.sleep(1)
         #time.sleep(0.1)
