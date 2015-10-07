@@ -5,6 +5,8 @@
 # Description:  HTTP module exceptions
 #
 
+import urllib.parse
+
 class APINotConnectedError(Exception):
     def __str__(self):
         return 'API has no database connection'
