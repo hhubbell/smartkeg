@@ -21,14 +21,20 @@ DEP_NO="${RED}NO${RESET}"
 DEP_PASS=true
 DEP_NEED=()
 
+ARGS=$@
+
 nocheck="--no-check"
 nodb="--no-db"
 nogui="--no-gui"
 minify="--minify"
 
+function inargs() {
+    [[ $ARGS =~ $1 ]] && return 0 || return 1
+}
+
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
-if ! echo $@ | grep -e $nocheck > /dev/null;
+if ! inargs $nocheck;
 then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
     echo -ne "\tMySQL/MariaDB           "
@@ -108,7 +114,7 @@ then
     fi
 fi
 
-if ! echo $@ | grep -e $nodb > /dev/null;
+if ! inargs $nodb;
 then
     echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
     echo -ne "\tDatabase User: "
@@ -123,13 +129,13 @@ then
     echo -e "\tInserted defaults"
 fi
 
-if echo $@ | grep -e $minify > /dev/null;
+if inargs $minify;
 then
     echo -e "\n${BLUE}=>${RESET} Minifying CSS and JavaScript\n"
     ./minify
 fi
 
-if ! echo $@ | grep -e $nogui > /dev/null;
+if ! inargs $nogui;
 then
     echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
 
@@ -166,4 +172,3 @@ sudo systemctl daemon-reload
 echo -e "\n\t${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\t\tsudo systemctl enable smartkeg"
 
 echo -e "\n${BOLD}Done!${RESET}"
-
