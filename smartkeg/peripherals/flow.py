@@ -6,7 +6,6 @@
 #
 
 from multiprocessing import Process, Queue
-from . import *
 import RPi.GPIO as GPIO
 import logging
 import time

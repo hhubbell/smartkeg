@@ -9,9 +9,11 @@
 #               all rows at once; approximately 120 mA.  Multiplexing is 
 #               expensive however, and the perfomance of the loop - starting
 #               the time a row lights and stopping when the row is lit
-#               again - must not fall below 50Hz - to prevent noticable light
-#               flicker.
+#               again - must not fall below 50Hz - to prevent noticable
+#               light flicker.
 #
+
+import time
 
 class LEDDisplay(object):
     ROW = [

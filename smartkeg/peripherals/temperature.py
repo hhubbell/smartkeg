@@ -7,7 +7,7 @@
 #               sensor to generate temperature values.
 #
 
-from . import query
+from .. import query
 import logging
 import time
 import re
