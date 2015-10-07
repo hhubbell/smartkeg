@@ -9,6 +9,7 @@ LOG_PATH="/var/log/smartkeg"
 PKG_MGR="pacman"
 PKG_INSTALL="-S"
 PKG_QUERY="-Qs"
+PIP="pip3"
 
 RESET="\033[0m"
 BOLD="\033[1m"
@@ -32,6 +33,116 @@ function inargs() {
     [[ $ARGS =~ $1 ]] && return 0 || return 1
 }
 
+function checkpip() {
+    # These calls require pip, unless the user builds from source.    
+    if $PIP list | grep $1 > /dev/null;
+    then
+        echo -e $DEP_OK
+        return 0
+    else
+        echo -e $DEP_NO
+        echo -e "\t${BOLD}NOTICE:${RESET} $1 must be installed using" \
+                "pip or built\n\t\tfrom source. You must complete this" \
+                "step yourself."
+        return 1
+    fi
+}
+
+function checksys() {
+    if command -v $1 > /dev/null;
+    then
+        echo -e $DEP_OK
+    else
+        echo -e $DEP_NO
+    fi
+}
+
+function configure_database() {
+    BUILD='static/sql/build.sql'
+    DATA='static/sql/data.sql'
+    
+    function mysqluser() {
+        # Get database configs from ./etc/config.json
+        # Parsing JSON in bash would suck! Use python
+        user=`python -c "from __future__ import print_function; import json; x = open('./etc/config.json','r'); print(json.load(x)['database']['user'])"`
+        pass=`python -c "from __future__ import print_function; import json; x = open('./etc/config.json','r'); print(json.load(x)['database']['password'])"`
+        
+        mysql -u $1 -p$2 -e "CREATE USER $user IDENTIFIED BY '$pass'"
+    }
+
+    function mysqlsource() {
+        mysql -u $1 -p$2 -e "source $3"
+    }
+
+    if ! inargs $nodb;
+    then
+        echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
+        echo -ne "\tDatabase User: "
+        read user
+        
+        echo -ne "\tPassword: "
+        read -s password
+        
+        echo -e "\tCreating user 'smartkeg'"    
+        mysqluser $user $password
+
+        echo -e "\tCreating tables"    
+        mysqlsource $user $password $BUILD
+
+        echo -e "\tInserting defaults"    
+        mysqlsource $user $password $DATA
+    fi
+}
+
+function configure_gui () {
+    if ! inargs $nogui;
+    then
+        echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
+
+        echo -e "\tMoving GUI file to bin path: ${BIN_PATH}"
+        sudo cp gui.py $BIN_PATH/smartkeg-gui
+        sudo chmod +x $BIN_PATH/smartkeg-gui
+    fi
+}
+
+function configure_minify() {
+    if inargs $minify;
+    then
+        echo -e "\n${BLUE}=>${RESET} Minifying CSS and JavaScript\n"
+        ./minify
+    fi
+}
+
+function configure_system() {
+    echo -e "\n${BLUE}=>${RESET} Configuring System\n"
+    echo -e "\tInstalling smartkeg package"
+    sudo cp -r smartkeg/ $PKG_PATH/
+
+    echo -e "\tMoving executable to bin path: ${BIN_PATH}"
+    sudo cp main.py $BIN_PATH/smartkeg
+    sudo chmod +x $BIN_PATH/smartkeg
+
+    echo -e "\tMoving configuration files to config path: ${CFG_PATH}"
+    sudo mkdir -p $CFG_PATH
+    sudo cp etc/config.json $CFG_PATH
+
+    echo -e "\tMoving server files to server path: ${SRV_PATH}"
+    sudo mkdir -p $SRV_PATH
+    sudo cp -r srv/* $SRV_PATH
+
+    echo -e "\tCreating log file directory: ${LOG_PATH}"
+    sudo mkdir -p $LOG_PATH
+
+    echo -e "\tCreating service files"
+    sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
+
+    echo -e "\tReload Service Daemons"
+    sudo systemctl daemon-reload
+
+    echo -e "\n\t${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\t\tsudo systemctl enable smartkeg"
+}
+
+
 echo -e "\n${BOLD}Welcome to the Smartkeg build process!${RESET}"
 
 if ! inargs $nocheck;
@@ -39,69 +150,46 @@ then
     echo -e "${BLUE}=>${RESET} Checking Dependencies\n"
     echo -ne "\tMySQL/MariaDB           "
     # MySQL/MariaDB
-    if command -v mysql > /dev/null;
+    if checksys mysql;
     then
-        echo -e $DEP_OK
-    else
         DEP_PASS=false
         DEP_NEED+=('mysql')
-        echo -e $DEP_NO
     fi
 
     # python-mysql
-    # This requires pip, unless the user builds from source.    
     echo -ne "\tmysql-connector-python  "
-    if pip list | grep mysql-connector-python > /dev/null;
+    if ! checkpip mysql-connector-python;
     then
-        echo -e $DEP_OK
-    else
         DEP_PASS=false
-        echo -e $DEP_NO
-        echo -e "    ${BOLD}NOTICE:${RESET} mysql-connector-python must be installed using pip or built from source.  You must complete this step yourself."
     fi
 
     # RPi.GPIO
-    # This requires pip, unless the user builds from source.
     echo -ne "\tRPi.GPIO                "
-    if pip list | grep RPi.GPIO > /dev/null;
+    if ! checkpip RPi.GPIO;
     then
-        echo -e $DEP_OK
-    else
         DEP_PASS=false
-        echo -ne $DEP_NO
-        echo -e "    ${BOLD}NOTICE:${RESET} RPi.GPIO must be installed using pip or built from source.  You must complete this step yourself."
     fi
 
     # qrcode
-    # This also requires pip, unless the user builds from source.
     echo -ne "\tqrcode                  "
-    if pip list | grep qrcode > /dev/null;
+    if ! checkpip qrcode;
     then
-        echo -e $DEP_OK
-    else
         DEP_PASS=false
-        echo -ne $DEP_NO
-        echo -e "    ${BOLD}NOTICE:${RESET} qrcode must be installed using pip or built from source.  You must complete this step yourself."
     fi
-
-
+    
     # pywebkitgtk
-    if ! echo $@ | grep -e $nogui > /dev/null;
+    if ! inargs $nogui;
     then
         echo -ne "\tpywebkitgtk             "
-        if $PKG_MGR $PKG_QUERY pywebkitgtk > /dev/null;
+        if ! checkpip pywebkitgtk;
         then
-            echo -e $DEP_OK
-        else
             DEP_PASS=false
-            DEP_NEED+=('pywebkitgtk')
-            echo -e $DEP_NO
         fi
     fi
     
-    if [ ! "$DEP_PASS" ];
+    if ! $DEP_PASS;
     then
-        echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system.  The Smartkeg software may act erroneously without the required libraries.  Please ensure they are installed before attempting to execute the Smartkeg Consumption Monitoring System."
+        echo -e "\n${RED}Warning!${RESET}: One or more dependencies are not installed on your system. The Smartkeg software may act erroneously without the required libraries. Please ensure they are installed before attempting to execute the Smartkeg Consumption Monitoring System."
         echo -e "Would you like to install these dependencies now? (Y/n): "
         read response
 
@@ -114,61 +202,10 @@ then
     fi
 fi
 
-if ! inargs $nodb;
-then
-    echo -e "\n${BLUE}=>${RESET} Configuring Database\n"
-    echo -ne "\tDatabase User: "
 
-    read user
-
-    echo -ne "\t"
-    mysql -u $user -p -e "CREATE USER smartkeg IDENTIFIED BY 'Isingthepraisesofbeer!'; source static/sql/build.sql; source static/sql/data.sql;"
-
-    echo -e "\tCreated user 'smartkeg'"
-    echo -e "\tCreated tables"
-    echo -e "\tInserted defaults"
-fi
-
-if inargs $minify;
-then
-    echo -e "\n${BLUE}=>${RESET} Minifying CSS and JavaScript\n"
-    ./minify
-fi
-
-if ! inargs $nogui;
-then
-    echo -e "\n${BLUE}=>${RESET} Installing GUI Client\n"
-
-    echo -e "\tMoving GUI file to bin path: ${BIN_PATH}"
-    sudo cp gui.py $BIN_PATH/smartkeg-gui
-    sudo chmod +x $BIN_PATH/smartkeg-gui
-fi
-
-echo -e "\n${BLUE}=>${RESET} Configuring System\n"
-echo -e "\tInstalling smartkeg package"
-sudo cp -r smartkeg/ $PKG_PATH/
-
-echo -e "\tMoving executable to bin path: ${BIN_PATH}"
-sudo cp main.py $BIN_PATH/smartkeg
-sudo chmod +x $BIN_PATH/smartkeg
-
-echo -e "\tMoving configuration files to config path: ${CFG_PATH}"
-sudo mkdir -p $CFG_PATH
-sudo cp etc/config.json $CFG_PATH
-
-echo -e "\tMoving server files to server path: ${SRV_PATH}"
-sudo mkdir -p $SRV_PATH
-sudo cp -r srv/* $SRV_PATH
-
-echo -e "\tCreating log file directory: ${LOG_PATH}"
-sudo mkdir -p $LOG_PATH
-
-echo -e "\tCreating service files"
-sudo echo -e "[Unit]\nDescription=Smartkeg\nRequires=mysqld.service\n\n[Service]\nType=simple\nExecStart=/usr/bin/env python2 /usr/local/bin/smartkeg\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/smartkeg.service
-
-echo -e "\tReload Service Daemons"
-sudo systemctl daemon-reload
-
-echo -e "\n\t${BOLD}NOTE:${RESET} To run the Smartkeg system at startup run the following:\n\t\tsudo systemctl enable smartkeg"
+configure_database    
+configure_minify
+configure_gui
+configure_system
 
 echo -e "\n${BOLD}Done!${RESET}"
