@@ -1,11 +1,8 @@
 #
-# Filename:     main.py
+# Filename:     database.py
 # Author:       Harrison Hubbell
 # Date:         09/01/2014
-# Description:  Manages connection with MariaDB database. The current scope
-#               of the project does not allow users to delete records via 
-#               this interface. In fact, the database user should only have
-#               INSERT, UPDATE, and SELECT permissions.
+# Description:  Manages connections and transactions with MySQL databases.
 #
 
 import mysql.connector
@@ -15,7 +12,7 @@ class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd):
         self.conn = self.connect(addr, dbn, user, pwd)
 
-    def __def__(self):
+    def __del__(self):
         self.conn.close()
 
     def __enter__(self):
