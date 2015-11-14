@@ -18,10 +18,10 @@ import urllib.parse
 import gzip
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
-    _INDEX = 'index.html'    
+    _INDEX = 'index.html'
 
     def get_content_type(self, req):
-        """ 
+        """
         @author:        Harrison Hubbell
         @created:       09/01/2014
         @description:   Return content type based on file.  Essentially
@@ -78,13 +78,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         if ENCODING in self.headers['Accept-Encoding'] and stream is not None:
             with gzip.GzipFile(fileobj=output, mode='w', compresslevel=5) as f:
                 f.write(stream)
-            
+
             encoding = ENCODING
-            fbuffer = output.getvalue()              
+            fbuffer = output.getvalue()
 
         return fbuffer, encoding
 
-    def log_message(self, format, *args):
+    def log_message(self, fmt, *args):
         """
         @author:        Harrison Hubbell
         @created:       09/01/2014
@@ -128,11 +128,11 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         except Exception as e:
             self.send_error(500)
-            logging.critical('{} {} caused an Internal Server Error'.format(
+            logging.critical('%s %s caused an Internal Server Error',
                 self.command,
                 self.path
-            ))
-            logging.critical(e)  
+            )
+            logging.critical(e)
 
     def do_POST(self):
         """
@@ -169,13 +169,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         except Exception as e:
             self.send_error(500)
-            logging.critical('{} {} caused an Internal Server Error'.format(
+            logging.critical('%s %s caused an Internal Server Error',
                 self.command,
                 self.path
-            ))
+            )
             logging.critical(e)
 
-    
+
 class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     """Handle Requests in a Seperate Thread."""
     def __init__(self, addr, handler, api, sse, root):
@@ -192,7 +192,8 @@ class HTTPServerManager(object):
         self.path = path
         self.dbi = dbi
         self.update_id = 0
-        self.lock = Lock();        
+        self.lock = Lock()
+        self.httpd = None
         self.create_qrcode()
 
     def create_qrcode(self):
@@ -200,16 +201,16 @@ class HTTPServerManager(object):
         @author:        Harrison Hubbell
         @created:       11/18/2014
         @description:   Gets the current interface address of the server,
-                        and renders a QR Code that allows devices to go 
+                        and renders a QR Code that allows devices to go
                         to that address.
         """
         GOOGLE = ('8.8.8.8', 80)
-        
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(GOOGLE)
         address = 'http://' + sock.getsockname()[0]
         sock.close()
- 
+
         factory = qrcode.image.svg.SvgPathImage
         factory.QR_PATH_STYLE = 'fill:#C0392B;fill-opacity:1;fill-rule:nonzero;stroke:none'
 
@@ -228,13 +229,13 @@ class HTTPServerManager(object):
         @description:   Manages setting the HTTPServer sse reponse.
         """
         self.lock.acquire()
-        
+
         with open(self.path + '/static/sse.txt', 'w') as f:
             self.update_id += 1
             f.write('id: {}\ndata: {}\n\n'.format(self.update_id, data))
-            
+
         self.lock.release()
-            
+
     def spawn_server(self, host=None, port=None):
         """
         @author:        Harrison Hubbell
@@ -243,7 +244,7 @@ class HTTPServerManager(object):
         """
         host = host if host is not None else self.host
         port = port if port is not None else self.port
-        
+
         self.httpd = ThreadedHTTPServer(
             (host, port),
             RequestHandler,
@@ -251,7 +252,7 @@ class HTTPServerManager(object):
             handler.SSEHandler(self.path + '/static/sse.txt', self.lock),
             self.path
         )
-        
+
         self.httpd.serve_forever()
 
     def start(self):

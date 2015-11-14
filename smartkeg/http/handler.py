@@ -9,10 +9,11 @@ from .. import query
 from . import exception
 import datetime
 import json
+import urllib
 
 class SSEHandler(object):
     CONTENT_TYPE = 'text/event-stream'
-    
+
     def __init__(self, filename, lock):
         self.filename = filename
         self.lock = lock
@@ -55,7 +56,6 @@ class APIHandler(object):
         self.check()
         page_buffer = self.transact(method, url, headers, rfile)
         page_buffer = page_buffer.encode('utf-8') if byte else page_buffer
-        
         return page_buffer, self.CONTENT_TYPE
 
     def parse_url(self, method, url, headers, rfile):
@@ -72,8 +72,8 @@ class APIHandler(object):
 
     def get(self, endpoint, params):
         sql = None
-        
-        if endpoint == 'beer': 
+
+        if endpoint == 'beer':
             sql = query.get_beers(params)
 
         elif endpoint == 'brewer':
@@ -87,16 +87,16 @@ class APIHandler(object):
 
         elif endpoint == 'remaining':
             fmt = next((x[1] for x in params if x[0] == 'format'), 'percent')
-                    
+
             if fmt == 'percent':
                 sql = query.get_percent_remaining()
 
             elif fmt == 'volume':
                 sql = query.get_volume_remaining()
-                
+
             else:
                 raise exception.APIMalformedError(endpoint, params=params)
-        
+
         else:
             raise exception.APIMalformedError(endpoint, params=params)
 
@@ -105,20 +105,20 @@ class APIHandler(object):
 
     def set(self, endpoint, params):
         res = None
-        
+
         if endpoint == 'keg':
             if 'replace' in params:
                 with self.dbi as dbi:
-                dbi.update(*query.rem_keg(params['replace']))        
-                res = dbi.insert(*query.set_keg(params))
-                
+                    dbi.update(*query.rem_keg(params['replace']))
+                    res = dbi.insert(*query.set_keg(params))
+
         elif endpoint == 'rating':
             with self.dbi as dbi:
                 res = dbi.insert(*query.set_rating(params))
 
         else:
             raise exception.APIMalformedError(endpoint)
-        
+
         return res
 
     def transact(self, method, url, headers, rfile):
@@ -130,16 +130,16 @@ class APIHandler(object):
                         while set's should require a POST.
         """
         res = None
-        
+
         path, params = self.parse_url(method, url, headers, rfile)
 
         if len(path) >= 2:
             if path[0] == 'get':
                 res = self.get(path[1], params)
-                        
+
             elif path[0] == 'set' and method == 'POST':
                 res = self.set(path[1], params)
-                
+
             else:
                 raise exception.APIForbiddenError(url, method=method)
         else:

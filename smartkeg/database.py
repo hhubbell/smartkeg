@@ -11,6 +11,7 @@ import logging
 class DatabaseInterface(object):
     def __init__(self, addr, dbn, user, pwd):
         self.conn = self.connect(addr, dbn, user, pwd)
+        self.cur = None
 
     def __del__(self):
         self.conn.close()
@@ -38,8 +39,8 @@ class DatabaseInterface(object):
             )
         except mysql.connector.Error as e:
             logging.error(
-                'The following error occured ' \
-                'during connection: {}'.format(e)
+                'The following error occured during connection: %s',
+                e
             )
 
     def prepare(self):
@@ -67,28 +68,29 @@ class DatabaseInterface(object):
         try:
             self.cur.executemany(query, params)
             self.conn.commit()
-        except Exception as e:
+        except mysql.connector.Error as e:
             self.conn.rollback()
             logging.error(
-                'Failed INSERT transaction: ' \
-                '{}\nQuery:\n{}\nparams:\n{}'.format(e, query, params)
+                'Failed INSERT transaction: %s\nQuery:\n%s\nparams:\n%s',
+                e, query, params
             )
 
     def select(self, query, params=None):
         """
         @author:        Harrison Hubbell
         @created:       09/01/2014
-        @description:   Makes a SELECT transaction on the database, returns result
+        @description:   Makes a SELECT transaction on the database
+                        and returns result
         """
         res = None
         try:
             self.cur.execute(query, params)
-            res = cur.fetchall()
-        except Exception as e:
+            res = self.cur.fetchall()
+        except mysql.connector.Error as e:
             self.conn.rollback()
             logging.error(
-                'Failed SELECT transaction: ' \
-                '{}\nQuery:\n{}\nparams:\n{}'.format(e, query, params)
+                'Failed SELECT transaction: %s\nQuery:\n%s\nparams:\n%s',
+                e, query, params
             )
 
         return res
@@ -102,9 +104,9 @@ class DatabaseInterface(object):
         try:
             self.cur.execute(query, params)
             self.conn.commit()
-        except Exception as e:
+        except mysql.connector.Error as e:
             self.conn.rollback()
             logging.error(
-                'Failed UPDATE transaction: ' \
-                '{}\nQuery:\n{}\nparams:\n{}'.format(e, query, params)
+                'Failed UPDATE transaction: %s\nQuery:\n%s\nparams:\n%s',
+                e, query, params
             )

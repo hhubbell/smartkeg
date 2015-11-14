@@ -1,12 +1,12 @@
 #!/usr/bin/env python2
-#--------------------------------------------------------------------------
+#
 # Name:         gui.py
 # Author:       Christopher Young
 # Created:      11/1/14
-# Description:  Create a webkit enabled GUI to render the web interface in 
-#               a special purpose window.  Render the host provided as the 
+# Description:  Create a webkit enabled GUI to render the web interface in
+#               a special purpose window.  Render the host provided as the
 #               first if applicable, otherwise render localhost.
-#--------------------------------------------------------------------------
+#
 
 import sys
 import gtk

@@ -20,12 +20,13 @@ class FlowMeter(object):
         self.conn = conn
         self.units = 'pints'
         self.ticks = 0
+        self.last_tick = 0
         self.setup_data_pin()
 
-        logging.info('FlowMeter initialized on pin {} (units: {})'.format(
-            self.pin,
-            self.units
-        ))                
+        logging.info(
+            'FlowMeter initialized on pin %s (units: %s)',
+            self.pin, self.units
+        )
 
     def to_pints(self, ticks):
         """
@@ -34,9 +35,9 @@ class FlowMeter(object):
         @description:   Converts flow meter ticks to pint value. According
                         to documentation, the flow meter used:
                             Liquid Flow Meter - Plastic 1/2" NPS Threaded
-                        from Adafruit (Product ID 828) calculates 
+                        from Adafruit (Product ID 828) calculates
                         1 Liter = 450 Pulses.
-                        
+
         """
         return (ticks / self._PULSES_PER_LITER) * self._PINTS_PER_LITER
 
@@ -80,22 +81,22 @@ class FlowMeter(object):
 
 class FlowMeterManager(object):
     def __init__(self, pins=None, pipe=None, dbi=None):
-        pins = pins if pins is not None else []        
+        pins = pins if pins is not None else []
 
         logging.info('Starting FlowMeterManager...')
-        logging.info('Initializing with meters on pins {}'.format(pins))
+        logging.info('Initializing with meters on pins %s', pins)
 
         self.fmq = Queue()
-        self.meters = [Process(target=FlowMeter(x, self.fmq).monitor) for x in pins]        
+        self.meters = [Process(target=FlowMeter(x, self.fmq).monitor) for x in pins]
         self.pipe = pipe
-        self.dbi = dbi                
+        self.dbi = dbi
 
     def add(self, *pins):
         """
         @author:        Harrison Hubbell
         @created:       03/05/2015
         @description:   Create a FlowMeter thread for each pin which allows
-                        the controller to accept flow input from multiple 
+                        the controller to accept flow input from multiple
                         taps.
         """
         self.meters += [Process(target=FlowMeter(x, self.fmq).monitor) for x in pins]
@@ -118,12 +119,13 @@ class FlowMeterManager(object):
         @description:   Starts monitor the FlowMeter for pouring
         """
         self.start_all()
-        
+
         while True:
-            while not fmq.empty():
-                data = fmq.get()
-                logging.info('Flow detected {}'.format(data))
+            while not self.fmq.empty():
+                data = self.fmq.get()
                 self.pipe.send(data)
-            
+                logging.info('Flow detected %s', data)
+
+
             time.sleep(0.1)
 

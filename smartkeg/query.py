@@ -31,7 +31,7 @@ def get_beers(params):
     @author:        Harrison Hubbell
     @created:       02/18/2015
     @description:   Format a query to get beers based on params
-    """        
+    """
     query = """
         SELECT
             b.id        AS id,
@@ -47,7 +47,7 @@ def get_beers(params):
         {}
         ORDER BY b.name
     """.format(format_where(params))
-    
+
     return query, [x[1] for x in params]
 
 def get_brewers(params):
@@ -85,7 +85,7 @@ def get_daily():
         GROUP BY DATE(pour_time)
         ORDER BY pour_time
     """
-    
+
     return query, []
 
 def get_now_serving():
@@ -157,6 +157,11 @@ def get_volume_remaining():
     return query, []
 
 def get_fridge_temp(params):
+    """
+    @author:        Harrison Hubbell
+    @created:       03/30/2015
+    @description:   Format a query to get the fridge temperature
+    """
     query = """SELECT id FROM FridgeTemp {}""".format(format_where(params))
     return query, [x[1] for x in params]
 
@@ -192,6 +197,11 @@ def set_rating(params):
     return query, [x[1] for x in params]
 
 def set_temperature(params):
+    """
+    @author:        Harrison Hubbell
+    @created:       03/05/2015
+    @description:   Format a query to insert a new fridge temperature
+    """
     query = """INSERT INTO FridgeTemp {}""".format(format_values(params[0]))
 
     return query, [(x[0][1], x[1][1]) for x in params]
@@ -209,7 +219,7 @@ def rem_keg(params):
     """
     return query, params
 
-'''        
+'''
     # --------------------
     # INSERTS
     # --------------------

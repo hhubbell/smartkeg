@@ -16,6 +16,7 @@ class APIMalformedError(Exception):
     ERRORSTRING = 'API Query "{:5}{}{}" is malformed'
 
     def __init__(self, url, params=None, method=None):
+        super(APIMalformedError, self).__init__(self)
         self.params = '?' + urllib.parse.urlencode(params) if params else ''
         self.method = method or ''
         self.url = url

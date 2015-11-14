@@ -23,9 +23,12 @@ Easy as that!
 
 Smartkeg has the following dependencies, and the build script will check first to see if you have the following installed:
 
+###### System
 * MySQL/MariaDB
-* pip
-* MySQL-python
+* pip (For checking Python dependencies)
+
+###### Python
+* mysql.connector
 * RPi.GPIO
 * qrcode
 * pywebkitgtk (GUI only)

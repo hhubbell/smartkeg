@@ -6,12 +6,19 @@
 #               MUST have a forecast() methed.
 #
 
+from __future__ import division, print_function
 import logging
 import math
 
 class TimeSeriesRegression(object):
     def __init__(self, periods):
         self.periods = periods
+        self.seasonal_indicies = []
+        self.intercept = None
+        self.prediction = None
+        self.seasonality = None
+        self.slope = None
+        self.trend = None
 
     def __str__(self):
         """
@@ -21,8 +28,10 @@ class TimeSeriesRegression(object):
                         regression model.
         """
         t = '({} + {}(x))'.format(str(self.intercept), str(self.slope))
-        s = '({})'.format(' + '.join(['{}(s{})'.format(self.seasonality(x), x) for x in range(0, self.periods)]))
-        
+        s = '({})'.format(' + '.join(
+            ['{}(s{})'.format(self.seasonality(x), x) for x in range(0, self.periods)]
+        ))
+
         return t + ' * ' + s
 
     def forecast(self, data):
@@ -35,7 +44,7 @@ class TimeSeriesRegression(object):
         self.seasonality = self.calculate_seasonal_indices(data)
 
         self.prediction = []
-        
+
         start = len(data)
         end = start + self.periods
 
@@ -84,14 +93,14 @@ class TimeSeriesRegression(object):
         @description:   Calculate the seasonal indecies for each period.
                         If periods is EVEN: The simple moving average must
                         be centered.
-                        If periods is ODD:  The simple moving average is 
-                        already centered and no further calculation is 
+                        If periods is ODD:  The simple moving average is
+                        already centered and no further calculation is
                         necessary.
         """
         self.seasonal_indicies = []
         season_avg = []
-        i = 0        
-        
+        i = 0
+
         if self.periods % 2 == 0:
             sma = self.simple_moving_avg(data)
             cma = self.centered_moving_avg(sma)
@@ -102,17 +111,17 @@ class TimeSeriesRegression(object):
 
         while i < self.periods and i < len(rma):
             points = rma[i::self.periods]
-            
+
             print(rma)
             print(self.periods)
             print(points)
 
             season_avg.append(sum(points) / len(points))
             i += 1
-         
+
         for avg in season_avg:
             self.seasonal_indicies.append((avg - self.periods) / sum(season_avg))
-            
+
         return lambda x: self.seasonal_indicies[(x % self.periods)] if len(self.seasonal_indicies) > x % self.periods else 0
 
     def centered_moving_avg(self, simple_moving_avg):
@@ -136,11 +145,11 @@ class TimeSeriesRegression(object):
         """
         @author:        Harrison Hubbell
         @created:       11/06/2014
-        @description:   Calculate the ratio to moving average for the 
+        @description:   Calculate the ratio to moving average for the
                         centered moving average.  A little black magic
-                        happens here because using 0 based indicies and 
-                        the number of periods allows the index of the 
-                        related observed value (to the CMA value) to be 
+                        happens here because using 0 based indicies and
+                        the number of periods allows the index of the
+                        related observed value (to the CMA value) to be
                         found by taking the floor of self.periods / 2.
         """
         i = int(math.floor(self.periods / 2))
@@ -163,7 +172,7 @@ class TimeSeriesRegression(object):
         moving_avg = []
 
         while i <= len(data_set) - self.periods:
-            period_avg = float(sum(data_set[i:self.periods])) / float(self.periods)
+            period_avg = sum(data_set[i:self.periods]) / self.periods
             moving_avg.append(period_avg)
             i += 1
 

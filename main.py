@@ -47,12 +47,12 @@ def model(data):
     @description:   Generate a new time series regression model
     """
     PERIODS = 7
-    
+
     reg = smartkeg.TimeSeriesRegression(PERIODS)
     forecast = reg.forecast(data)
 
-    logging.info('New Model: {}'.format(str(reg)))
-    logging.info('New Forecast: {}'.format(forecast))
+    logging.info('New Model: %s', str(reg))
+    logging.info('New Forecast: %s', forecast)
 
     return forecast
 
@@ -70,11 +70,11 @@ def proc(target, args=None, name=None):
     @author:        Harrison Hubbell
     @created:       10/05/2014
     @description:   Adds a process and manages creating the pipes
-                    between both nodes.  Returns a tuple of the 
+                    between both nodes.  Returns a tuple of the
                     process and pipe to that process.
     """
     if args is None: args = ()
-    
+
     pipe_to, pipe_from = Pipe()
     args = (pipe_from,) + args
 
@@ -100,8 +100,8 @@ def spawn_temp_sensor(pipe, cfg, dbi=None):
     @description:   Creates the Temperature Sensor process.
     """
     tmp = smartkeg.TemperatureSensorManager(
-        cfg['interval'],                        
-        sensors=cfg['sensors'],            
+        cfg['interval'],
+        sensors=cfg['sensors'],
         pipe=pipe,
         dbi=dbi
     )
@@ -112,7 +112,7 @@ def spawn_temp_sensor(pipe, cfg, dbi=None):
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BOARD)
 
-    CFG_PATH = '/etc/smartkeg/config.json'    
+    CFG_PATH = '/etc/smartkeg/config.json'
     SRV_PATH = '/srv/smartkeg/'
 
     # Test data frame
@@ -124,7 +124,10 @@ if __name__ == '__main__':
             'ibu': 'NA',
             'rating': 3,
             'remaining': .34,
-            'consumption': [[0, 5], [1, 7], [2, 9], [3,1], [4,3], [5, 6], [6, 13], [2, 2], [3,4], [4,10]]
+            'consumption': [
+                [0, 5], [1, 7], [2, 9], [3, 1], [4, 3],
+                [5, 6], [6, 13], [2, 2], [3, 4], [4, 10]
+            ]
         },
         {
             'name': 'Fiddlehead IPA',
@@ -133,7 +136,7 @@ if __name__ == '__main__':
             'ibu': 'NA',
             'rating': 3,
             'remaining': .19,
-            'consumption': [[0, 1], [1, 8], [2, 2], [3,4], [4,10]]
+            'consumption': [[0, 1], [1, 8], [2, 2], [3, 4], [4, 10]]
         },
         {
             'name': 'Cone Head',
@@ -142,7 +145,7 @@ if __name__ == '__main__':
             'ibu': 'NA',
             'rating': 3,
             'remaining': .7865,
-            'consumption': [[0, 1], [1, 8], [2, 2], [3,4], [4,9]]
+            'consumption': [[0, 1], [1, 8], [2, 2], [3, 4], [4, 9]]
         },
         {
             'name': 'Hodad',
@@ -157,19 +160,22 @@ if __name__ == '__main__':
 
     # Replacement beer when other hits 0
     REPLF = {
-            'name': 'Baltic Porter',
-            'brand': 'Smuttynose',
-            'abv': 9.9,
-            'ibu': 'NA',
-            'rating': 5,
-            'remaining': 1,
-            'consumption': [[0, 1], [1, 8], [2, 2], [4,3], [5, 6], [6, 13], [2, 2], [4,10]]
+        'name': 'Baltic Porter',
+        'brand': 'Smuttynose',
+        'abv': 9.9,
+        'ibu': 'NA',
+        'rating': 5,
+        'remaining': 1,
+        'consumption': [
+            [0, 1], [1, 8], [2, 2], [4, 3],
+            [5, 6], [6, 13], [2, 2], [4, 10]
+        ]
     }
 
     cfg = config(CFG_PATH)
     fridge = cfg['fridge']
     dbconf = cfg['database']
-    
+
     logging.basicConfig(
         filename='{}{}.log'.format(
             cfg['logger']['directory'] + cfg['logger']['file'],
@@ -179,10 +185,10 @@ if __name__ == '__main__':
         level=logging.INFO
     )
     logging.info('Starting the Smartkeg system')
-    
-    
+
+
     db = dbconnect(dbconf)
-    
+
     with db as d:
         srv = TESTDF#d.select(*smartkeg.query.get_now_serving())
         tmp = d.select(*smartkeg.query.get_fridge_temp(fridge.items()))
@@ -200,7 +206,7 @@ if __name__ == '__main__':
         spawn_flow_meter,
         args=(cfg['flow_meter'], dbconnect(dbconf))
     )
-    
+
     tempproc, temppipe = proc(
         spawn_temp_sensor,
         args=(cfg['temp_sensor'], dbconnect(dbconf))
@@ -216,7 +222,7 @@ if __name__ == '__main__':
         if temppipe.poll():
             with db as d:
                 tmp = d.select(*smartkeg.query.get_fridge_temp(fridge.items()))
-            
+
         for i, beer in enumerate(srv):
             #subtract a little beer
             beer['remaining'] -= .001

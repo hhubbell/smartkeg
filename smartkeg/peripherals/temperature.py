@@ -13,7 +13,7 @@ import time
 import re
 
 class TemperatureSensor(object):
-    FILE = 'w1_slave'    
+    FILE = 'w1_slave'
     SCALE = 1000.00
 
     def __init__(self, name, path):
@@ -46,15 +46,15 @@ class TemperatureSensorManager(object):
 
     def __init__(self, interval, sensors=None, path=None, filename=None, pipe=None, dbi=None):
         sensors = sensors if sensors is not None else []
-        
-        logging.info('Starting TemperatureSensorManager...')
-        logging.info('Initializing with sensors {}'.format(sensors))
 
-        self.interval = interval        
+        logging.info('Starting TemperatureSensorManager...')
+        logging.info('Initializing with sensors %s', sensors)
+
+        self.interval = interval
         self.path = path if path is not None else self.PATH
         self.pipe = pipe
         self.dbi = dbi
-                
+
         self.sensors = [TemperatureSensor(x, self.path) for x in sensors]
 
     def add(self, *ids):
@@ -107,16 +107,16 @@ class TemperatureSensorManager(object):
         """
         while True:
             fahr = {k: self.convert(v) for k, v in self.read_all().items() if v is not None}
-            
+
             if fahr:
                 avg = self.avg([x for x in fahr.values()])
 
-                [logging.info('{} {} F'.format(x[0], x[1])) for k, v in fahr.items()]
-                logging.info('Average: {} F'.format(avg))
-                
+                [logging.info('%s %s F', k, v) for k, v in fahr.items()]
+                logging.info('Average: %s F', avg)
+
                 with self.dbi as dbi:
                     dbi.insert(*query.set_temperature({'temperature': avg}))
-                
+
                 self.pipe.send(avg)
 
             time.sleep(self.interval)
